@@ -12,7 +12,15 @@ namespace MSPack.Processor.Core.Definitions
         public readonly TypeReference Type;
         public readonly int Index;
 
-        public ulong Value => ((ulong)Key << 32) | (ulong)Index;
+        public ulong Value
+        {
+            get
+            {
+                ulong key = (ulong)Key;
+                ulong index = (ulong)Index;
+                return key << 32 | index;
+            }
+        }
 
         public UnionSerializationInfo(int key, TypeReference type, int index)
         {
