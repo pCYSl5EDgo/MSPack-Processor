@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -18,5 +18,9 @@
     <ProjectReference Include="..\SimpleTestClasses\SimpleTestClasses.csproj" />
     <ProjectReference Include="..\CompoundTestClasses\CompoundTestClasses.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="mspc -t &quot;$(TargetPath)&quot; -n &quot;Core.Test.Resolver&quot; -l &quot;$(TargetDir)ComplexTestClasses.dll,$(TargetDir)SimpleTestClasses.dll,$(TargetDir)CompoundTestClasses.dll&quot;" />
+  </Target>
 
 </Project>
