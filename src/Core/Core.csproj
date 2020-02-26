@@ -15,10 +15,11 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageId>MSPack.Processor.Core</PackageId>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <PackageReleaseNotes>0.1.1 : First trial of enabling private access
-0.1.0 : Initial Commit
+    <PackageReleaseNotes>0.1.2 : Fix => Unverifiable ctor is instance method.
+0.1.1 : First trial of enabling private access.
+0.1.0 : Initial Commit.
     </PackageReleaseNotes>
   </PropertyGroup>
 

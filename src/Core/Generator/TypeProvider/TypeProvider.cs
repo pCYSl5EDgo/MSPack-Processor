@@ -83,7 +83,7 @@ namespace MSPack.Processor.Core.Provider
             return systemCollectionsScope;
         }
 
-        private IMetadataScope SystemRuntimeExtensionsScope()
+        public IMetadataScope SystemRuntimeExtensionsScope()
         {
             if (!(systemRuntimeExtensionsScope is null))
             {
@@ -92,7 +92,7 @@ namespace MSPack.Processor.Core.Provider
 
             var scopeGenerator = default(AssemblyNameReferenceGenerator);
             systemRuntimeExtensionsScope =
-                scopeGenerator.TryGetHashtableContainerNameReference(Module, out var hashtableNameReference)
+                scopeGenerator.TryGetSystemRuntimeExtensionDllNameReference(Module, out var hashtableNameReference)
                     ? AssemblyNameReferenceInjector.Inject(Module, hashtableNameReference, reportHook)
                     : Module.TypeSystem.CoreLibrary;
 

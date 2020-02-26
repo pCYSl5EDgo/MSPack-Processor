@@ -39,7 +39,7 @@ namespace MSPack.Processor.Core.Provider
             }
         }
 
-        public bool TryGetHashtableContainerNameReference(ModuleDefinition module, [NotNullWhen(true)]out AssemblyNameReference? nameReference)
+        public bool TryGetSystemRuntimeExtensionDllNameReference(ModuleDefinition module, [NotNullWhen(true)]out AssemblyNameReference? nameReference)
         {
             switch (RuntimeDetector.DetectRuntimeTarget(module))
             {
