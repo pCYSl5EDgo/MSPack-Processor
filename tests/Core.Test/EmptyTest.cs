@@ -1,15 +1,26 @@
 using NUnit.Framework;
 using SimpleTestClasses;
 using MessagePack;
+using MessagePack.Resolvers;
 
 namespace Core.Test
 {
+    [SetUpFixture]
     [TestFixture]
     public class EmptyTests
     {
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
+            StaticCompositeResolver.Instance.Register(new IFormatterResolver[]
+            {
+                Resolver.Instance,
+                BuiltinResolver.Instance,
+                StandardResolver.Instance,
+            });
+            var option = MessagePackSerializerOptions.Standard.WithResolver(StaticCompositeResolver.Instance);
+
+            MessagePackSerializer.DefaultOptions = option;
         }
 
         private void Test<T>()
