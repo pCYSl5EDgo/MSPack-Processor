@@ -1,8 +1,0 @@
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\bin\Release\netstandard2.0\CompoundTestClasses.deps.json
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\bin\Release\netstandard2.0\CompoundTestClasses.dll
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\bin\Release\netstandard2.0\CompoundTestClasses.pdb
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\obj\Release\netstandard2.0\CompoundTestClasses.csprojAssemblyReference.cache
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\obj\Release\netstandard2.0\CompoundTestClasses.AssemblyInfoInputs.cache
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\obj\Release\netstandard2.0\CompoundTestClasses.AssemblyInfo.cs
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\obj\Release\netstandard2.0\CompoundTestClasses.dll
-C:\Users\conve\source\repos\MSPack-Processor\tests\CompoundTestClasses\obj\Release\netstandard2.0\CompoundTestClasses.pdb
