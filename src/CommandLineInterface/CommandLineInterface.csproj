@@ -10,7 +10,7 @@
     <Copyright>pCYSl5EDgo</Copyright>
     <IsPackable>true</IsPackable>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageId>MSPack.Processor.CLI</PackageId>
     <PackAsTool Condition="Exists('/bin')">true</PackAsTool>
@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="ConsoleAppFramework" Version="2.1.0" />
-    <PackageReference Include="MSPack.Processor.Core" Version="0.1.0" />
+    <PackageReference Include="MSPack.Processor.Core" Version="0.1.*" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <PackageReference Include="ZString" Version="1.0.0" />
   </ItemGroup>
