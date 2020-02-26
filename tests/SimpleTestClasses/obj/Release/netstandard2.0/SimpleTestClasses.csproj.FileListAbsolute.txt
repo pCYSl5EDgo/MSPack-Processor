@@ -1,0 +1,8 @@
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\bin\Release\netstandard2.0\SimpleTestClasses.deps.json
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\bin\Release\netstandard2.0\SimpleTestClasses.dll
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\bin\Release\netstandard2.0\SimpleTestClasses.pdb
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\obj\Release\netstandard2.0\SimpleTestClasses.csprojAssemblyReference.cache
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\obj\Release\netstandard2.0\SimpleTestClasses.AssemblyInfoInputs.cache
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\obj\Release\netstandard2.0\SimpleTestClasses.AssemblyInfo.cs
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\obj\Release\netstandard2.0\SimpleTestClasses.dll
+C:\Users\conve\source\repos\MSPack-Processor\tests\SimpleTestClasses\obj\Release\netstandard2.0\SimpleTestClasses.pdb

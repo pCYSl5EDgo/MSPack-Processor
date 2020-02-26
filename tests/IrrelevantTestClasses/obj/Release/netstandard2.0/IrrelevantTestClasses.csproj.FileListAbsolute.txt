@@ -1,0 +1,8 @@
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\bin\Release\netstandard2.0\IrrelevantTestClasses.deps.json
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\bin\Release\netstandard2.0\IrrelevantTestClasses.dll
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\bin\Release\netstandard2.0\IrrelevantTestClasses.pdb
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\obj\Release\netstandard2.0\IrrelevantTestClasses.csprojAssemblyReference.cache
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\obj\Release\netstandard2.0\IrrelevantTestClasses.AssemblyInfoInputs.cache
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\obj\Release\netstandard2.0\IrrelevantTestClasses.AssemblyInfo.cs
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\obj\Release\netstandard2.0\IrrelevantTestClasses.dll
+C:\Users\conve\source\repos\MSPack-Processor\tests\IrrelevantTestClasses\obj\Release\netstandard2.0\IrrelevantTestClasses.pdb

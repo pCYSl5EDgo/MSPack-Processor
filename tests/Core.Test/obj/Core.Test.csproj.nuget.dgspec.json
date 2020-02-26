@@ -1,0 +1,343 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\Core.Test\\Core.Test.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\ComplexTestClasses.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\ComplexTestClasses.csproj",
+        "projectName": "ComplexTestClasses",
+        "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\ComplexTestClasses.csproj",
+        "packagesPath": "C:\\Users\\conve\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\conve\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "projectReferences": {
+              "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\IrrelevantTestClasses.csproj": {
+                "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\IrrelevantTestClasses.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "dependencies": {
+            "MessagePack.Annotations": {
+              "target": "Package",
+              "version": "[2.1.90, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\CompoundTestClasses.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\CompoundTestClasses.csproj",
+        "projectName": "CompoundTestClasses",
+        "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\CompoundTestClasses.csproj",
+        "packagesPath": "C:\\Users\\conve\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\conve\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "dependencies": {
+            "MessagePack.Annotations": {
+              "target": "Package",
+              "version": "[2.1.90, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\Core.Test\\Core.Test.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\Core.Test\\Core.Test.csproj",
+        "projectName": "Core.Test",
+        "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\Core.Test\\Core.Test.csproj",
+        "packagesPath": "C:\\Users\\conve\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\Core.Test\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\conve\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {
+              "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\ComplexTestClasses.csproj": {
+                "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\ComplexTestClasses\\ComplexTestClasses.csproj"
+              },
+              "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\CompoundTestClasses.csproj": {
+                "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\CompoundTestClasses\\CompoundTestClasses.csproj"
+              },
+              "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\SimpleTestClasses.csproj": {
+                "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\SimpleTestClasses.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "dependencies": {
+            "MessagePack": {
+              "target": "Package",
+              "version": "[2.1.90, )"
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[16.4.0, )"
+            },
+            "NUnit3TestAdapter": {
+              "target": "Package",
+              "version": "[3.15.1, )"
+            },
+            "nunit": {
+              "target": "Package",
+              "version": "[3.12.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\IrrelevantTestClasses.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\IrrelevantTestClasses.csproj",
+        "projectName": "IrrelevantTestClasses",
+        "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\IrrelevantTestClasses.csproj",
+        "packagesPath": "C:\\Users\\conve\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\IrrelevantTestClasses\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\conve\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "dependencies": {
+            "MessagePack.Annotations": {
+              "target": "Package",
+              "version": "[2.1.90, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\SimpleTestClasses.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\SimpleTestClasses.csproj",
+        "projectName": "SimpleTestClasses",
+        "projectPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\SimpleTestClasses.csproj",
+        "packagesPath": "C:\\Users\\conve\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\conve\\source\\repos\\MSPack-Processor\\tests\\SimpleTestClasses\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\conve\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.0": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.0": {
+          "dependencies": {
+            "MessagePack.Annotations": {
+              "target": "Package",
+              "version": "[2.1.90, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
