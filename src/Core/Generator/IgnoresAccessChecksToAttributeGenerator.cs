@@ -60,6 +60,10 @@ namespace MSPack.Processor.Core
                 {
                     new CustomAttribute(attributeUsageAttributeCtor)
                     {
+                        ConstructorArguments =
+                        {
+                            new CustomAttributeArgument(attributeTargets, 1)
+                        },
                         Properties =
                         {
                             new CustomAttributeNamedArgument("AllowMultiple", new CustomAttributeArgument(module.TypeSystem.Boolean, true)),

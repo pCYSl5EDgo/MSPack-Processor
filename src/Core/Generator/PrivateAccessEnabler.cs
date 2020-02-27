@@ -1,100 +1,44 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using Mono.Cecil;
 
 namespace MSPack.Processor.Core
 {
     public static class PrivateAccessEnabler
     {
-        public static void EnablePrivateAccess(ModuleDefinition module)
+        public static void EnablePrivateAccess(ModuleDefinition module, Func<IMetadataScope> extensionsScopeFunc)
         {
             if (!HasUnverifiable(module))
             {
                 AddUnverifiable(module);
             }
 
-            /*if (!HasSecurityPermission(module, out bool shouldRewrite, out CustomAttribute? securityPermissionAttribute))
+            if (!module.Assembly.HasSecurityDeclarations)
             {
-                AddSecurityPermission(module, extensionsScopeFunc());
+                AddSecurity(module, module.Assembly, extensionsScopeFunc());
             }
-            else if (shouldRewrite)
-            {
-                RewriteSecurityPermission(securityPermissionAttribute!);
-            }*/
         }
 
-        /*
-        private static void RewriteSecurityPermission(CustomAttribute securityPermissionAttribute)
+        private static void AddSecurity(ModuleDefinition module, AssemblyDefinition assembly, IMetadataScope extensionsScope)
         {
-            var customAttributeArguments = securityPermissionAttribute.ConstructorArguments;
-            customAttributeArguments[0] = new CustomAttributeArgument(customAttributeArguments[0].Type, (int)8);
-            if (securityPermissionAttribute.HasProperties)
+            var securityPermission = new TypeReference("System.Security.Permissions", "SecurityPermissionAttribute", module, extensionsScope, false);
+            var declaration = new SecurityDeclaration(SecurityAction.RequestMinimum)
             {
-                var properties = securityPermissionAttribute.Properties;
-                for (var index = 0; index < properties.Count; index++)
+                SecurityAttributes =
                 {
-                    var property = properties[index];
-                    if (property.Name != "SkipVerification")
+                    new SecurityAttribute(securityPermission)
                     {
-                        continue;
-                    }
-
-                    properties[index] = new CustomAttributeNamedArgument("SkipVerification", new CustomAttributeArgument(property.Argument.Type, true));
-                    return;
-                }
-            }
-
-            securityPermissionAttribute.Properties.Add(new CustomAttributeNamedArgument("SkipVerification", new CustomAttributeArgument(securityPermissionAttribute.AttributeType.Module.TypeSystem.Boolean, true)));
-        }
-
-        private static void AddSecurityPermission(ModuleDefinition module, IMetadataScope extensionsScopeFunc)
-        {
-            var attribute = new TypeReference("System.Security.Permissions", "SecurityPermissionAttribute", module, extensionsScopeFunc, false);
-            var flag = new TypeReference("System.Security.Permissions", "SecurityAction", module, extensionsScopeFunc, true);
-            var ctor = new MethodReference(".ctor", module.TypeSystem.Void, attribute)
-            {
-                HasThis = true,
+                        Properties =
+                        {
+                            new CustomAttributeNamedArgument("SkipVerification", new CustomAttributeArgument(module.TypeSystem.Boolean, true)),
+                        },
+                    },
+                },
             };
-            module.Assembly.CustomAttributes.Add(new CustomAttribute());
+            assembly.SecurityDeclarations.Add(declaration);
         }
-
-        private static bool HasSecurityPermission(ModuleDefinition module, out bool shouldRewrite, out CustomAttribute? securityPermissionAttribute)
-        {
-            foreach (var attribute in module.Assembly.CustomAttributes)
-            {
-                if (attribute.AttributeType.FullName != "System.Security.Permissions.SecurityPermissionAttribute")
-                {
-                    continue;
-                }
-
-                securityPermissionAttribute = attribute;
-
-                if ((int)attribute.ConstructorArguments[0].Value != 8 || !attribute.HasProperties)
-                {
-                    shouldRewrite = true;
-                    return true;
-                }
-
-                foreach (var property in attribute.Properties)
-                {
-                    if (property.Name != "SkipVerification")
-                    {
-                        continue;
-                    }
-
-                    shouldRewrite = !(bool)property.Argument.Value;
-                    return true;
-                }
-
-                shouldRewrite = true;
-                return true;
-            }
-
-            securityPermissionAttribute = default;
-            shouldRewrite = default;
-            return false;
-        }*/
 
         private static void AddUnverifiable(ModuleDefinition module)
         {

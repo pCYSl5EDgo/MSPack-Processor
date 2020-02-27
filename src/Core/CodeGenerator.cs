@@ -101,7 +101,7 @@ namespace MSPack.Processor.Core
             var resolverInjector = new ResolverInjector(targetModule, resolverName, provider);
             resolverInjector.Implement(getFormatterMethodInfo);
 
-            PrivateAccessEnabler.EnablePrivateAccess(targetModule);
+            PrivateAccessEnabler.EnablePrivateAccess(targetModule, provider.SystemRuntimeExtensionsScope);
 
             try
             {

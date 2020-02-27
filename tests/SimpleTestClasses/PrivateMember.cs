@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using MessagePack;
 
@@ -55,17 +56,27 @@ namespace SimpleTestClasses
     public struct PrivateMemberStruct : IB
     {
         [Key(0)]
-        private string name;
+        public string name;
 
         [Key(1)]
-        private char[][] array;
+        public char[][] array;
 
         public PrivateMemberStruct(string name, int publicB)
         {
             this.name = name;
             PublicB = publicB;
 
-            array = new char[unchecked(publicB < 0 ? -publicB : publicB)][];
+            if (publicB <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(publicB), "publicB is " + publicB.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            array = new char[publicB][];
             for (var i = 0; i < array.Length; i++)
             {
                 ref var chars = ref array[i];
