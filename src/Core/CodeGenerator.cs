@@ -37,7 +37,7 @@ namespace MSPack.Processor.Core
         }
 
         public void Generate(
-            string targetPath,
+            string inputPath,
             string resolverName,
             string[] libraryPaths,
             string[] definitionPaths,
@@ -51,16 +51,18 @@ namespace MSPack.Processor.Core
             var modules = new ModuleDefinition[1 + libraryPaths.Length];
             using (new Watcher(sw, logger, "Module Reading"))
             {
-                modules[0] = targetModule = ModuleDefinition.ReadModule(targetPath, readerParam);
+                modules[0] = targetModule = ModuleDefinition.ReadModule(inputPath, readerParam);
 
                 var resolverFinder = new FormatterResolverFinder();
                 resolverTypeDefinition = resolverFinder.Find(targetModule, resolverName);
 
                 var messagePackAssemblyNameReference = targetModule.AssemblyReferences.First(x => x.Name == "MessagePack");
                 ReadModules(libraryPaths, modules);
-                foreach (var path in definitionPaths)
+                var definitionModules = new ModuleDefinition[definitionPaths.Length];
+                for (var index = 0; index < definitionPaths.Length; index++)
                 {
-                    ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
+                    var path = definitionPaths[index];
+                    definitionModules[index] = ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
                 }
 
                 var verifier = new ModuleRelationshipVerifier();

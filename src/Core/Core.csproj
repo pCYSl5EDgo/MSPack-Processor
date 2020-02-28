@@ -16,14 +16,14 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <PackageId>MSPack.Processor.Core</PackageId>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
-    <Version>0.2.0</Version>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <PackageReleaseNotes>0.2.0 : API update =&gt; -t option now -i &amp; new -d option(for performance purpose).
+    <Version>0.2.1</Version>
+    <PackageReleaseNotes>0.2.1 : Minor API update. Add NopReportHook,
+0.2.0 : API update =&gt; -t option now -i &amp; new -d option(for performance purpose).
 0.1.3 : Fix =&gt; IgnoresAccessChecksToAttribute generator
 0.1.2 : Fix =&gt; Unverifiable ctor is instance method.
 0.1.1 : First trial of enabling private access.
-0.1.0 : Initial Commit.
-    </PackageReleaseNotes>
+0.1.0 : Initial Commit.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

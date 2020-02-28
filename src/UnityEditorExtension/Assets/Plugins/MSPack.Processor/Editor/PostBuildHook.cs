@@ -38,35 +38,45 @@ namespace MSPack.Processor.Unity.Editor
             }
         }
 
-        private static StringBuilder builder = new StringBuilder();
+        private static readonly StringBuilder stringBuilder = new StringBuilder();
 
         private static string ToString(ref BuildFile file)
         {
-            return builder.Clear().Append("id : ").Append(file.id).Append("\npath : ").Append(file.path).Append("\nrole : ").Append(file.role).Append("\nsize : ").Append(file.size).ToString();
+            return stringBuilder.Clear().Append("id : ").Append(file.id).Append("\npath : ").Append(file.path).Append("\nrole : ").Append(file.role).Append("\nsize : ").Append(file.size).ToString();
         }
 
-        private void Implement(BuildReport report)
+        private static void Implement(BuildReport report)
         {
             var definitionList = new List<string>(64);
             var libraryList = new List<string>(128);
+            var targetModule = default(string);
             for (var index = 0; index < report.files.Length; index++)
             {
                 ref var reportFile = ref report.files[index];
                 var path = reportFile.path;
-                Debug.Log(ToString(ref reportFile));
                 switch (reportFile.role)
                 {
                     case "ManagedLibrary":
-                        libraryList.Add(path);
+                        if (path.EndsWith("Assembly-CSharp.dll"))
+                        {
+                            targetModule = path;
+                        }
+                        else
+                        {
+                            libraryList.Add(path);
+                        }
                         break;
                     case "DependentManagedLibrary":
                     case "ManagedEngineAPI":
                         definitionList.Add(path);
                         break;
                     default:
+                        Debug.Log("DEFAULT\n" + ToString(ref reportFile));
                         break;
                 }
             }
+
+
         }
     }
 }

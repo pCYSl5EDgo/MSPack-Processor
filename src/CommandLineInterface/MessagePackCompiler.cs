@@ -4,6 +4,7 @@
 using ConsoleAppFramework;
 using Microsoft.Extensions.Hosting;
 using MSPack.Processor.Core;
+using MSPack.Processor.Core.Report;
 using System;
 using System.Threading.Tasks;
 
@@ -20,14 +21,14 @@ namespace MSPack.Processor.CLI
         }
 
         public void Run(
-            [Option("i", "Path of input dll.")]string target,
-            [Option("n", "Set resolver name with namespace.")]string resolverName = "MessagePack.GeneratedResolver",
+            [Option("i", "Path of input dll.")]string input,
+            [Option("n", "Set resolver name with namespace.")]string resolverName = "",
             [Option("l", "Library dll file paths that target file depends on. Split with ','.")] string libraryFiles = "",
             [Option("d", "Definition dll file paths. Split with ','.")] string definitionFiles = "",
             [Option("m", "Force use map mode serialization.")]bool useMapMode = false,
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
-            var reportHook = new NopHook();
+            var reportHook = new NopReportHook();
             var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook);
 
             var libraryPaths = Split(libraryFiles);
@@ -35,7 +36,7 @@ namespace MSPack.Processor.CLI
 
             codeGenerator
                 .Generate(
-                    target,
+                    input,
                     resolverName,
                     libraryPaths,
                     definitionPaths,
