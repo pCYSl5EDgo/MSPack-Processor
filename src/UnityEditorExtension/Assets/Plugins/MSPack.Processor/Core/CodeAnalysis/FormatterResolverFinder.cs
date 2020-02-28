@@ -16,13 +16,14 @@ namespace MSPack.Processor.Core
                 {
                     return resolver;
                 }
+
+                throw new MessagePackGeneratorResolveFailedException("Resolver not found. Searched resolver name : " + defaultResolverName);
             }
 
             var found = FindInModule(module);
-
             if (found is null)
             {
-                throw new MessagePackGeneratorResolveFailedException("Resolver not found. Searched resolver name : " + defaultResolverName);
+                throw new MessagePackGeneratorResolveFailedException("Resolver not found.");
             }
 
             return found;
