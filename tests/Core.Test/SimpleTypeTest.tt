@@ -1,0 +1,66 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+using System;
+using NUnit.Framework;
+using SimpleTestClasses;
+using MessagePack;
+
+namespace Core.Test
+{
+    [TestFixture]
+    public class SimpleTypeTests
+    {
+<#var array = new string[]{
+  "Byte",
+  "SByte",
+  "Int16",
+  "Int32",
+  "Int64",
+  "UInt16",
+  "UInt32",
+  "UInt64",
+  "Single",
+  "Double",
+  "Char",
+  "Boolean",
+};
+
+foreach(var item in array){#>
+        <# if(item != "Boolean"){#>
+        [TestCase(unchecked((<#=item#>)(0)))]
+        [TestCase(unchecked((<#=item#>)(1)))]
+        [TestCase(unchecked((<#=item#>)(-1)))]
+        [TestCase(unchecked((<#=item#>)sbyte.MinValue))]
+        [TestCase(unchecked((<#=item#>)sbyte.MaxValue))]
+        [TestCase(unchecked((<#=item#>)byte.MinValue))]
+        [TestCase(unchecked((<#=item#>)byte.MaxValue))]
+        [TestCase(unchecked((<#=item#>)short.MinValue))]
+        [TestCase(unchecked((<#=item#>)short.MaxValue))]
+        [TestCase(unchecked((<#=item#>)ushort.MinValue))]
+        [TestCase(unchecked((<#=item#>)ushort.MaxValue))]
+        [TestCase(unchecked((<#=item#>)int.MinValue))]
+        [TestCase(unchecked((<#=item#>)int.MaxValue))]
+        [TestCase(unchecked((<#=item#>)uint.MinValue))]
+        [TestCase(unchecked((<#=item#>)uint.MaxValue))]
+        [TestCase(unchecked((<#=item#>)long.MinValue))]
+        [TestCase(unchecked((<#=item#>)long.MaxValue))]
+        [TestCase(unchecked((<#=item#>)ulong.MinValue))]
+        [TestCase(unchecked((<#=item#>)ulong.MaxValue))]
+        <#}else{#>
+        [TestCase(true)]
+        [TestCase(false)]
+        <#}#>
+        public void Test<#=item#>(<#=item#> a)
+        {
+            var value = new SimpleType<#=item#>(a);
+            var bytes = MessagePackSerializer.Serialize(value);
+            var other = MessagePackSerializer.Deserialize<SimpleType<#=item#>>(bytes);
+            Assert.True(value.Equals(other));
+        }
+<#}#>
+    }
+}

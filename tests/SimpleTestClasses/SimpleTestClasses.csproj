@@ -5,7 +5,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="SimpleTypes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SimpleTypes.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MessagePack.Annotations" Version="2.1.90" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="SimpleTypes.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SimpleTypes.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="SimpleTypes.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SimpleTypes.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
