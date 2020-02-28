@@ -1,6 +1,3 @@
-﻿using System;
-using MessagePack;
-
-namespace CompoundTestClasses
+﻿namespace CompoundTestClasses
 {
 }

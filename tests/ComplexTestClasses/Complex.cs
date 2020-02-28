@@ -1,5 +1,4 @@
-﻿using System;
-using IrrelevantTestClasses;
+﻿using IrrelevantTestClasses;
 using MessagePack;
 
 namespace ComplexTestClasses

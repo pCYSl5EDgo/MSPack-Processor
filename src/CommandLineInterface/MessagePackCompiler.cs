@@ -1,11 +1,11 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using ConsoleAppFramework;
+using Microsoft.Extensions.Hosting;
+using MSPack.Processor.Core;
 using System;
 using System.Threading.Tasks;
-using ConsoleAppFramework;
-using MSPack.Processor.Core;
-using Microsoft.Extensions.Hosting;
 
 namespace MSPack.Processor.CLI
 {

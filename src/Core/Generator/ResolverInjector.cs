@@ -1,10 +1,10 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Linq;
-using MSPack.Processor.Core.Provider;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using MSPack.Processor.Core.Provider;
+using System.Linq;
 
 namespace MSPack.Processor.Core
 {
@@ -18,21 +18,16 @@ namespace MSPack.Processor.Core
         private readonly TypeDefinition resolver;
         private readonly MethodDefinition getFormatter;
 
-        public ResolverInjector(ModuleDefinition module, string name, TypeProvider provider)
+        public ResolverInjector(ModuleDefinition module, TypeDefinition resolver, TypeProvider provider)
         {
             this.module = module;
             this.provider = provider;
-
-            this.resolver = module.GetType(name);
-            if (resolver is null)
-            {
-                throw new MessagePackGeneratorResolveFailedException("Resolver type should be defined in target module. type : " + name);
-            }
+            this.resolver = resolver;
 
             var iFormatterResolver = resolver.Interfaces.FirstOrDefault(x => x.InterfaceType.FullName == "MessagePack.IFormatterResolver");
             if (iFormatterResolver is null)
             {
-                throw new MessagePackGeneratorResolveFailedException("Resolver type should implement `MessagePack.IFormatterResolver`. type : " + name);
+                throw new MessagePackGeneratorResolveFailedException("Resolver type should implement `MessagePack.IFormatterResolver`. type : " + resolver.FullName);
             }
 
             this.getFormatter = resolver.Methods.First(IsGetFormatter);

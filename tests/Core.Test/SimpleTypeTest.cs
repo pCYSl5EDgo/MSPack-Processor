@@ -1,7 +1,7 @@
-﻿using System;
+﻿using MessagePack;
 using NUnit.Framework;
 using SimpleTestClasses;
-using MessagePack;
+using System;
 
 namespace Core.Test
 {

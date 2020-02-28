@@ -63,7 +63,7 @@ namespace MSPack.Processor.Core
                 return true;
             }
 
-FAIL:
+        FAIL:
             value = default;
             return false;
         }
@@ -82,7 +82,7 @@ FAIL:
                 return true;
             }
 
-FAIL:
+        FAIL:
             value = string.Empty;
             return false;
         }

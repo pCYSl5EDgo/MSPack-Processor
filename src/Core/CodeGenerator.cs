@@ -1,14 +1,14 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Mono.Cecil;
+using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Provider;
+using MSPack.Processor.Core.Report;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using MSPack.Processor.Core.Definitions;
-using MSPack.Processor.Core.Provider;
-using MSPack.Processor.Core.Report;
-using Mono.Cecil;
 
 namespace MSPack.Processor.Core
 {
@@ -53,11 +53,8 @@ namespace MSPack.Processor.Core
             {
                 modules[0] = targetModule = ModuleDefinition.ReadModule(targetPath, readerParam);
 
-                resolverTypeDefinition = targetModule.GetType(resolverName);
-                if (resolverTypeDefinition is null)
-                {
-                    throw new MessagePackGeneratorResolveFailedException("Resolver not found. type : " + resolverName);
-                }
+                var resolverFinder = new FormatterResolverFinder();
+                resolverTypeDefinition = resolverFinder.Find(targetModule, resolverName);
 
                 var messagePackAssemblyNameReference = targetModule.AssemblyReferences.First(x => x.Name == "MessagePack");
                 ReadModules(libraryPaths, modules);
@@ -103,7 +100,7 @@ namespace MSPack.Processor.Core
             var (tableType, getFormatterMethodInfo) = tableGenerator.Generate(formatterInfos);
             resolverTypeDefinition.NestedTypes.Add(tableType);
 
-            var resolverInjector = new ResolverInjector(targetModule, resolverName, provider);
+            var resolverInjector = new ResolverInjector(targetModule, resolverTypeDefinition, provider);
             resolverInjector.Implement(getFormatterMethodInfo);
 
             PrivateAccessEnabler.EnablePrivateAccess(targetModule, provider.SystemRuntimeExtensionsScope);

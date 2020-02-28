@@ -1,12 +1,12 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Mono.Cecil;
+using Mono.Collections.Generic;
+using MSPack.Processor.Core.Definitions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MSPack.Processor.Core.Definitions;
-using Mono.Cecil;
-using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core
 {

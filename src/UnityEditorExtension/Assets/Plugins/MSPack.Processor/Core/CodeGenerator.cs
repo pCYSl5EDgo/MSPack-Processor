@@ -40,6 +40,7 @@ namespace MSPack.Processor.Core
             string targetPath,
             string resolverName,
             string[] libraryPaths,
+            string[] definitionPaths,
             bool useMapMode,
             double loadFactor)
         {
@@ -60,6 +61,10 @@ namespace MSPack.Processor.Core
 
                 var messagePackAssemblyNameReference = targetModule.AssemblyReferences.First(x => x.Name == "MessagePack");
                 ReadModules(libraryPaths, modules);
+                foreach (var path in definitionPaths)
+                {
+                    ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
+                }
 
                 var verifier = new ModuleRelationshipVerifier();
                 verifier.Verify(targetModule, modules);

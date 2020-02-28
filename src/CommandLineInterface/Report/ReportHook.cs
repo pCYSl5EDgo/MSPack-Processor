@@ -1,6 +1,9 @@
-﻿using System.Globalization;
+﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Cysharp.Text;
 using MSPack.Processor.Core.Report;
+using System.Globalization;
 
 namespace MSPack.Processor.CLI
 {
