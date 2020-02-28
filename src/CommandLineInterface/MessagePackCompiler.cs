@@ -20,24 +20,32 @@ namespace MSPack.Processor.CLI
         }
 
         public void Run(
-            [Option("t", "Path of target dll or exe.")]string target,
+            [Option("i", "Path of input dll.")]string target,
             [Option("n", "Set resolver name with namespace.")]string resolverName = "MessagePack.GeneratedResolver",
-            [Option("l", "Library dll or exe file paths that target file depends on. Split with ','.")] string libraryFiles = "",
+            [Option("l", "Library dll file paths that target file depends on. Split with ','.")] string libraryFiles = "",
+            [Option("d", "Definition dll file paths. Split with ','.")] string definitionFiles = "",
             [Option("m", "Force use map mode serialization.")]bool useMapMode = false,
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
             var reportHook = new NopHook();
             var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook);
 
-            var libraryPaths = string.IsNullOrWhiteSpace(libraryFiles) ? Array.Empty<string>() : libraryFiles.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var libraryPaths = Split(libraryFiles);
+            var definitionPaths = Split(definitionFiles);
 
             codeGenerator
                 .Generate(
                     target,
                     resolverName,
                     libraryPaths,
+                    definitionPaths,
                     useMapMode,
                     loadFactor);
+        }
+
+        private static string[] Split(string paths)
+        {
+            return string.IsNullOrWhiteSpace(paths) ? Array.Empty<string>() : paths.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
