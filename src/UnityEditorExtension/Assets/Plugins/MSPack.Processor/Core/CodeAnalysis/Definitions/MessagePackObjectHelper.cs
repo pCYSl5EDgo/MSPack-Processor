@@ -1,11 +1,11 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Mono.Cecil;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -280,7 +280,7 @@ namespace MSPack.Processor.Core.Definitions
                     {
                         answer.min = field;
                     }
-                    
+
                     fieldIndex++;
                 }
                 else if (field > property)
@@ -293,7 +293,7 @@ namespace MSPack.Processor.Core.Definitions
                     {
                         answer.min = property;
                     }
-                    
+
                     propertyIndex++;
                 }
             }

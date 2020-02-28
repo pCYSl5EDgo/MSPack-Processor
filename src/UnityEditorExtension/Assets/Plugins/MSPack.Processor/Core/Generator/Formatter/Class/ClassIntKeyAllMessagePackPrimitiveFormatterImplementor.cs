@@ -1,13 +1,13 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Linq;
-using MSPack.Processor.Core.Definitions;
-using MSPack.Processor.Core.Provider;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Provider;
+using System;
+using System.Linq;
 
 namespace MSPack.Processor.Core.Formatter
 {

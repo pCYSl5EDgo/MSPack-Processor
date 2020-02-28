@@ -1,8 +1,8 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using MSPack.Processor.Core.Report;
 using Mono.Cecil;
+using MSPack.Processor.Core.Report;
 
 namespace MSPack.Processor.Core.Provider
 {
@@ -12,7 +12,6 @@ namespace MSPack.Processor.Core.Provider
         private readonly IReportHook reportHook;
 #if CSHARP_8_0_OR_NEWER
         private IMetadataScope? spanScope;
-        private IMetadataScope? systemCollectionsScope;
         private IMetadataScope? systemRuntimeExtensionsScope;
         private AutomataDictionaryHelper? automataDictionaryHelper;
         private MessagePackWriterHelper? messagePackWriterHelper;
@@ -23,21 +22,16 @@ namespace MSPack.Processor.Core.Provider
         private InterfaceMessagePackFormatterHelper? interfaceMessagePackFormatterHelper;
         private InterfaceFormatterResolverHelper? interfaceFormatterResolverHelper;
         private FormatterResolverExtensionHelper? formatterResolverExtensionHelper;
-        private SystemCollectionsGenericIEqualityComparerHelper? systemCollectionsGenericIEqualityComparerHelper;
-        private SystemCollectionsHashtableHelper? systemCollectionsHashtableHelper;
         private SystemRuntimeTypeHandleHelper? systemRuntimeTypeHandleHelper;
         private SystemReadOnlySpanHelper? systemReadOnlySpanHelper;
         private SystemObjectHelper? systemObjectHelper;
         private SystemValueTypeHelper? systemValueTypeHelper;
         private SystemTypeHelper? systemTypeHelper;
-        private SystemConsoleHelper? systemConsoleHelper;
-        private SystemExceptionHelper? systemExceptionHelper;
         private SystemInvalidOperationExceptionHelper? systemInvalidOperationExceptionHelper;
         private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper? systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
         private SystemArrayHelper? systemArrayHelper;
 #else
         private IMetadataScope spanScope;
-        private IMetadataScope systemCollectionsScope;
         private IMetadataScope systemRuntimeExtensionsScope;
         private AutomataDictionaryHelper automataDictionaryHelper;
         private MessagePackWriterHelper messagePackWriterHelper;
@@ -48,15 +42,11 @@ namespace MSPack.Processor.Core.Provider
         private InterfaceMessagePackFormatterHelper interfaceMessagePackFormatterHelper;
         private InterfaceFormatterResolverHelper interfaceFormatterResolverHelper;
         private FormatterResolverExtensionHelper formatterResolverExtensionHelper;
-        private SystemCollectionsGenericIEqualityComparerHelper systemCollectionsGenericIEqualityComparerHelper;
-        private SystemCollectionsHashtableHelper systemCollectionsHashtableHelper;
         private SystemRuntimeTypeHandleHelper systemRuntimeTypeHandleHelper;
         private SystemReadOnlySpanHelper systemReadOnlySpanHelper;
         private SystemObjectHelper systemObjectHelper;
         private SystemValueTypeHelper systemValueTypeHelper;
         private SystemTypeHelper systemTypeHelper;
-        private SystemConsoleHelper systemConsoleHelper;
-        private SystemExceptionHelper systemExceptionHelper;
         private SystemInvalidOperationExceptionHelper systemInvalidOperationExceptionHelper;
         private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
         private SystemArrayHelper systemArrayHelper;
@@ -89,22 +79,6 @@ namespace MSPack.Processor.Core.Provider
             }
 
             return spanScope;
-        }
-
-        private IMetadataScope SystemCollectionsScope()
-        {
-            if (!(systemCollectionsScope is null))
-            {
-                return systemCollectionsScope;
-            }
-
-            var scopeGenerator = default(AssemblyNameReferenceGenerator);
-            systemCollectionsScope =
-                scopeGenerator.TryGetDictionaryContainerNameReference(Module, out var dictionaryNameReference)
-                    ? AssemblyNameReferenceInjector.Inject(Module, dictionaryNameReference, reportHook)
-                    : Module.TypeSystem.CoreLibrary;
-
-            return systemCollectionsScope;
         }
 
         public IMetadataScope SystemRuntimeExtensionsScope()
@@ -268,19 +242,6 @@ namespace MSPack.Processor.Core.Provider
             }
         }
 
-        public SystemCollectionsGenericIEqualityComparerHelper SystemCollectionsGenericIEqualityComparerHelper
-        {
-            get
-            {
-                if (systemCollectionsGenericIEqualityComparerHelper == null)
-                {
-                    systemCollectionsGenericIEqualityComparerHelper = new SystemCollectionsGenericIEqualityComparerHelper(Module, Importer);
-                }
-
-                return systemCollectionsGenericIEqualityComparerHelper;
-            }
-        }
-
         public AutomataDictionaryHelper AutomataDictionaryHelper
         {
             get
@@ -291,19 +252,6 @@ namespace MSPack.Processor.Core.Provider
                 }
 
                 return automataDictionaryHelper;
-            }
-        }
-
-        public SystemCollectionsHashtableHelper SystemCollectionsHashtableHelper
-        {
-            get
-            {
-                if (systemCollectionsHashtableHelper == null)
-                {
-                    systemCollectionsHashtableHelper = new SystemCollectionsHashtableHelper(Module, SystemRuntimeExtensionsScope);
-                }
-
-                return systemCollectionsHashtableHelper;
             }
         }
 
@@ -330,32 +278,6 @@ namespace MSPack.Processor.Core.Provider
                 }
 
                 return systemTypeHelper;
-            }
-        }
-
-        public SystemConsoleHelper SystemConsoleHelper
-        {
-            get
-            {
-                if (systemConsoleHelper == null)
-                {
-                    systemConsoleHelper = new SystemConsoleHelper(Module);
-                }
-
-                return systemConsoleHelper;
-            }
-        }
-
-        public SystemExceptionHelper SystemExceptionHelper
-        {
-            get
-            {
-                if (systemExceptionHelper == null)
-                {
-                    systemExceptionHelper = new SystemExceptionHelper(Module);
-                }
-
-                return systemExceptionHelper;
             }
         }
 
