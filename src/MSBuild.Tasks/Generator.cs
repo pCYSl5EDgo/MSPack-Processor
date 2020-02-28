@@ -1,21 +1,23 @@
-﻿using System;
+﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using Microsoft.Build.Framework;
 using MSPack.Processor.Core;
 using MSPack.Processor.Core.Report;
 
-namespace MSBuild.Tasks
+namespace MSPack.Processor.MSBuild.Tasks
 {
-    // Copyright (c) All contributors. All rights reserved.
-    // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
     public class Generator : Microsoft.Build.Utilities.Task
     {
         [Required]
-        public string Target { get; set; }
+        public string Input { get; set; }
 
         public string ResolverName { get; set; }
 
         public string LibraryPaths { get; set; }
+
+        public string DefinitionPaths { get; set; }
 
         public string LoadFactor { get; set; }
 
@@ -35,15 +37,17 @@ namespace MSBuild.Tasks
                 loadFactor = 0.75;
             }
 
-            var libraryPaths = string.IsNullOrWhiteSpace(LibraryPaths) ? Array.Empty<string>() : LibraryPaths.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var libraryPaths = Split(LibraryPaths);
+            var definitionPaths = Split(DefinitionPaths);
 
             try
             {
                 new CodeGenerator(x => this.Log.LogMessage(x), new NoHook())
                     .Generate(
-                        Target,
+                        Input,
                         ResolverName ?? "MessagePack.GeneratedResolver",
                         libraryPaths,
+                        definitionPaths,
                         UseMapMode,
                         loadFactor);
             }
@@ -54,6 +58,11 @@ namespace MSBuild.Tasks
             }
 
             return true;
+        }
+
+        private string[] Split(string paths)
+        {
+            return string.IsNullOrWhiteSpace(paths) ? Array.Empty<string>() : paths.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
