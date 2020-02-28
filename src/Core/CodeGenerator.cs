@@ -129,8 +129,11 @@ namespace MSPack.Processor.Core
                 ignoresAccessChecksToAttributeGenerator.EnsureAccess(collectedInfo.Module.Assembly.Name);
             }
         }
-
+#if CSHARP_8_0_OR_NEWER
         private ref struct Watcher
+#else
+        private struct Watcher : IDisposable
+#endif
         {
             private readonly Stopwatch sw;
             private readonly Action<string> logger;

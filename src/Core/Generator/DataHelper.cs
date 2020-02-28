@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Mono.Cecil;
@@ -15,7 +14,11 @@ namespace MSPack.Processor.Core
         private const string StaticArrayName = "__StaticArrayInitTypeSize=";
         private readonly ModuleDefinition module;
         private readonly TypeReference valueType;
+#if CSHARP_8_0_OR_NEWER
         private TypeDefinition? dataContainer;
+#else
+        private TypeDefinition dataContainer;
+#endif
 
         public DataHelper(ModuleDefinition module, TypeReference valueType)
         {
@@ -40,7 +43,11 @@ namespace MSPack.Processor.Core
             }
         }
 
-        public bool TryGetOrAdd(byte[] data, [NotNullWhen(true)]out FieldDefinition? field)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryGetOrAdd(byte[] data, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out FieldDefinition? field)
+#else
+        public bool TryGetOrAdd(byte[] data, out FieldDefinition field)
+#endif
         {
             if (data.Length == 0)
             {

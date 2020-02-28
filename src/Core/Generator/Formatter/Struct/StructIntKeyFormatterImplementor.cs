@@ -192,7 +192,11 @@ namespace MSPack.Processor.Core.Formatter
             }
         }
 
+#if CSHARP_8_0_OR_NEWER
         private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled, ref VariableDefinition? intPtrVariable)
+#else
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled, ref VariableDefinition intPtrVariable)
+#endif
         {
             var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
             if (serializationInfo.IsFixedSizeBuffer)

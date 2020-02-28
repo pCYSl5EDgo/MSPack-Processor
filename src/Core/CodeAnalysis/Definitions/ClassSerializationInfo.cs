@@ -11,7 +11,11 @@ namespace MSPack.Processor.Core.Definitions
 {
     public readonly struct ClassSerializationInfo : ITypeSerializationInfo
     {
+#if CSHARP_8_0_OR_NEWER
         public ClassSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
+#else
+        public ClassSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
+#endif
         {
             Definition = definition;
             FormatterName = formatterName;
@@ -26,8 +30,11 @@ namespace MSPack.Processor.Core.Definitions
             AreAllMessagePackPrimitive = this.FieldInfos.All(x => x.IsMessagePackPrimitive) && this.PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
-
+#if CSHARP_8_0_OR_NEWER
         public ClassSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
+#else
+        public ClassSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
+#endif
         {
             Definition = definition;
             FormatterName = string.Empty;
@@ -43,7 +50,11 @@ namespace MSPack.Processor.Core.Definitions
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && FieldInfos.All(x => x.PublicAccessible) && PropertyInfos.All(x => x.PublicAccessible);
         }
 
+#if CSHARP_8_0_OR_NEWER
         public MethodDefinition? SerializationConstructor { get; }
+#else
+        public MethodDefinition SerializationConstructor { get; }
+#endif
 
         public bool IsIntKey => MaxIntKey != -1;
 
@@ -65,7 +76,12 @@ namespace MSPack.Processor.Core.Definitions
 
         public int MaxIntKey { get; }
 
+#if CSHARP_8_0_OR_NEWER
         public TypeDefinition? FormatterDefinition { get; }
+#else
+        public TypeDefinition FormatterDefinition { get; }
+
+#endif
 
         public CustomAttributeArgument[] FormatterConstructorArguments { get; }
 

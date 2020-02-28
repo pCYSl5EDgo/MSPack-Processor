@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -21,7 +20,11 @@ namespace MSPack.Processor.Core.Provider
             return matchFullName;
         }
 
-        public bool TryFind(ModuleDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(ModuleDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(ModuleDefinition target, out IMetadataScope scope)
+#endif
         {
             foreach (var targetCustomAttribute in target.CustomAttributes)
             {
@@ -43,7 +46,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(CustomAttribute target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(CustomAttribute target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(CustomAttribute target, out IMetadataScope scope)
+#endif
         {
             if (TryFind(target.AttributeType, out scope))
             {
@@ -62,7 +69,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(CustomAttributeArgument target, [NotNullWhen(true)] out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(CustomAttributeArgument target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IMetadataScope? scope)
+#else
+        public bool TryFind(CustomAttributeArgument target, out IMetadataScope scope)
+#endif
         {
             var typeReference = target.Type;
             if (!typeReference.IsArray)
@@ -83,7 +94,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(TypeDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(TypeDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(TypeDefinition target, out IMetadataScope scope)
+#endif
         {
             if (MatchFullName(target.FullName))
             {
@@ -137,8 +152,11 @@ namespace MSPack.Processor.Core.Provider
             scope = default;
             return false;
         }
-
-        public bool TryFind(FieldDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(FieldDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(FieldDefinition target, out IMetadataScope scope)
+#endif
         {
             if (TryFind(target.FieldType, out scope))
             {
@@ -156,7 +174,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(MethodReference target, [NotNullWhen(true)] out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(MethodReference target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IMetadataScope? scope)
+#else
+        public bool TryFind(MethodReference target, out IMetadataScope scope)
+#endif
         {
             if (target is GenericInstanceMethod instanceMethod)
             {
@@ -179,7 +201,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(GenericInstanceMethod target, [NotNullWhen(true)] out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(GenericInstanceMethod target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out IMetadataScope? scope)
+#else
+        public bool TryFind(GenericInstanceMethod target, out IMetadataScope scope)
+#endif
         {
             if (TryFind(target.ElementMethod, out scope))
             {
@@ -196,8 +222,11 @@ namespace MSPack.Processor.Core.Provider
 
             return false;
         }
-
-        public bool TryFind(MethodDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(MethodDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(MethodDefinition target, out IMetadataScope scope)
+#endif
         {
             if (TryFind(target.ReturnType, out scope))
             {
@@ -237,7 +266,11 @@ namespace MSPack.Processor.Core.Provider
             return false;
         }
 
-        public bool TryFind(ParameterDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(ParameterDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(ParameterDefinition target, out IMetadataScope scope)
+#endif
         {
             if (TryFind(target.ParameterType, out scope))
             {
@@ -254,18 +287,27 @@ namespace MSPack.Processor.Core.Provider
 
             return false;
         }
-
-        public bool TryFind(VariableDefinition target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(VariableDefinition target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(VariableDefinition target, out IMetadataScope scope)
+#endif
         {
             return TryFind(target.VariableType, out scope);
         }
-
-        public bool TryFind(GenericInstanceType target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(GenericInstanceType target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(GenericInstanceType target, out IMetadataScope scope)
+#endif
         {
             return TryFind(target.ElementType, out scope);
         }
-
-        public bool TryFind(TypeReference target, [NotNullWhen(true)]out IMetadataScope? scope)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryFind(TypeReference target, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out IMetadataScope? scope)
+#else
+        public bool TryFind(TypeReference target, out IMetadataScope scope)
+#endif
         {
             if (MatchFullName(target.FullName))
             {

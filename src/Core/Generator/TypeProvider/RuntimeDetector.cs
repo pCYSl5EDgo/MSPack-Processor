@@ -7,14 +7,20 @@ namespace MSPack.Processor.Core.Provider
 {
     public static class RuntimeDetector
     {
-        public static RuntimeTarget DetectRuntimeTarget(ModuleDefinition module) =>
-            module.TypeSystem.CoreLibrary.Name switch
+        public static RuntimeTarget DetectRuntimeTarget(ModuleDefinition module)
+        {
+            switch (module.TypeSystem.CoreLibrary.Name)
             {
-                "netstandard" => RuntimeTarget.NetStandard,
-                "System.Runtime" => RuntimeTarget.Runtime,
-                "mscorlib" => RuntimeTarget.MicrosoftCoreLibrary,
-                _ => throw new MessagePackGeneratorResolveFailedException("not supported runtime. module core library assembly name : " + module.TypeSystem.CoreLibrary.Name)
-            };
+                case "netstandard":
+                    return RuntimeTarget.NetStandard;
+                case "System.Runtime":
+                    return RuntimeTarget.Runtime;
+                case "mscorlib":
+                    return RuntimeTarget.MicrosoftCoreLibrary;
+                default:
+                    throw new MessagePackGeneratorResolveFailedException("not supported runtime. module core library assembly name : " + module.TypeSystem.CoreLibrary.Name);
+            }
+        }
     }
 
     public enum RuntimeTarget

@@ -76,7 +76,11 @@ namespace MSPack.Processor.Core.Formatter
             return serialize;
         }
 
+#if CSHARP_8_0_OR_NEWER
         private void SerializeEach(ILProcessor processor, ParameterDefinition valueParam, in FieldSerializationInfo field, in PropertySerializationInfo property, IndexerAccessResult result, ref VariableDefinition? intPtrVariable)
+#else
+        private void SerializeEach(ILProcessor processor, ParameterDefinition valueParam, in FieldSerializationInfo field, in PropertySerializationInfo property, IndexerAccessResult result, ref VariableDefinition intPtrVariable)
+#endif
         {
             switch (result)
             {
@@ -95,7 +99,11 @@ namespace MSPack.Processor.Core.Formatter
             }
         }
 
+#if CSHARP_8_0_OR_NEWER
         private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, ref VariableDefinition? intPtrVariable)
+#else
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, ref VariableDefinition intPtrVariable)
+#endif
         {
             if (serializationInfo.IsFixedSizeBuffer)
             {

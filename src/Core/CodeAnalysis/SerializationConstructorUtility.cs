@@ -7,7 +7,11 @@ namespace MSPack.Processor.Core.Definitions
 {
     public static class SerializationConstructorUtility
     {
+#if CSHARP_8_0_OR_NEWER
         public static MethodDefinition? Find(TypeDefinition type)
+#else
+        public static MethodDefinition Find(TypeDefinition type)
+#endif
         {
             foreach (var methodDefinition in type.Methods)
             {

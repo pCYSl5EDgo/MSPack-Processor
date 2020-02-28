@@ -17,9 +17,15 @@ namespace MSPack.Processor.Core
         private readonly SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper readOnlyAttributeHelper;
         private readonly SystemTypeHelper typeHelper;
 
+#if CSHARP_8_0_OR_NEWER
         private TypeDefinition? pair;
         private FieldDefinition? key;
         private FieldDefinition? value;
+#else
+        private TypeDefinition pair;
+        private FieldDefinition key;
+        private FieldDefinition value;
+#endif
 
         public TypeKeyUInt64ValuePairGenerator(ModuleDefinition module, SystemValueTypeHelper valueTypeHelper, SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper readOnlyAttributeHelper, SystemTypeHelper typeHelper)
         {
@@ -29,7 +35,18 @@ namespace MSPack.Processor.Core
             this.typeHelper = typeHelper;
         }
 
-        public TypeDefinition Pair => pair ??= module.GetType(NameSpace, TypeName) ?? Add();
+        public TypeDefinition Pair
+        {
+            get
+            {
+                if (pair == null)
+                {
+                    pair = module.GetType(NameSpace, TypeName) ?? Add();
+                }
+
+                return pair;
+            }
+        }
 
         public FieldDefinition Key
         {
@@ -39,8 +56,11 @@ namespace MSPack.Processor.Core
                 {
                     Add();
                 }
-
+#if CSHARP_8_0_OR_NEWER
                 return key!;
+#else
+                return key;
+#endif
             }
         }
 
@@ -52,8 +72,11 @@ namespace MSPack.Processor.Core
                 {
                     Add();
                 }
-
+#if CSHARP_8_0_OR_NEWER
                 return value!;
+#else
+                return value;
+#endif
             }
         }
 

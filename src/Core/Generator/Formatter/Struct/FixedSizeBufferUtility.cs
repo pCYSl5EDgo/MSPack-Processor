@@ -12,83 +12,130 @@ namespace MSPack.Processor.Core.Formatter
 {
     internal static class FixedSizeBufferUtility
     {
-        private static int SizeOf(FixedSizeBufferElementType elementType) =>
-            elementType switch
+        private static int SizeOf(FixedSizeBufferElementType elementType)
+        {
+            switch (elementType)
             {
-                FixedSizeBufferElementType.Boolean => 1,
-                FixedSizeBufferElementType.SByte => 1,
-                FixedSizeBufferElementType.Byte => 1,
-                FixedSizeBufferElementType.Char => 2,
-                FixedSizeBufferElementType.Int16 => 2,
-                FixedSizeBufferElementType.UInt16 => 2,
-                FixedSizeBufferElementType.Int32 => 4,
-                FixedSizeBufferElementType.UInt32 => 4,
-                FixedSizeBufferElementType.Single => 4,
-                FixedSizeBufferElementType.Int64 => 8,
-                FixedSizeBufferElementType.UInt64 => 8,
-                FixedSizeBufferElementType.Double => 8,
-                FixedSizeBufferElementType.None => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null),
-                _ => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null)
-            };
+                case FixedSizeBufferElementType.Boolean:
+                case FixedSizeBufferElementType.SByte:
+                case FixedSizeBufferElementType.Byte:
+                    return 1;
+                case FixedSizeBufferElementType.Char:
+                case FixedSizeBufferElementType.Int16:
+                case FixedSizeBufferElementType.UInt16:
+                    return 2;
+                case FixedSizeBufferElementType.Int32:
+                case FixedSizeBufferElementType.UInt32:
+                case FixedSizeBufferElementType.Single:
+                    return 4;
+                case FixedSizeBufferElementType.Int64:
+                case FixedSizeBufferElementType.UInt64:
+                case FixedSizeBufferElementType.Double:
+                    return 8;
+                case FixedSizeBufferElementType.None:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
+            }
+        }
 
-        private static TypeReference GetType(ModuleDefinition module, FixedSizeBufferElementType elementType) =>
-            elementType switch
+        private static TypeReference GetType(ModuleDefinition module, FixedSizeBufferElementType elementType)
+        {
+            switch (elementType)
             {
-                FixedSizeBufferElementType.Boolean => module.TypeSystem.Boolean,
-                FixedSizeBufferElementType.Char => module.TypeSystem.Char,
-                FixedSizeBufferElementType.SByte => module.TypeSystem.SByte,
-                FixedSizeBufferElementType.Int16 => module.TypeSystem.Int16,
-                FixedSizeBufferElementType.Int32 => module.TypeSystem.Int32,
-                FixedSizeBufferElementType.Int64 => module.TypeSystem.Int64,
-                FixedSizeBufferElementType.Byte => module.TypeSystem.Byte,
-                FixedSizeBufferElementType.UInt16 => module.TypeSystem.UInt16,
-                FixedSizeBufferElementType.UInt32 => module.TypeSystem.UInt32,
-                FixedSizeBufferElementType.UInt64 => module.TypeSystem.UInt64,
-                FixedSizeBufferElementType.Single => module.TypeSystem.Single,
-                FixedSizeBufferElementType.Double => module.TypeSystem.Double,
-                FixedSizeBufferElementType.None => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null),
-                _ => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null)
-            };
+                case FixedSizeBufferElementType.Boolean:
+                    return module.TypeSystem.Boolean;
+                case FixedSizeBufferElementType.Char:
+                    return module.TypeSystem.Char;
+                case FixedSizeBufferElementType.SByte:
+                    return module.TypeSystem.SByte;
+                case FixedSizeBufferElementType.Int16:
+                    return module.TypeSystem.Int16;
+                case FixedSizeBufferElementType.Int32:
+                    return module.TypeSystem.Int32;
+                case FixedSizeBufferElementType.Int64:
+                    return module.TypeSystem.Int64;
+                case FixedSizeBufferElementType.Byte:
+                    return module.TypeSystem.Byte;
+                case FixedSizeBufferElementType.UInt16:
+                    return module.TypeSystem.UInt16;
+                case FixedSizeBufferElementType.UInt32:
+                    return module.TypeSystem.UInt32;
+                case FixedSizeBufferElementType.UInt64:
+                    return module.TypeSystem.UInt64;
+                case FixedSizeBufferElementType.Single:
+                    return module.TypeSystem.Single;
+                case FixedSizeBufferElementType.Double:
+                    return module.TypeSystem.Double;
+                case FixedSizeBufferElementType.None:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
+            }
+        }
 
-        private static OpCode LdInd(FixedSizeBufferElementType elementType) =>
-            elementType switch
+        private static OpCode LdInd(FixedSizeBufferElementType elementType)
+        {
+            switch (elementType)
             {
-                FixedSizeBufferElementType.SByte => OpCodes.Ldind_I1,
-                FixedSizeBufferElementType.Int16 => OpCodes.Ldind_I2,
-                FixedSizeBufferElementType.Int32 => OpCodes.Ldind_I4,
-                FixedSizeBufferElementType.Boolean => OpCodes.Ldind_U1,
-                FixedSizeBufferElementType.Byte => OpCodes.Ldind_U1,
-                FixedSizeBufferElementType.Char => OpCodes.Ldind_U2,
-                FixedSizeBufferElementType.UInt16 => OpCodes.Ldind_U2,
-                FixedSizeBufferElementType.UInt32 => OpCodes.Ldind_U4,
-                FixedSizeBufferElementType.Int64 => OpCodes.Ldind_I8,
-                FixedSizeBufferElementType.UInt64 => OpCodes.Ldind_I8,
-                FixedSizeBufferElementType.Single => OpCodes.Ldind_R4,
-                FixedSizeBufferElementType.Double => OpCodes.Ldind_R8,
-                FixedSizeBufferElementType.None => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null),
-                _ => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null)
-            };
+                case FixedSizeBufferElementType.SByte:
+                    return OpCodes.Ldind_I1;
+                case FixedSizeBufferElementType.Int16:
+                    return OpCodes.Ldind_I2;
+                case FixedSizeBufferElementType.Int32:
+                    return OpCodes.Ldind_I4;
+                case FixedSizeBufferElementType.Boolean:
+                case FixedSizeBufferElementType.Byte:
+                    return OpCodes.Ldind_U1;
+                case FixedSizeBufferElementType.Char:
+                case FixedSizeBufferElementType.UInt16:
+                    return OpCodes.Ldind_U2;
+                case FixedSizeBufferElementType.UInt32:
+                    return OpCodes.Ldind_U4;
+                case FixedSizeBufferElementType.Int64:
+                case FixedSizeBufferElementType.UInt64:
+                    return OpCodes.Ldind_I8;
+                case FixedSizeBufferElementType.Single:
+                    return OpCodes.Ldind_R4;
+                case FixedSizeBufferElementType.Double:
+                    return OpCodes.Ldind_R8;
+                case FixedSizeBufferElementType.None:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
+            }
+        }
 
-        private static OpCode StInd(FixedSizeBufferElementType elementType) =>
-            elementType switch
+        private static OpCode StInd(FixedSizeBufferElementType elementType)
+        {
+            switch (elementType)
             {
-                FixedSizeBufferElementType.Boolean => OpCodes.Stind_I1,
-                FixedSizeBufferElementType.SByte => OpCodes.Stind_I1,
-                FixedSizeBufferElementType.Byte => OpCodes.Stind_I1,
-                FixedSizeBufferElementType.Char => OpCodes.Stind_I2,
-                FixedSizeBufferElementType.Int16 => OpCodes.Stind_I2,
-                FixedSizeBufferElementType.UInt16 => OpCodes.Stind_I2,
-                FixedSizeBufferElementType.Int32 => OpCodes.Stind_I4,
-                FixedSizeBufferElementType.UInt32 => OpCodes.Stind_I4,
-                FixedSizeBufferElementType.Int64 => OpCodes.Stind_I8,
-                FixedSizeBufferElementType.UInt64 => OpCodes.Stind_I8,
-                FixedSizeBufferElementType.Single => OpCodes.Stind_R4,
-                FixedSizeBufferElementType.Double => OpCodes.Stind_R8,
-                FixedSizeBufferElementType.None => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null),
-                _ => throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null)
-            };
+                case FixedSizeBufferElementType.Boolean:
+                case FixedSizeBufferElementType.SByte:
+                case FixedSizeBufferElementType.Byte:
+                    return OpCodes.Stind_I1;
+                case FixedSizeBufferElementType.Char:
+                case FixedSizeBufferElementType.Int16:
+                case FixedSizeBufferElementType.UInt16:
+                    return OpCodes.Stind_I2;
+                case FixedSizeBufferElementType.Int32:
+                case FixedSizeBufferElementType.UInt32:
+                    return OpCodes.Stind_I4;
+                case FixedSizeBufferElementType.Int64:
+                case FixedSizeBufferElementType.UInt64:
+                    return OpCodes.Stind_I8;
+                case FixedSizeBufferElementType.Single:
+                    return OpCodes.Stind_R4;
+                case FixedSizeBufferElementType.Double:
+                    return OpCodes.Stind_R8;
+                case FixedSizeBufferElementType.None:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
+            }
+        }
 
+#if CSHARP_8_0_OR_NEWER
         public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldDefinition fixedField, ModuleDefinition module, MessagePackWriterHelper writer, ModuleImporter importer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition? notPinnedVariable)
+#else
+        public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldDefinition fixedField, ModuleDefinition module, MessagePackWriterHelper writer, ModuleImporter importer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition notPinnedVariable)
+#endif
         {
             var writingElement = writer.WriteMessagePackPrimitive(GetType(module, elementType));
             var ldInd = LdInd(elementType);

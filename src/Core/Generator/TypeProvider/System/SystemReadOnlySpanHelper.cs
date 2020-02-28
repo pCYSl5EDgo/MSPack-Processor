@@ -13,7 +13,11 @@ namespace MSPack.Processor.Core.Provider
         private readonly Func<IMetadataScope> spanScope;
         private readonly ModuleImporter importer;
 
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? readOnlySpan;
+#else
+        private TypeReference readOnlySpan;
+#endif
 
         public SystemReadOnlySpanHelper(ModuleDefinition module, ModuleImporter importer, Func<IMetadataScope> spanScope)
         {

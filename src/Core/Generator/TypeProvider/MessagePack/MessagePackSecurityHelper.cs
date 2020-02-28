@@ -10,8 +10,14 @@ namespace MSPack.Processor.Core.Provider
         private readonly ModuleDefinition module;
         private readonly IMetadataScope messagePackScope;
         private readonly MessagePackReaderHelper readerHelper;
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? messagePackSecurity;
         private MethodReference? depthStep;
+#else
+        private TypeReference messagePackSecurity;
+        private MethodReference depthStep;
+#endif
+
 
         public MessagePackSecurityHelper(ModuleDefinition module, IMetadataScope messagePackScope, MessagePackReaderHelper readerHelper)
         {
@@ -20,15 +26,37 @@ namespace MSPack.Processor.Core.Provider
             this.readerHelper = readerHelper;
         }
 
-        public TypeReference MessagePackSecurity => messagePackSecurity ??= new TypeReference("MessagePack", nameof(MessagePackSecurity), module, messagePackScope, false);
-
-        public MethodReference DepthStep => depthStep ??= new MethodReference(nameof(DepthStep), module.TypeSystem.Void, MessagePackSecurity)
+        public TypeReference MessagePackSecurity
         {
-            HasThis = true,
-            Parameters =
+            get
             {
-                new ParameterDefinition("reader", ParameterAttributes.None, new ByReferenceType(readerHelper.Reader)),
-            },
-        };
+                if (messagePackSecurity == null)
+                {
+                    messagePackSecurity = new TypeReference("MessagePack", nameof(MessagePackSecurity), module, messagePackScope, false);
+                }
+
+                return messagePackSecurity;
+            }
+        }
+
+        public MethodReference DepthStep
+        {
+            get
+            {
+                if (depthStep == null)
+                {
+                    depthStep = new MethodReference(nameof(DepthStep), module.TypeSystem.Void, MessagePackSecurity)
+                    {
+                        HasThis = true,
+                        Parameters =
+                        {
+                            new ParameterDefinition("reader", ParameterAttributes.None, new ByReferenceType(readerHelper.Reader)),
+                        },
+                    };
+                }
+
+                return depthStep;
+            }
+        }
     }
 }

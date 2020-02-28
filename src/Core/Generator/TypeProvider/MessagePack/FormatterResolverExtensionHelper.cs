@@ -12,7 +12,11 @@ namespace MSPack.Processor.Core.Provider
         private readonly InterfaceFormatterResolverHelper iFormatterResolverHelper;
         private readonly InterfaceMessagePackFormatterHelper iMessagePackFormatterHelper;
         private readonly ModuleImporter importer;
+#if CSHARP_8_0_OR_NEWER
         private MethodReference? getFormatterWithVerifyBase;
+#else
+        private MethodReference getFormatterWithVerifyBase;
+#endif
 
         public FormatterResolverExtensionHelper(ModuleDefinition module, IMetadataScope messagePackScope, InterfaceFormatterResolverHelper iFormatterResolverHelper, InterfaceMessagePackFormatterHelper iMessagePackFormatterHelper, ModuleImporter importer)
         {

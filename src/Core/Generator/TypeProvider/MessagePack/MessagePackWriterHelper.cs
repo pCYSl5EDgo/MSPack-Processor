@@ -14,6 +14,7 @@ namespace MSPack.Processor.Core.Provider
 
         private readonly Func<SystemReadOnlySpanHelper> readOnlySpanHelperFunc;
         private readonly TypeSystem typeSystem;
+#if CSHARP_8_0_OR_NEWER
         private MethodReference? writeNil;
         private MethodReference? writeByte;
         private MethodReference? writeUShort;
@@ -30,6 +31,24 @@ namespace MSPack.Processor.Core.Provider
         private MethodReference? writeMapHeaderInt;
         private MethodReference? writeArrayHeaderInt;
         private MethodReference? writeRaw;
+#else
+        private MethodReference writeNil;
+        private MethodReference writeByte;
+        private MethodReference writeUShort;
+        private MethodReference writeUInt;
+        private MethodReference writeULong;
+        private MethodReference writeSByte;
+        private MethodReference writeShort;
+        private MethodReference writeInt;
+        private MethodReference writeLong;
+        private MethodReference writeBoolean;
+        private MethodReference writeChar;
+        private MethodReference writeSingle;
+        private MethodReference writeDouble;
+        private MethodReference writeMapHeaderInt;
+        private MethodReference writeArrayHeaderInt;
+        private MethodReference writeRaw;
+#endif
 
         public MessagePackWriterHelper(ModuleDefinition module, IMetadataScope messagePackScope, Func<SystemReadOnlySpanHelper> readOnlySpanHelperFunc)
         {
@@ -59,35 +78,200 @@ namespace MSPack.Processor.Core.Provider
             }
         }
 
-        public MethodReference WriteNil => writeNil ??= CreateDefault(nameof(WriteNil));
+        public MethodReference WriteNil
+        {
+            get
+            {
+                if (writeNil == null)
+                {
+                    writeNil = CreateDefault(nameof(WriteNil));
+                }
 
-        public MethodReference WriteByte => writeByte ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Byte);
+                return writeNil;
+            }
+        }
 
-        public MethodReference WriteUShort => writeUShort ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt16);
+        public MethodReference WriteByte
+        {
+            get
+            {
+                if (writeByte == null)
+                {
+                    writeByte = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Byte);
+                }
 
-        public MethodReference WriteUInt => writeUInt ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt32);
+                return writeByte;
+            }
+        }
 
-        public MethodReference WriteULong => writeULong ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt64);
+        public MethodReference WriteUShort
+        {
+            get
+            {
+                if (writeUShort == null)
+                {
+                    writeUShort = CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt16);
+                }
 
-        public MethodReference WriteSByte => writeSByte ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.SByte);
+                return writeUShort;
+            }
+        }
 
-        public MethodReference WriteShort => writeShort ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int16);
+        public MethodReference WriteUInt
+        {
+            get
+            {
+                if (writeUInt == null)
+                {
+                    writeUInt = CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt32);
+                }
 
-        public MethodReference WriteInt => writeInt ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int32);
+                return writeUInt;
+            }
+        }
 
-        public MethodReference WriteLong => writeLong ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int64);
+        public MethodReference WriteULong
+        {
+            get
+            {
+                if (writeULong == null)
+                {
+                    writeULong = CreateDefault(nameof(Write)).AddParamValue(typeSystem.UInt64);
+                }
 
-        public MethodReference WriteBoolean => writeBoolean ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Boolean);
+                return writeULong;
+            }
+        }
 
-        public MethodReference WriteChar => writeChar ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Char);
+        public MethodReference WriteSByte
+        {
+            get
+            {
+                if (writeSByte == null)
+                {
+                    writeSByte = CreateDefault(nameof(Write)).AddParamValue(typeSystem.SByte);
+                }
 
-        public MethodReference WriteSingle => writeSingle ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Single);
+                return writeSByte;
+            }
+        }
 
-        public MethodReference WriteDouble => writeDouble ??= CreateDefault(nameof(Write)).AddParamValue(typeSystem.Double);
+        public MethodReference WriteShort
+        {
+            get
+            {
+                if (writeShort == null)
+                {
+                    writeShort = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int16);
+                }
 
-        public MethodReference WriteArrayHeaderInt => writeArrayHeaderInt ??= CreateDefault(WriteArrayHeader).AddParamCount();
+                return writeShort;
+            }
+        }
 
-        public MethodReference WriteMapHeaderInt => writeMapHeaderInt ??= CreateDefault(WriteMapHeader).AddParamCount();
+        public MethodReference WriteInt
+        {
+            get
+            {
+                if (writeInt == null)
+                {
+                    writeInt = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int32);
+                }
+
+                return writeInt;
+            }
+        }
+
+        public MethodReference WriteLong
+        {
+            get
+            {
+                if (writeLong == null)
+                {
+                    writeLong = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Int64);
+                }
+
+                return writeLong;
+            }
+        }
+
+        public MethodReference WriteBoolean
+        {
+            get
+            {
+                if (writeBoolean == null)
+                {
+                    writeBoolean = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Boolean);
+                }
+
+                return writeBoolean;
+            }
+        }
+
+        public MethodReference WriteChar
+        {
+            get
+            {
+                if (writeChar == null)
+                {
+                    writeChar = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Char);
+                }
+
+                return writeChar;
+            }
+        }
+
+        public MethodReference WriteSingle
+        {
+            get
+            {
+                if (writeSingle == null)
+                {
+                    writeSingle = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Single);
+                }
+
+                return writeSingle;
+            }
+        }
+
+        public MethodReference WriteDouble
+        {
+            get
+            {
+                if (writeDouble == null)
+                {
+                    writeDouble = CreateDefault(nameof(Write)).AddParamValue(typeSystem.Double);
+                }
+
+                return writeDouble;
+            }
+        }
+
+        public MethodReference WriteArrayHeaderInt
+        {
+            get
+            {
+                if (writeArrayHeaderInt == null)
+                {
+                    writeArrayHeaderInt = CreateDefault(WriteArrayHeader).AddParamCount();
+                }
+
+                return writeArrayHeaderInt;
+            }
+        }
+
+        public MethodReference WriteMapHeaderInt
+        {
+            get
+            {
+                if (writeMapHeaderInt == null)
+                {
+                    writeMapHeaderInt = CreateDefault(WriteMapHeader).AddParamCount();
+                }
+
+                return writeMapHeaderInt;
+            }
+        }
 
         public TypeReference Writer { get; }
 
@@ -95,22 +279,35 @@ namespace MSPack.Processor.Core.Provider
 
         public MethodReference WriteMessagePackPrimitive(TypeReference typeReference)
         {
-            return typeReference.FullName switch
+            switch (typeReference.FullName)
             {
-                "System.Byte" => WriteByte,
-                "System.SByte" => WriteSByte,
-                "System.UInt16" => WriteUShort,
-                "System.UInt32" => WriteUInt,
-                "System.UInt64" => WriteULong,
-                "System.Int16" => WriteShort,
-                "System.Int32" => WriteInt,
-                "System.Int64" => WriteLong,
-                "System.Boolean" => WriteBoolean,
-                "System.Char" => WriteChar,
-                "System.Single" => WriteSingle,
-                "System.Double" => WriteDouble,
-                _ => throw new NotSupportedException(typeReference.FullName + " is not messagepack primitive type.")
-            };
+                case "System.Byte":
+                    return WriteByte;
+                case "System.SByte":
+                    return WriteSByte;
+                case "System.UInt16":
+                    return WriteUShort;
+                case "System.UInt32":
+                    return WriteUInt;
+                case "System.UInt64":
+                    return WriteULong;
+                case "System.Int16":
+                    return WriteShort;
+                case "System.Int32":
+                    return WriteInt;
+                case "System.Int64":
+                    return WriteLong;
+                case "System.Boolean":
+                    return WriteBoolean;
+                case "System.Char":
+                    return WriteChar;
+                case "System.Single":
+                    return WriteSingle;
+                case "System.Double":
+                    return WriteDouble;
+                default:
+                    throw new NotSupportedException(typeReference.FullName + " is not messagepack primitive type.");
+            }
         }
     }
 

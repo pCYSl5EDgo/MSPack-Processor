@@ -17,7 +17,7 @@ namespace MSPack.Processor.Core.Definitions
             Definition = definition;
             SerializationInfo = unionSerializationInfo;
             MinKey = SerializationInfo[0].Key;
-            MaxKey = SerializationInfo[^1].Key;
+            MaxKey = SerializationInfo[SerializationInfo.Length - 1].Key;
         }
 
         public static bool TryParse(TypeDefinition unionClassDefinition, out UnionClassSerializationInfo info)

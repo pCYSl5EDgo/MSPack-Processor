@@ -30,8 +30,11 @@ namespace MSPack.Processor.Core.Definitions
         public bool CanCallGet { get; }
 
         public bool CanCallSet { get; }
-
+#if CSHARP_8_0_OR_NEWER
         public FieldReference? BackingFieldReference { get; }
+#else
+        public FieldReference BackingFieldReference { get; }
+#endif
 
         public bool PublicAccessible => BackingFieldReference is null && (!(Definition.GetMethod is null) && Definition.GetMethod.IsPublic);
 
@@ -58,7 +61,7 @@ namespace MSPack.Processor.Core.Definitions
                 throw new ArgumentOutOfRangeException(definition.FullName, "Key Attribute value should not be less than 0.");
             }
 
-            FieldReference? backingField = default;
+            var backingField = default(FieldReference);
             if (!(definition.GetMethod is null))
             {
                 var instructions = definition.GetMethod.Body.Instructions;
@@ -105,7 +108,7 @@ namespace MSPack.Processor.Core.Definitions
             CanCallGet = IsReadable && (Definition.GetMethod.IsFinal || Definition.DeclaringType.IsSealed);
             CanCallSet = IsWritable && (Definition.SetMethod.IsFinal || Definition.DeclaringType.IsSealed);
 
-            FieldReference? backingField = default;
+            var backingField = default(FieldReference);
             if (!(definition.GetMethod is null))
             {
                 var instructions = definition.GetMethod.Body.Instructions;
@@ -192,12 +195,16 @@ namespace MSPack.Processor.Core.Definitions
                 return true;
             }
 
-FAIL:
+        FAIL:
             info = default;
             return false;
         }
 
+#if CSHARP_8_0_OR_NEWER
         private static bool TryParseInternalMapMode(PropertyDefinition definition, uint index, out PropertySerializationInfo info, MethodDefinition? getter, MethodDefinition? setter)
+#else
+        private static bool TryParseInternalMapMode(PropertyDefinition definition, uint index, out PropertySerializationInfo info, MethodDefinition getter, MethodDefinition setter)
+#endif
         {
             if (getter is null)
             {
@@ -232,8 +239,11 @@ FAIL:
             info = new PropertySerializationInfo(definition, index, definition.Name, getter.IsPublic, setter.IsPublic);
             return true;
         }
-
+#if CSHARP_8_0_OR_NEWER
         private static bool TryParseInternalMapMode(PropertyDefinition definition, uint index, out PropertySerializationInfo info, CustomAttribute key, MethodDefinition? getter, MethodDefinition? setter)
+#else
+        private static bool TryParseInternalMapMode(PropertyDefinition definition, uint index, out PropertySerializationInfo info, CustomAttribute key, MethodDefinition getter, MethodDefinition setter)
+#endif
         {
             if (CustomAttributeHelper.IsStringKeyAttribute(key, out var stringKey))
             {

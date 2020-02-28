@@ -56,7 +56,7 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateConstructor(in StructSerializationInfo info, FieldDefinition keyMapping)
         {
             var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
-            var last = constructor.Body.Instructions[^1];
+            var last = constructor.Body.Instructions[constructor.Body.Instructions.Count - 1];
             var processor = constructor.Body.GetILProcessor();
 
             processor.InsertBefore(last, Instruction.Create(OpCodes.Ldarg_0));
@@ -505,7 +505,11 @@ namespace MSPack.Processor.Core.Formatter
             }
         }
 
+#if CSHARP_8_0_OR_NEWER
         private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref bool resolverCalled, ref VariableDefinition? intPtrVariable)
+#else
+        private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref bool resolverCalled, ref VariableDefinition intPtrVariable)
+#endif
         {
             if (serializationInfo.IsFixedSizeBuffer)
             {

@@ -8,23 +8,50 @@ namespace MSPack.Processor.Core.Provider
     public sealed class SystemConsoleHelper
     {
         private readonly ModuleDefinition module;
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? console;
         private MethodReference? writeLine;
+#else
+        private TypeReference console;
+        private MethodReference writeLine;
+#endif
 
         public SystemConsoleHelper(ModuleDefinition module)
         {
             this.module = module;
         }
 
-        public TypeReference Console => console ??= new TypeReference("System", nameof(Console), module, module.TypeSystem.CoreLibrary, false);
-
-        public MethodReference WriteLine => writeLine ??= new MethodReference(nameof(WriteLine), module.TypeSystem.String, Console)
+        public TypeReference Console
         {
-            HasThis = false,
-            Parameters =
+            get
             {
-                new ParameterDefinition("value", ParameterAttributes.None, module.TypeSystem.String),
-            },
-        };
+                if (console == null)
+                {
+                    console = new TypeReference("System", nameof(Console), module, module.TypeSystem.CoreLibrary, false);
+                }
+
+                return console;
+            }
+        }
+
+        public MethodReference WriteLine
+        {
+            get
+            {
+                if (writeLine == null)
+                {
+                    writeLine = new MethodReference(nameof(WriteLine), module.TypeSystem.String, Console)
+                    {
+                        HasThis = false,
+                        Parameters =
+                        {
+                            new ParameterDefinition("value", ParameterAttributes.None, module.TypeSystem.String),
+                        },
+                    };
+                }
+
+                return writeLine;
+            }
+        }
     }
 }

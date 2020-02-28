@@ -15,8 +15,14 @@ namespace MSPack.Processor.Core.Provider
         private readonly MessagePackSerializerOptionsHelper optionsHelper;
         private readonly ModuleImporter importer;
 
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? _IMessagePackFormatterNoGeneric;
         private TypeReference? _IMessagePackFormatterBase;
+#else
+        private TypeReference _IMessagePackFormatterNoGeneric;
+        private TypeReference _IMessagePackFormatterBase;
+#endif
+
 
         public InterfaceMessagePackFormatterHelper(ModuleDefinition module, IMetadataScope messagePackScope, MessagePackWriterHelper writerHelper, MessagePackReaderHelper readerHelper, MessagePackSerializerOptionsHelper optionsHelper, ModuleImporter importer)
         {
@@ -28,7 +34,18 @@ namespace MSPack.Processor.Core.Provider
             this.importer = importer;
         }
 
-        public TypeReference IMessagePackFormatterNoGeneric => _IMessagePackFormatterNoGeneric ??= new TypeReference("MessagePack.Formatters", "IMessagePackFormatter", module, messagePackScope, false);
+        public TypeReference IMessagePackFormatterNoGeneric
+        {
+            get
+            {
+                if (_IMessagePackFormatterNoGeneric == null)
+                {
+                    _IMessagePackFormatterNoGeneric = new TypeReference("MessagePack.Formatters", "IMessagePackFormatter", module, messagePackScope, false);
+                }
+
+                return _IMessagePackFormatterNoGeneric;
+            }
+        }
 
         public TypeReference IMessagePackFormatterBase
         {

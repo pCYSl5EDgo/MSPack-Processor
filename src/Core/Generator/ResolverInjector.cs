@@ -60,20 +60,17 @@ namespace MSPack.Processor.Core
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
+        private static bool IsFormatterCache(TypeDefinition x) => x.IsNestedPrivate && x.IsSealed && x.IsAbstract && x.Name == FormatterCacheName && x.GenericParameters.Count == 1;
+
+        private static bool IsFormatter(FieldDefinition x) => !x.IsPrivate && x.IsInitOnly && x.IsStatic && x.FieldType is GenericInstanceType instanceType && instanceType.ElementType.FullName == "MessagePack.Formatters.IMessagePackFormatter`1";
+
+        private static bool IsCctor(MethodDefinition x) => x.IsPrivate && x.IsHideBySig && x.IsSpecialName && x.IsRuntimeSpecialName && x.IsStatic && x.Name == ".cctor";
+
         private (TypeDefinition, FieldDefinition) GetOrAddFormatterCache(MethodReference getFormatterMethodReference)
         {
-            static bool IsFormatterCache(TypeDefinition x) => x.IsNestedPrivate && x.IsSealed && x.IsAbstract && x.Name == FormatterCacheName && x.GenericParameters.Count == 1;
-
             var formatterCache = resolver.NestedTypes.FirstOrDefault(IsFormatterCache) ?? AddFormatterCache();
 
-            static bool IsFormatter(FieldDefinition x)
-            {
-                return !x.IsPrivate && x.IsInitOnly && x.IsStatic && x.FieldType is GenericInstanceType instanceType && instanceType.ElementType.FullName == "MessagePack.Formatters.IMessagePackFormatter`1";
-            }
-
             var formatter = formatterCache.Fields.FirstOrDefault(IsFormatter) ?? AddFormatterField(formatterCache);
-
-            static bool IsCctor(MethodDefinition x) => x.IsPrivate && x.IsHideBySig && x.IsSpecialName && x.IsRuntimeSpecialName && x.IsStatic && x.Name == ".cctor";
 
             var cctor = formatterCache.Methods.FirstOrDefault(IsCctor) ?? AddFormatterCacheCctor(formatterCache);
 

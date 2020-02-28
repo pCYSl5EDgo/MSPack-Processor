@@ -9,8 +9,13 @@ namespace MSPack.Processor.Core.Provider
     {
         private readonly ModuleDefinition module;
         private readonly SystemRuntimeTypeHandleHelper runtimeTypeHandleHelper;
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? type;
         private MethodReference? getTypeFromHandle;
+#else
+        private TypeReference type;
+        private MethodReference getTypeFromHandle;
+#endif
 
         public SystemTypeHelper(ModuleDefinition module, SystemRuntimeTypeHandleHelper runtimeTypeHandleHelper)
         {
@@ -18,15 +23,37 @@ namespace MSPack.Processor.Core.Provider
             this.runtimeTypeHandleHelper = runtimeTypeHandleHelper;
         }
 
-        public TypeReference Type => type ??= new TypeReference("System", "Type", module, module.TypeSystem.CoreLibrary, false);
-
-        public MethodReference GetTypeFromHandle => getTypeFromHandle ??= new MethodReference(nameof(GetTypeFromHandle), Type, Type)
+        public TypeReference Type
         {
-            HasThis = false,
-            Parameters =
+            get
             {
-                new ParameterDefinition("handle", ParameterAttributes.None, runtimeTypeHandleHelper.RuntimeTypeHandle),
-            },
-        };
+                if (type == null)
+                {
+                    type = new TypeReference("System", "Type", module, module.TypeSystem.CoreLibrary, false);
+                }
+
+                return type;
+            }
+        }
+
+        public MethodReference GetTypeFromHandle
+        {
+            get
+            {
+                if (getTypeFromHandle == null)
+                {
+                    getTypeFromHandle = new MethodReference(nameof(GetTypeFromHandle), Type, Type)
+                    {
+                        HasThis = false,
+                        Parameters =
+                        {
+                            new ParameterDefinition("handle", ParameterAttributes.None, runtimeTypeHandleHelper.RuntimeTypeHandle),
+                        },
+                    };
+                }
+
+                return getTypeFromHandle;
+            }
+        }
     }
 }

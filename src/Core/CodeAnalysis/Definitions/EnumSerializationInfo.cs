@@ -32,26 +32,40 @@ namespace MSPack.Processor.Core.Definitions
             }
         }
 
-        public TypeReference GetUnderlyingTypeReference(ModuleDefinition module) =>
-            UnderlyingType switch
+        public TypeReference GetUnderlyingTypeReference(ModuleDefinition module)
+        {
+            switch (UnderlyingType)
             {
-                EnumUnderlyingType.Byte => module.TypeSystem.Byte,
-                EnumUnderlyingType.UInt16 => module.TypeSystem.UInt16,
-                EnumUnderlyingType.UInt32 => module.TypeSystem.UInt32,
-                EnumUnderlyingType.UInt64 => module.TypeSystem.UInt64,
-                EnumUnderlyingType.SByte => module.TypeSystem.SByte,
-                EnumUnderlyingType.Int16 => module.TypeSystem.Int16,
-                EnumUnderlyingType.Int32 => module.TypeSystem.Int32,
-                EnumUnderlyingType.Int64 => module.TypeSystem.Int64,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                case EnumUnderlyingType.Byte:
+                    return module.TypeSystem.Byte;
+                case EnumUnderlyingType.UInt16:
+                    return module.TypeSystem.UInt16;
+                case EnumUnderlyingType.UInt32:
+                    return module.TypeSystem.UInt32;
+                case EnumUnderlyingType.UInt64:
+                    return module.TypeSystem.UInt64;
+                case EnumUnderlyingType.SByte:
+                    return module.TypeSystem.SByte;
+                case EnumUnderlyingType.Int16:
+                    return module.TypeSystem.Int16;
+                case EnumUnderlyingType.Int32:
+                    return module.TypeSystem.Int32;
+                case EnumUnderlyingType.Int64:
+                    return module.TypeSystem.Int64;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         public bool Equals(EnumSerializationInfo other)
         {
             return (object)Definition == other.Definition;
         }
-
+#if CSHARP_8_0_OR_NEWER
         public override bool Equals(object? obj)
+#else
+        public override bool Equals(object obj)
+#endif
         {
             return obj is EnumSerializationInfo other && Equals(other);
         }

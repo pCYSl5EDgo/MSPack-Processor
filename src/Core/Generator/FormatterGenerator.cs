@@ -126,7 +126,11 @@ namespace MSPack.Processor.Core
         {
             if (info.FormatterExists)
             {
+#if CSHARP_8_0_OR_NEWER
                 return info.FormatterDefinition!;
+#else
+                return info.FormatterDefinition;
+#endif
             }
 
             var formatter = new TypeDefinition(string.Empty, "C" + info.FormatterName + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
@@ -139,7 +143,11 @@ namespace MSPack.Processor.Core
         {
             if (info.FormatterExists)
             {
+#if CSHARP_8_0_OR_NEWER
                 return info.FormatterDefinition!;
+#else
+                return info.FormatterDefinition;
+#endif
             }
 
             var formatter = new TypeDefinition(string.Empty, "S" + info.FormatterName + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);

@@ -11,7 +11,11 @@ namespace MSPack.Processor.Core.Provider
         private readonly ModuleDefinition module;
         private readonly ModuleImporter importer;
         private readonly IMetadataScope coreLibraryScope;
+#if CSHARP_8_0_OR_NEWER
         private TypeReference? iEqualityComparerBase;
+#else
+        private TypeReference iEqualityComparerBase;
+#endif
 
         public SystemCollectionsGenericIEqualityComparerHelper(ModuleDefinition module, ModuleImporter importer)
         {

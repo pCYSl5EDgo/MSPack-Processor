@@ -10,7 +10,11 @@ namespace MSPack.Processor.Core.Provider
     {
         private readonly ModuleDefinition module;
         private readonly ModuleImporter importer;
+#if CSHARP_8_0_OR_NEWER
         private MethodReference? resize;
+#else
+        private MethodReference resize;
+#endif
 
         public TypeReference Array { get; }
 

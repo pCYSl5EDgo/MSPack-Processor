@@ -76,7 +76,11 @@ namespace MSPack.Processor.Core
                                 var (instruction, instructions) = InstructionUtility.LdcI8((long)value);
                                 if (instructions is null)
                                 {
+#if CSHARP_8_0_OR_NEWER
                                     processor.Append(instruction!);
+#else
+                                    processor.Append(instruction);
+#endif
                                 }
                                 else
                                 {
@@ -99,7 +103,11 @@ namespace MSPack.Processor.Core
                                 var (instruction, instructions) = InstructionUtility.LdcU8((ulong)value);
                                 if (instructions is null)
                                 {
+#if CSHARP_8_0_OR_NEWER
                                     processor.Append(instruction!);
+#else
+                                    processor.Append(instruction);
+#endif
                                 }
                                 else
                                 {

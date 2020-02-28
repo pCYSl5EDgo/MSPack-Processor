@@ -15,9 +15,15 @@ namespace MSPack.Processor.Core
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
 
+#if CSHARP_8_0_OR_NEWER
         private TypeDefinition? pair;
         private FieldDefinition? key;
         private FieldDefinition? value;
+#else
+        private TypeDefinition pair;
+        private FieldDefinition key;
+        private FieldDefinition value;
+#endif
 
         public TypeKeyInterfaceMessagePackFormatterValuePairGenerator(TypeProvider provider)
         {
@@ -25,7 +31,18 @@ namespace MSPack.Processor.Core
             this.module = provider.Module;
         }
 
-        public TypeDefinition Pair => pair ??= module.GetType(NameSpace, TypeName) ?? Add(out key, out value);
+        public TypeDefinition Pair
+        {
+            get
+            {
+                if (pair == null)
+                {
+                    pair = module.GetType(NameSpace, TypeName) ?? Add(out key, out value);
+                }
+
+                return pair;
+            }
+        }
 
         public FieldDefinition Key
         {

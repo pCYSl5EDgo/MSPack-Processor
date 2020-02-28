@@ -10,7 +10,11 @@ namespace MSPack.Processor.Core.Definitions
 {
     public readonly struct StructSerializationInfo : ITypeSerializationInfo
     {
+#if CSHARP_8_0_OR_NEWER
         public StructSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
+#else
+        public StructSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
+#endif
         {
             Definition = definition;
             FormatterName = formatterName;
@@ -26,7 +30,11 @@ namespace MSPack.Processor.Core.Definitions
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
 
+#if CSHARP_8_0_OR_NEWER
         public StructSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
+#else
+        public StructSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
+#endif
         {
             Definition = definition;
             FormatterName = string.Empty;
@@ -62,7 +70,16 @@ namespace MSPack.Processor.Core.Definitions
 
         public int MaxIntKey { get; }
 
+#if CSHARP_8_0_OR_NEWER
         public TypeDefinition? FormatterDefinition { get; }
+
+        public MethodDefinition? SerializationConstructor { get; }
+#else
+        public TypeDefinition FormatterDefinition { get; }
+
+        public MethodDefinition SerializationConstructor { get; }
+#endif
+
 
         public CustomAttributeArgument[] FormatterConstructorArguments { get; }
 
@@ -106,8 +123,6 @@ namespace MSPack.Processor.Core.Definitions
         public IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs()
             => FieldInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x)))
                 .Concat(PropertyInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x))));
-
-        public MethodDefinition? SerializationConstructor { get; }
 
         public static bool TryParse(TypeDefinition type, bool useMapMode, out StructSerializationInfo info)
         {

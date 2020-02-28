@@ -32,8 +32,11 @@ namespace MSPack.Processor.Core
                     }
             }
         }
-
+#if CSHARP_8_0_OR_NEWER
         public static (Instruction?, Instruction[]?) LdcI8(long value)
+#else
+        public static (Instruction, Instruction[]) LdcI8(long value)
+#endif
         {
             switch (value)
             {
@@ -67,8 +70,11 @@ namespace MSPack.Processor.Core
 
             return (Instruction.Create(OpCodes.Ldc_I8, value), default);
         }
-
+#if CSHARP_8_0_OR_NEWER
         public static (Instruction?, Instruction[]?) LdcU8(ulong value)
+#else
+        public static (Instruction, Instruction[]) LdcU8(ulong value)
+#endif
         {
             switch (value)
             {

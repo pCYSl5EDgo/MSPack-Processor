@@ -1,5 +1,6 @@
 ﻿#pragma warning disable MA0048 // File name must match type name
 #define INTERNAL_NULLABLE_ATTRIBUTES
+#if CSHARP_8_0_OR_NEWER
 #if NETSTANDARD2_0 ||  NETCOREAPP2_0 ||  NETCOREAPP2_1 ||  NETCOREAPP2_2 || NET45 || NET451 || NET452 || NET6 || NET461 || NET462 || NET47 || NET471 || NET472 || NET48
 
 // https://github.com/dotnet/corefx/blob/48363ac826ccf66fbe31a5dcb1dc2aab9a7dd768/src/Common/src/CoreLib/System/Diagnostics/CodeAnalysis/NullableAttributes.cs
@@ -73,7 +74,7 @@ namespace System.Diagnostics.CodeAnalysis
 #if INTERNAL_NULLABLE_ATTRIBUTES
     internal sealed class NotNullWhenAttribute : Attribute
 #else
-    public sealed class NotNullWhenAttribute : Attribute
+    public sealed class System.Diagnostics.CodeAnalysis.NotNullWhenAttribute : Attribute
 #endif
     {
         /// <summary>Initializes the attribute with the specified return value condition.</summary>
@@ -133,4 +134,5 @@ namespace System.Diagnostics.CodeAnalysis
         public bool ParameterValue { get; }
     }
 }
+#endif
 #endif

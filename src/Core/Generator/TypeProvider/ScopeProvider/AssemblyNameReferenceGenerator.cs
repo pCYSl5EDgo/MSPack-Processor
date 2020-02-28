@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Mono.Cecil;
 
@@ -22,7 +21,11 @@ namespace MSPack.Processor.Core.Provider
             };
         }
 
-        public bool TryGetDictionaryContainerNameReference(ModuleDefinition module, [NotNullWhen(true)]out AssemblyNameReference? nameReference)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryGetDictionaryContainerNameReference(ModuleDefinition module, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out AssemblyNameReference? nameReference)
+#else
+        public bool TryGetDictionaryContainerNameReference(ModuleDefinition module, out AssemblyNameReference nameReference)
+#endif
         {
             switch (RuntimeDetector.DetectRuntimeTarget(module))
             {
@@ -39,7 +42,11 @@ namespace MSPack.Processor.Core.Provider
             }
         }
 
-        public bool TryGetSystemRuntimeExtensionDllNameReference(ModuleDefinition module, [NotNullWhen(true)]out AssemblyNameReference? nameReference)
+#if CSHARP_8_0_OR_NEWER
+        public bool TryGetSystemRuntimeExtensionDllNameReference(ModuleDefinition module, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]out AssemblyNameReference? nameReference)
+#else
+        public bool TryGetSystemRuntimeExtensionDllNameReference(ModuleDefinition module, out AssemblyNameReference nameReference)
+#endif
         {
             switch (RuntimeDetector.DetectRuntimeTarget(module))
             {

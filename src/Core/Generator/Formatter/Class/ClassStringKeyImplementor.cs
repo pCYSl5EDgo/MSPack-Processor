@@ -56,7 +56,7 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateConstructor(in ClassSerializationInfo info, FieldDefinition keyMapping)
         {
             var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
-            var last = constructor.Body.Instructions[^1];
+            var last = constructor.Body.Instructions[constructor.Body.Instructions.Count - 1];
             var processor = constructor.Body.GetILProcessor();
 
             processor.InsertBefore(last, Instruction.Create(OpCodes.Ldarg_0));

@@ -8,7 +8,15 @@ namespace MSPack.Processor.Core.Definitions
 {
     public interface ITypeSerializationInfo
     {
+#if CSHARP_8_0_OR_NEWER
         MethodDefinition? SerializationConstructor { get; }
+
+        TypeDefinition? FormatterDefinition { get; }
+#else
+        MethodDefinition SerializationConstructor { get; }
+
+        TypeDefinition FormatterDefinition { get; }
+#endif
 
         bool IsIntKey { get; }
 
@@ -29,8 +37,6 @@ namespace MSPack.Processor.Core.Definitions
         int MaxIntKey { get; }
 
         int MinIntKey { get; }
-
-        TypeDefinition? FormatterDefinition { get; }
 
         CustomAttributeArgument[] FormatterConstructorArguments { get; }
 

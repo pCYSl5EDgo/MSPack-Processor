@@ -10,6 +10,7 @@ namespace MSPack.Processor.Core.Provider
     {
         private readonly IMetadataScope messagePackScope;
         private readonly IReportHook reportHook;
+#if CSHARP_8_0_OR_NEWER
         private IMetadataScope? spanScope;
         private IMetadataScope? systemCollectionsScope;
         private IMetadataScope? systemRuntimeExtensionsScope;
@@ -22,7 +23,6 @@ namespace MSPack.Processor.Core.Provider
         private InterfaceMessagePackFormatterHelper? interfaceMessagePackFormatterHelper;
         private InterfaceFormatterResolverHelper? interfaceFormatterResolverHelper;
         private FormatterResolverExtensionHelper? formatterResolverExtensionHelper;
-        private SystemCollectionsGenericDictionaryHelper? systemCollectionsGenericDictionaryHelper;
         private SystemCollectionsGenericIEqualityComparerHelper? systemCollectionsGenericIEqualityComparerHelper;
         private SystemCollectionsHashtableHelper? systemCollectionsHashtableHelper;
         private SystemRuntimeTypeHandleHelper? systemRuntimeTypeHandleHelper;
@@ -35,6 +35,32 @@ namespace MSPack.Processor.Core.Provider
         private SystemInvalidOperationExceptionHelper? systemInvalidOperationExceptionHelper;
         private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper? systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
         private SystemArrayHelper? systemArrayHelper;
+#else
+        private IMetadataScope spanScope;
+        private IMetadataScope systemCollectionsScope;
+        private IMetadataScope systemRuntimeExtensionsScope;
+        private AutomataDictionaryHelper automataDictionaryHelper;
+        private MessagePackWriterHelper messagePackWriterHelper;
+        private MessagePackReaderHelper messagePackReaderHelper;
+        private MessagePackSerializerOptionsHelper messagePackSerializerOptionsHelper;
+        private MessagePackSecurityHelper messagePackSecurityHelper;
+        private CodeGenHelpersHelper codeGenHelpersHelper;
+        private InterfaceMessagePackFormatterHelper interfaceMessagePackFormatterHelper;
+        private InterfaceFormatterResolverHelper interfaceFormatterResolverHelper;
+        private FormatterResolverExtensionHelper formatterResolverExtensionHelper;
+        private SystemCollectionsGenericIEqualityComparerHelper systemCollectionsGenericIEqualityComparerHelper;
+        private SystemCollectionsHashtableHelper systemCollectionsHashtableHelper;
+        private SystemRuntimeTypeHandleHelper systemRuntimeTypeHandleHelper;
+        private SystemReadOnlySpanHelper systemReadOnlySpanHelper;
+        private SystemObjectHelper systemObjectHelper;
+        private SystemValueTypeHelper systemValueTypeHelper;
+        private SystemTypeHelper systemTypeHelper;
+        private SystemConsoleHelper systemConsoleHelper;
+        private SystemExceptionHelper systemExceptionHelper;
+        private SystemInvalidOperationExceptionHelper systemInvalidOperationExceptionHelper;
+        private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
+        private SystemArrayHelper systemArrayHelper;
+#endif
 
         public TypeProvider(ModuleDefinition module, IMetadataScope messagePackScope, IReportHook reportHook)
         {
@@ -42,8 +68,6 @@ namespace MSPack.Processor.Core.Provider
             this.messagePackScope = messagePackScope;
             this.reportHook = reportHook;
             Importer = new ModuleImporter(module);
-
-            DebugInjectorUtility.SetProvider(this);
         }
 
         public ModuleDefinition Module { get; }
@@ -99,51 +123,280 @@ namespace MSPack.Processor.Core.Provider
             return systemRuntimeExtensionsScope;
         }
 
-        public SystemObjectHelper SystemObjectHelper => systemObjectHelper ??= new SystemObjectHelper(Module, SystemTypeHelper);
+        public SystemObjectHelper SystemObjectHelper
+        {
+            get
+            {
+                if (systemObjectHelper == null)
+                {
+                    systemObjectHelper = new SystemObjectHelper(Module, SystemTypeHelper);
+                }
 
-        public SystemValueTypeHelper SystemValueTypeHelper => systemValueTypeHelper ??= new SystemValueTypeHelper(Module);
+                return systemObjectHelper;
+            }
+        }
+
+        public SystemValueTypeHelper SystemValueTypeHelper
+        {
+            get
+            {
+                if (systemValueTypeHelper == null)
+                {
+                    systemValueTypeHelper = new SystemValueTypeHelper(Module);
+                }
+
+                return systemValueTypeHelper;
+            }
+        }
 
         private SystemReadOnlySpanHelper SystemReadOnlySpanHelperFunc() => SystemReadOnlySpanHelper;
 
-        public SystemReadOnlySpanHelper SystemReadOnlySpanHelper => systemReadOnlySpanHelper ??= new SystemReadOnlySpanHelper(Module, Importer, SpanScope);
+        public SystemReadOnlySpanHelper SystemReadOnlySpanHelper
+        {
+            get
+            {
+                if (systemReadOnlySpanHelper == null)
+                {
+                    systemReadOnlySpanHelper = new SystemReadOnlySpanHelper(Module, Importer, SpanScope);
+                }
 
-        public MessagePackWriterHelper MessagePackWriterHelper => messagePackWriterHelper ??= new MessagePackWriterHelper(Module, messagePackScope, SystemReadOnlySpanHelperFunc);
+                return systemReadOnlySpanHelper;
+            }
+        }
 
-        public MessagePackReaderHelper MessagePackReaderHelper => messagePackReaderHelper ??= new MessagePackReaderHelper(Module, messagePackScope);
+        public MessagePackWriterHelper MessagePackWriterHelper
+        {
+            get
+            {
+                if (messagePackWriterHelper == null)
+                {
+                    messagePackWriterHelper = new MessagePackWriterHelper(Module, messagePackScope, SystemReadOnlySpanHelperFunc);
+                }
 
-        public CodeGenHelpersHelper CodeGenHelpersHelper => codeGenHelpersHelper ??= new CodeGenHelpersHelper(Module, messagePackScope, MessagePackReaderHelper, SystemReadOnlySpanHelperFunc);
+                return messagePackWriterHelper;
+            }
+        }
 
-        public MessagePackSecurityHelper MessagePackSecurityHelper => messagePackSecurityHelper ??= new MessagePackSecurityHelper(Module, messagePackScope, MessagePackReaderHelper);
+        public MessagePackReaderHelper MessagePackReaderHelper
+        {
+            get
+            {
+                if (messagePackReaderHelper == null)
+                {
+                    messagePackReaderHelper = new MessagePackReaderHelper(Module, messagePackScope);
+                }
 
-        public InterfaceFormatterResolverHelper InterfaceFormatterResolverHelper => interfaceFormatterResolverHelper ??= new InterfaceFormatterResolverHelper(Module, messagePackScope);
+                return messagePackReaderHelper;
+            }
+        }
 
-        public MessagePackSerializerOptionsHelper MessagePackSerializerOptionsHelper => messagePackSerializerOptionsHelper ??= new MessagePackSerializerOptionsHelper(Module, messagePackScope, InterfaceFormatterResolverHelper, () => MessagePackSecurityHelper);
+        public CodeGenHelpersHelper CodeGenHelpersHelper
+        {
+            get
+            {
+                if (codeGenHelpersHelper == null)
+                {
+                    codeGenHelpersHelper = new CodeGenHelpersHelper(Module, messagePackScope, MessagePackReaderHelper, SystemReadOnlySpanHelperFunc);
+                }
 
-        public InterfaceMessagePackFormatterHelper InterfaceMessagePackFormatterHelper => interfaceMessagePackFormatterHelper ??= new InterfaceMessagePackFormatterHelper(Module, messagePackScope, MessagePackWriterHelper, MessagePackReaderHelper, MessagePackSerializerOptionsHelper, Importer);
+                return codeGenHelpersHelper;
+            }
+        }
 
-        public FormatterResolverExtensionHelper FormatterResolverExtensionHelper => formatterResolverExtensionHelper ??= new FormatterResolverExtensionHelper(Module, messagePackScope, InterfaceFormatterResolverHelper, InterfaceMessagePackFormatterHelper, Importer);
+        public MessagePackSecurityHelper MessagePackSecurityHelper
+        {
+            get
+            {
+                if (messagePackSecurityHelper == null)
+                {
+                    messagePackSecurityHelper = new MessagePackSecurityHelper(Module, messagePackScope, MessagePackReaderHelper);
+                }
 
-        public SystemCollectionsGenericIEqualityComparerHelper SystemCollectionsGenericIEqualityComparerHelper => systemCollectionsGenericIEqualityComparerHelper ??= new SystemCollectionsGenericIEqualityComparerHelper(Module, Importer);
+                return messagePackSecurityHelper;
+            }
+        }
 
-        public SystemCollectionsGenericDictionaryHelper SystemCollectionsGenericDictionaryHelper => systemCollectionsGenericDictionaryHelper ??= new SystemCollectionsGenericDictionaryHelper(Module, SystemCollectionsScope, SystemCollectionsGenericIEqualityComparerHelper, Importer);
+        public InterfaceFormatterResolverHelper InterfaceFormatterResolverHelper
+        {
+            get
+            {
+                if (interfaceFormatterResolverHelper == null)
+                {
+                    interfaceFormatterResolverHelper = new InterfaceFormatterResolverHelper(Module, messagePackScope);
+                }
 
-        public AutomataDictionaryHelper AutomataDictionaryHelper => automataDictionaryHelper ??= new AutomataDictionaryHelper(Module, messagePackScope, SystemReadOnlySpanHelper);
+                return interfaceFormatterResolverHelper;
+            }
+        }
 
-        public SystemCollectionsHashtableHelper SystemCollectionsHashtableHelper => systemCollectionsHashtableHelper ??= new SystemCollectionsHashtableHelper(Module, SystemRuntimeExtensionsScope);
+        public MessagePackSerializerOptionsHelper MessagePackSerializerOptionsHelper
+        {
+            get
+            {
+                if (messagePackSerializerOptionsHelper == null)
+                {
+                    messagePackSerializerOptionsHelper = new MessagePackSerializerOptionsHelper(Module, messagePackScope, InterfaceFormatterResolverHelper, () => MessagePackSecurityHelper);
+                }
 
-        public SystemRuntimeTypeHandleHelper SystemRuntimeTypeHandleHelper => systemRuntimeTypeHandleHelper ??= new SystemRuntimeTypeHandleHelper(Module);
+                return messagePackSerializerOptionsHelper;
+            }
+        }
 
-        public SystemTypeHelper SystemTypeHelper => systemTypeHelper ??= new SystemTypeHelper(Module, SystemRuntimeTypeHandleHelper);
+        public InterfaceMessagePackFormatterHelper InterfaceMessagePackFormatterHelper
+        {
+            get
+            {
+                if (interfaceMessagePackFormatterHelper == null)
+                {
+                    interfaceMessagePackFormatterHelper = new InterfaceMessagePackFormatterHelper(Module, messagePackScope, MessagePackWriterHelper, MessagePackReaderHelper, MessagePackSerializerOptionsHelper, Importer);
+                }
 
-        public SystemConsoleHelper SystemConsoleHelper => systemConsoleHelper ??= new SystemConsoleHelper(Module);
+                return interfaceMessagePackFormatterHelper;
+            }
+        }
 
-        public SystemExceptionHelper SystemExceptionHelper => systemExceptionHelper ??= new SystemExceptionHelper(Module);
+        public FormatterResolverExtensionHelper FormatterResolverExtensionHelper
+        {
+            get
+            {
+                if (formatterResolverExtensionHelper == null)
+                {
+                    formatterResolverExtensionHelper = new FormatterResolverExtensionHelper(Module, messagePackScope, InterfaceFormatterResolverHelper, InterfaceMessagePackFormatterHelper, Importer);
+                }
 
-        public SystemInvalidOperationExceptionHelper SystemInvalidOperationExceptionHelper => systemInvalidOperationExceptionHelper ??= new SystemInvalidOperationExceptionHelper(Module);
+                return formatterResolverExtensionHelper;
+            }
+        }
 
-        public SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper => systemRuntimeCompilerServicesIsReadOnlyAttributeHelper ??= new SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper(Module);
+        public SystemCollectionsGenericIEqualityComparerHelper SystemCollectionsGenericIEqualityComparerHelper
+        {
+            get
+            {
+                if (systemCollectionsGenericIEqualityComparerHelper == null)
+                {
+                    systemCollectionsGenericIEqualityComparerHelper = new SystemCollectionsGenericIEqualityComparerHelper(Module, Importer);
+                }
 
-        public SystemArrayHelper SystemArrayHelper => systemArrayHelper ??= new SystemArrayHelper(Module, Importer);
+                return systemCollectionsGenericIEqualityComparerHelper;
+            }
+        }
+
+        public AutomataDictionaryHelper AutomataDictionaryHelper
+        {
+            get
+            {
+                if (automataDictionaryHelper == null)
+                {
+                    automataDictionaryHelper = new AutomataDictionaryHelper(Module, messagePackScope, SystemReadOnlySpanHelper);
+                }
+
+                return automataDictionaryHelper;
+            }
+        }
+
+        public SystemCollectionsHashtableHelper SystemCollectionsHashtableHelper
+        {
+            get
+            {
+                if (systemCollectionsHashtableHelper == null)
+                {
+                    systemCollectionsHashtableHelper = new SystemCollectionsHashtableHelper(Module, SystemRuntimeExtensionsScope);
+                }
+
+                return systemCollectionsHashtableHelper;
+            }
+        }
+
+        public SystemRuntimeTypeHandleHelper SystemRuntimeTypeHandleHelper
+        {
+            get
+            {
+                if (systemRuntimeTypeHandleHelper == null)
+                {
+                    systemRuntimeTypeHandleHelper = new SystemRuntimeTypeHandleHelper(Module);
+                }
+
+                return systemRuntimeTypeHandleHelper;
+            }
+        }
+
+        public SystemTypeHelper SystemTypeHelper
+        {
+            get
+            {
+                if (systemTypeHelper == null)
+                {
+                    systemTypeHelper = new SystemTypeHelper(Module, SystemRuntimeTypeHandleHelper);
+                }
+
+                return systemTypeHelper;
+            }
+        }
+
+        public SystemConsoleHelper SystemConsoleHelper
+        {
+            get
+            {
+                if (systemConsoleHelper == null)
+                {
+                    systemConsoleHelper = new SystemConsoleHelper(Module);
+                }
+
+                return systemConsoleHelper;
+            }
+        }
+
+        public SystemExceptionHelper SystemExceptionHelper
+        {
+            get
+            {
+                if (systemExceptionHelper == null)
+                {
+                    systemExceptionHelper = new SystemExceptionHelper(Module);
+                }
+
+                return systemExceptionHelper;
+            }
+        }
+
+        public SystemInvalidOperationExceptionHelper SystemInvalidOperationExceptionHelper
+        {
+            get
+            {
+                if (systemInvalidOperationExceptionHelper == null)
+                {
+                    systemInvalidOperationExceptionHelper = new SystemInvalidOperationExceptionHelper(Module);
+                }
+
+                return systemInvalidOperationExceptionHelper;
+            }
+        }
+
+        public SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper
+        {
+            get
+            {
+                if (systemRuntimeCompilerServicesIsReadOnlyAttributeHelper == null)
+                {
+                    systemRuntimeCompilerServicesIsReadOnlyAttributeHelper = new SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper(Module);
+                }
+
+                return systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
+            }
+        }
+
+        public SystemArrayHelper SystemArrayHelper
+        {
+            get
+            {
+                if (systemArrayHelper == null)
+                {
+                    systemArrayHelper = new SystemArrayHelper(Module, Importer);
+                }
+
+                return systemArrayHelper;
+            }
+        }
 
         public ModuleImporter Importer { get; }
     }

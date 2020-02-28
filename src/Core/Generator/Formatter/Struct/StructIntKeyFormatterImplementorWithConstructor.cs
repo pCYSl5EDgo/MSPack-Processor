@@ -44,8 +44,11 @@ namespace MSPack.Processor.Core.Formatter
             {
                 throw new InvalidProgramException("in this situation, SerializationConstructor should not be null.");
             }
-
+#if CSHARP_8_0_OR_NEWER
             var deserialize = GenerateDeserialize(in info, shouldCallback, info.SerializationConstructor!);
+#else
+            var deserialize = GenerateDeserialize(in info, shouldCallback, info.SerializationConstructor);
+#endif
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
         }
@@ -198,7 +201,11 @@ namespace MSPack.Processor.Core.Formatter
             }
         }
 
+#if CSHARP_8_0_OR_NEWER
         private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled, ref VariableDefinition? intPtrVariable)
+#else
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled, ref VariableDefinition intPtrVariable)
+#endif
         {
             var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
             if (serializationInfo.IsFixedSizeBuffer)
