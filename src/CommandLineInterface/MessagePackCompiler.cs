@@ -29,19 +29,20 @@ namespace MSPack.Processor.CLI
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
             var reportHook = new NopReportHook();
-            var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook);
+            using (var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook))
+            {
+                var libraryPaths = Split(libraryFiles);
+                var definitionPaths = Split(definitionFiles);
 
-            var libraryPaths = Split(libraryFiles);
-            var definitionPaths = Split(definitionFiles);
-
-            codeGenerator
-                .Generate(
-                    input,
-                    resolverName,
-                    libraryPaths,
-                    definitionPaths,
-                    useMapMode,
-                    loadFactor);
+                codeGenerator
+                    .Generate(
+                        input,
+                        resolverName,
+                        libraryPaths,
+                        definitionPaths,
+                        useMapMode,
+                        loadFactor);
+            }
         }
 
         private static string[] Split(string paths)
