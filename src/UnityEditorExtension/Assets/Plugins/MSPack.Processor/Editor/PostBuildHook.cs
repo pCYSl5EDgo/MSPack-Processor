@@ -32,11 +32,11 @@ namespace MSPack.Processor.Unity.Editor
 
         public void OnPostBuildPlayerScriptDLLs(BuildReport report)
         {
-            var guidArray = AssetDatabase.FindAssets("t:" + nameof(MSPackProcessorUnityEditorSettingScriptableObject)) ?? Array.Empty<string>();
-            if (!ShouldProcess(guidArray))
-            {
-                return;
-            }
+            // var guidArray = AssetDatabase.FindAssets("t:" + nameof(MSPackProcessorUnityEditorSettingScriptableObject)) ?? Array.Empty<string>();
+            // if (!ShouldProcess(guidArray))
+            // {
+            //     return;
+            // }
 
             step[0] = BeginBuildStep.Invoke(report, uniEnumExtension);
             try
