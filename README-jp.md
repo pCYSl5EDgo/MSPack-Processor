@@ -65,6 +65,8 @@ dotnet global toolsをビルド後イベントから叩くのがいいのでは�
 ### <a name="unity"></a>Unity
 
 Unityからの利用法は現在作者であるpCYSl5EDgoのローカルマシンでIL2CPPビルドが出来ないため塩漬け中である。
+テスト目的で利用する場合には、Unity2019.3においてUnity Package Managerを利用して`https://github.com/pCYSl5EDgo/MSPack-Processor.git#2019.3`をインストールする。
+
 
 # LICENSE
 
