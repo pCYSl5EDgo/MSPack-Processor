@@ -3,6 +3,7 @@
 
 using Mono.Cecil;
 using System.Linq;
+using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -24,6 +25,26 @@ namespace MSPack.Processor.Core.Definitions
             this.InterfaceSerializationInfos = interfaceSerializationInfos;
 
             PublicAccessible = ClassSerializationInfos.All(x => x.PublicAccessible);
+        }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+
+            builder.Append("Module : ").Append(Module.Name);
+            builder.Append("\nClass : count -> ").Append(ClassSerializationInfos.Length);
+            for (var i = 0; i < ClassSerializationInfos.Length; i++)
+            {
+                builder.Append("\nClass[").Append(i).Append("]").Append(ClassSerializationInfos[i].ToString());
+            }
+
+            builder.Append("\nStruct : count -> ").Append(StructSerializationInfos.Length);
+            for (var i = 0; i < StructSerializationInfos.Length; i++)
+            {
+                builder.Append("\nClass[").Append(i).Append("]").Append(StructSerializationInfos[i].ToString());
+            }
+
+            return builder.ToString();
         }
     }
 }

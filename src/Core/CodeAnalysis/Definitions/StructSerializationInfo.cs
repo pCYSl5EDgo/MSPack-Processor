@@ -5,6 +5,7 @@ using Mono.Cecil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -160,6 +161,30 @@ namespace MSPack.Processor.Core.Definitions
             }
 
             return true;
+        }
+
+        public override string ToString()
+        {
+            var buffer = new StringBuilder();
+
+            buffer.Append("FullName : ").Append(Definition.FullName)
+                .Append("\nIs Public Accessible? : ").Append(PublicAccessible)
+                .Append("\nIs Class? : ").Append(IsClass)
+                .Append("\nIs Int Key? : ").Append(IsIntKey);
+
+            for (var index = 0; index < this.FieldInfos.Length; index++)
+            {
+                ref readonly var info = ref FieldInfos[index];
+                buffer.Append("\nField").Append(index).Append(" => ").Append(info.ToString());
+            }
+
+            for (var index = 0; index < this.PropertyInfos.Length; index++)
+            {
+                ref readonly var info = ref PropertyInfos[index];
+                buffer.Append("\nProperty").Append(index).Append(" => ").Append(info.ToString());
+            }
+
+            return buffer.ToString();
         }
     }
 }
