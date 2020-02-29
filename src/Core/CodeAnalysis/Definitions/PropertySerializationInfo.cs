@@ -6,6 +6,7 @@ using Mono.Cecil.Cil;
 using MSPack.Processor.Core.Provider;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -331,6 +332,31 @@ namespace MSPack.Processor.Core.Definitions
             }
 
             return Index > other.Index ? 1 : 0;
+        }
+
+        public override string ToString()
+        {
+            var buffer = new StringBuilder();
+
+            buffer.Append("Name : ").Append(FullName)
+                .Append(" => ").Append(MemberTypeReference.FullName)
+                .Append(" || Key : ");
+
+            if (IsIntKey)
+            {
+                buffer.Append(IntKey);
+            }
+            else
+            {
+                buffer.Append(StringKey);
+            }
+
+            if (!(BackingFieldReference is null))
+            {
+                buffer.Append(" || Auto Property Backing Field : ").Append(BackingFieldReference.Name);
+            }
+
+            return buffer.ToString();
         }
     }
 }
