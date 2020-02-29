@@ -65,9 +65,6 @@ namespace MSPack.Processor.Core.Definitions
             return obj is EnumSerializationInfo other && Equals(other);
         }
 
-        public override int GetHashCode()
-        {
-            return Type.GetHashCode();
-        }
+        public override int GetHashCode() => (int)UnderlyingType;
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Mono.Cecil;
+using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -30,5 +31,7 @@ namespace MSPack.Processor.Core.Definitions
         bool IsValueType { get; }
 
         TypeReference MemberTypeReference { get; }
+
+        Collection<CustomAttribute> CustomAttributes { get; }
     }
 }

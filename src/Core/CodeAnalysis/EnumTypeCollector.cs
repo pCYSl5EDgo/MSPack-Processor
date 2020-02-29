@@ -12,10 +12,6 @@ namespace MSPack.Processor.Core.Definitions
     {
         private readonly HashSet<EnumSerializationInfo> enumInfos = new HashSet<EnumSerializationInfo>();
 
-        public EnumTypeCollector()
-        {
-        }
-
         public EnumSerializationInfo[] Collect(CollectedInfo[] collectedInfos)
         {
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -37,13 +33,25 @@ namespace MSPack.Processor.Core.Definitions
                 // ReSharper disable once ForCanBeConvertedToForeach
                 for (var i = 0; i < serializationInfo.PropertyInfos.Length; i++)
                 {
-                    Collect(serializationInfo.PropertyInfos[i]);
+                    ref readonly var info = ref serializationInfo.PropertyInfos[i];
+                    if (HasUnderlyingTypeDeclaration(info, out var underlyingType))
+                    {
+                        Add(info.MemberTypeReference, underlyingType);
+                    }
+
+                    Collect(info);
                 }
 
                 // ReSharper disable once ForCanBeConvertedToForeach
                 for (var i = 0; i < serializationInfo.FieldInfos.Length; i++)
                 {
-                    Collect(serializationInfo.FieldInfos[i]);
+                    ref readonly var info = ref serializationInfo.FieldInfos[i];
+                    if (HasUnderlyingTypeDeclaration(info, out var underlyingType))
+                    {
+                        Add(info.MemberTypeReference, underlyingType);
+                    }
+
+                    Collect(info);
                 }
             }
 
@@ -65,11 +73,45 @@ namespace MSPack.Processor.Core.Definitions
             }
         }
 
+        private static bool HasUnderlyingTypeDeclaration<T>(in T info, out EnumUnderlyingType enumUnderlyingType)
+            where T : struct, IMemberSerializeInfo
+        {
+            if (!info.IsValueType || info.CustomAttributes.Count == 0)
+            {
+                enumUnderlyingType = default;
+                return false;
+            }
+
+            foreach (var attribute in info.CustomAttributes)
+            {
+                if (attribute.AttributeType.Name != "EnumUnderlyingTypeDeclarationAttribute" || attribute.ConstructorArguments.Count != 1)
+                {
+                    continue;
+                }
+
+                var kind = (TypeReference)attribute.ConstructorArguments[0].Value;
+                if (Enum.TryParse(kind.Name, out enumUnderlyingType))
+                {
+                    return true;
+                }
+
+                throw new MessagePackGeneratorResolveFailedException("Invalid type specification. Type should be one of the enum base type. actual type : " + kind.FullName);
+            }
+
+            enumUnderlyingType = default;
+            return false;
+        }
+
         private void Collect<T>(in T info)
             where T : struct, IMemberSerializeInfo
         {
             var type = info.MemberTypeReference;
             Collect(type);
+        }
+
+        private void Add(TypeReference reference, EnumUnderlyingType underlyingType)
+        {
+            enumInfos.Add(new EnumSerializationInfo(reference, underlyingType));
         }
 
         private void Add(TypeDefinition definition)
@@ -128,7 +170,7 @@ namespace MSPack.Processor.Core.Definitions
             {
                 return;
             }
-            
+
             try
             {
                 Collect(reference.Resolve());
