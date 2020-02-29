@@ -95,8 +95,10 @@ namespace MSPack.Processor.Core
             using (new Watcher(sw, logger, "Method Collect"))
             {
                 collectedInfos = CollectInfo(useMapMode, moduleDefinitions);
+                logger("collected serialization info length : " + collectedInfos.Length);
                 var enumTypeCollector = new EnumTypeCollector();
                 enumSerializationInfos = enumTypeCollector.Collect(collectedInfos);
+                logger("collected enum serialization info length : " + enumSerializationInfos.Length);
             }
 
             using (new Watcher(sw, logger, "Ensure Internal Access"))
@@ -107,13 +109,14 @@ namespace MSPack.Processor.Core
             FormatterInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
-                var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor);
+                var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor, logger);
                 formatterInfos = generator.Generate(collectedInfos);
                 var oldLength = formatterInfos.Length;
+                logger("old formatter length : " + oldLength);
                 var enumGenerator = new EnumFormatterGenerator(resolverTypeDefinition, provider);
                 var enumFormatterInfos = enumGenerator.Generate(enumSerializationInfos);
-                Array.Resize(ref formatterInfos, oldLength + enumFormatterInfos.Length);
-                Array.Copy(enumFormatterInfos, 0, formatterInfos, oldLength, enumFormatterInfos.Length);
+                logger("enum formatter length : " + enumFormatterInfos.Length);
+                formatterInfos = formatterInfos.Concat(enumFormatterInfos).ToArray();
             }
 
             var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
