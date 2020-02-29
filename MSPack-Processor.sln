@@ -9,19 +9,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandLineInterface", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{21B46BA4-1D3B-4939-837E-97040382B2C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuild.Tasks", "src\MSBuild.Tasks\MSBuild.Tasks.csproj", "{952D4792-17D5-4D2A-B4A0-CDF6DB4D3DDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSBuild.Tasks", "src\MSBuild.Tasks\MSBuild.Tasks.csproj", "{952D4792-17D5-4D2A-B4A0-CDF6DB4D3DDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Annotation", "src\Annotation\Annotation.csproj", "{B16E3718-4710-4B35-9312-4F5483F01F70}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AC39D26D-05FF-4318-80CA-E9A476CC29AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComplexTestClasses", "tests\ComplexTestClasses\ComplexTestClasses.csproj", "{C33B8C34-FA43-40EA-8A9E-82A1E2AB5D96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComplexTestClasses", "tests\ComplexTestClasses\ComplexTestClasses.csproj", "{C33B8C34-FA43-40EA-8A9E-82A1E2AB5D96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompoundTestClasses", "tests\CompoundTestClasses\CompoundTestClasses.csproj", "{6BB5B29D-91A9-4FEF-919C-4150655BCA28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompoundTestClasses", "tests\CompoundTestClasses\CompoundTestClasses.csproj", "{6BB5B29D-91A9-4FEF-919C-4150655BCA28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Test", "tests\Core.Test\Core.Test.csproj", "{73E4ACC4-1AFD-475A-9378-7E49D8592F5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Test", "tests\Core.Test\Core.Test.csproj", "{73E4ACC4-1AFD-475A-9378-7E49D8592F5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IrrelevantTestClasses", "tests\IrrelevantTestClasses\IrrelevantTestClasses.csproj", "{3D426A4F-1065-4191-A102-32E691B35B97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IrrelevantTestClasses", "tests\IrrelevantTestClasses\IrrelevantTestClasses.csproj", "{3D426A4F-1065-4191-A102-32E691B35B97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTestClasses", "tests\SimpleTestClasses\SimpleTestClasses.csproj", "{7A697277-EC03-43F7-9E5D-36B29D469D03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleTestClasses", "tests\SimpleTestClasses\SimpleTestClasses.csproj", "{7A697277-EC03-43F7-9E5D-36B29D469D03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -129,6 +131,18 @@ Global
 		{7A697277-EC03-43F7-9E5D-36B29D469D03}.Release|x64.Build.0 = Release|Any CPU
 		{7A697277-EC03-43F7-9E5D-36B29D469D03}.Release|x86.ActiveCfg = Release|Any CPU
 		{7A697277-EC03-43F7-9E5D-36B29D469D03}.Release|x86.Build.0 = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|x64.Build.0 = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Debug|x86.Build.0 = Debug|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|x64.ActiveCfg = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|x64.Build.0 = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|x86.ActiveCfg = Release|Any CPU
+		{B16E3718-4710-4B35-9312-4F5483F01F70}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,6 +156,7 @@ Global
 		{73E4ACC4-1AFD-475A-9378-7E49D8592F5D} = {AC39D26D-05FF-4318-80CA-E9A476CC29AA}
 		{3D426A4F-1065-4191-A102-32E691B35B97} = {AC39D26D-05FF-4318-80CA-E9A476CC29AA}
 		{7A697277-EC03-43F7-9E5D-36B29D469D03} = {AC39D26D-05FF-4318-80CA-E9A476CC29AA}
+		{B16E3718-4710-4B35-9312-4F5483F01F70} = {547140AC-5C23-422F-A907-9DDCB3E433C8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD1010FD-E851-45E8-888B-7F8C2A2FAA35}

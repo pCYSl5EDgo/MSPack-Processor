@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>6.0</LangVersion>
+    <AssemblyName>MSPack.Processor.Annotation</AssemblyName>
+    <Title>MSPack Processor Annotation</Title>
+    <Authors>pCYSl5EDgo</Authors>
+    <Company>pCYSl5EDgo</Company>
+    <Copyright>pCYSl5EDgo</Copyright>
+    <IsPackable>true</IsPackable>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageId>MSPack.Processor.Core</PackageId>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
+    <Version>0.0.0</Version>
+    <PackageReleaseNotes>0.0.0 : Initial Commit</PackageReleaseNotes>
+  </PropertyGroup>
+
+</Project>
