@@ -7,6 +7,7 @@ using MSPack.Processor.Core.Provider;
 using System;
 using System.Linq;
 using System.Text;
+using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -42,6 +43,8 @@ namespace MSPack.Processor.Core.Definitions
         public bool IsValueType => Definition.PropertyType.IsValueType;
 
         public TypeReference MemberTypeReference => Definition.PropertyType;
+
+        public Collection<CustomAttribute> CustomAttributes => Definition.CustomAttributes;
 
         public PropertySerializationInfo(PropertyDefinition definition, uint index, int key, bool isReadable, bool isWritable)
         {

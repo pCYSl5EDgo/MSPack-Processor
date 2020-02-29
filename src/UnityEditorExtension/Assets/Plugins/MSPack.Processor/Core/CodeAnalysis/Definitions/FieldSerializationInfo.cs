@@ -6,6 +6,7 @@ using MSPack.Processor.Core.Provider;
 using System;
 using System.Linq;
 using System.Text;
+using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core.Definitions
 {
@@ -34,6 +35,8 @@ namespace MSPack.Processor.Core.Definitions
         public bool IsValueType => Definition.FieldType.IsValueType;
 
         public TypeReference MemberTypeReference => Definition.FieldType;
+
+        public Collection<CustomAttribute> CustomAttributes => Definition.CustomAttributes;
 
         public string FullName => Definition.FullName;
 
