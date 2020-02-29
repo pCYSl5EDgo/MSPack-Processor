@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using MSPack.Processor.Core;
+using MSPack.Processor.Core.Report;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -47,9 +49,9 @@ namespace MSPack.Processor.Unity.Editor
 
         private static void Implement(BuildReport report)
         {
-            var definitionList = new List<string>(64);
-            var libraryList = new List<string>(128);
             var targetModule = default(string);
+            var libraryList = new List<string>(128);
+            var definitionList = new List<string>(64);
             for (var index = 0; index < report.files.Length; index++)
             {
                 ref var reportFile = ref report.files[index];
@@ -76,7 +78,24 @@ namespace MSPack.Processor.Unity.Editor
                 }
             }
 
-
+            if (targetModule is null)
+            {
+                Debug.Log("null!!!");
+            }
+            else
+            {
+                Debug.Log("pre process : " + targetModule);
+                using (var generator = new CodeGenerator(Debug.Log, new NopReportHook()))
+                {
+                    Debug.Log("do?");
+                    foreach (var path in libraryList)
+                    {
+                        Debug.Log("Library : " + libraryList);
+                    }
+                    generator.Generate(targetModule, "", libraryList.ToArray(), definitionList.ToArray(), false, 0.75);
+                }
+                Debug.Log("done!");
+            }
         }
     }
 }

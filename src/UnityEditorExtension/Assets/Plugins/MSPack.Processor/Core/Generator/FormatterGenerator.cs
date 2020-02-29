@@ -15,20 +15,25 @@ namespace MSPack.Processor.Core
         private readonly TypeDefinition resolver;
         private readonly IFormatterImplementor implementor;
 
-        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor)
+        private readonly Action<string> logger;
+
+        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor, Action<string> logger)
         {
+            this.logger = logger;
             this.resolver = resolver;
             implementor = new ImplementorFacade(provider, loadFactor);
         }
 
-        public static int Count(CollectedInfo[] infos)
+        public int Count(CollectedInfo[] infos)
         {
             var answer = 0;
             // ReSharper disable once ForCanBeConvertedToForeach
             // ReSharper disable once LoopCanBeConvertedToQuery
             for (var index = 0; index < infos.Length; index++)
             {
-                answer += Count(infos[index]);
+                ref readonly var collectedInfo = ref infos[index];
+                logger(collectedInfo.ToString());
+                answer += Count(collectedInfo);
             }
 
             return answer;
@@ -46,14 +51,18 @@ namespace MSPack.Processor.Core
         {
             if (collectedReadOnlySpan.Length == 0)
             {
+                logger(nameof(FormatterGenerator) + " -> 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
 
             var count = Count(collectedReadOnlySpan);
             if (count == 0)
             {
+                logger(nameof(FormatterGenerator) + " -> total 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
+
+            logger(nameof(FormatterGenerator) + " -> answer length : " + count);
 
             var answer = new FormatterInfo[count];
             var index = 0;

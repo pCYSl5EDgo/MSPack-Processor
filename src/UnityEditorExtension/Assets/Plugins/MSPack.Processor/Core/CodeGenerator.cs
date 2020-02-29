@@ -12,12 +12,22 @@ using System.Linq;
 
 namespace MSPack.Processor.Core
 {
-    public class CodeGenerator
+    public class CodeGenerator : IDisposable
     {
         private readonly Action<string> logger;
         private readonly IReportHook reportHook;
         private readonly ReaderParameters readerParam;
         private readonly ReaderParameters doNotWriteReaderParam;
+
+        private bool disposed;
+
+#if CSHARP_8_0_OR_NEWER
+        private ModuleDefinition[]? moduleDefinitions;
+        private ModuleDefinition[]? definitionModuleDefinitions;
+#else
+        private ModuleDefinition[] moduleDefinitions;
+        private ModuleDefinition[] definitionModuleDefinitions;
+#endif
 
         public CodeGenerator(Action<string> logger, IReportHook reportHook)
         {
@@ -44,72 +54,84 @@ namespace MSPack.Processor.Core
             bool useMapMode,
             double loadFactor)
         {
+            if (disposed)
+            {
+                throw new InvalidOperationException("Generate method can be called once.");
+            }
+
             var sw = new Stopwatch();
-            ModuleDefinition targetModule;
+            ModuleDefinition inputModule;
             TypeDefinition resolverTypeDefinition;
             TypeProvider provider;
-            var modules = new ModuleDefinition[1 + libraryPaths.Length];
+            moduleDefinitions = new ModuleDefinition[1 + libraryPaths.Length];
             using (new Watcher(sw, logger, "Module Reading"))
             {
-                modules[0] = targetModule = ModuleDefinition.ReadModule(inputPath, readerParam);
+                moduleDefinitions[0] = inputModule = ModuleDefinition.ReadModule(inputPath, readerParam);
+
+                logger("log inputModule\nassembly : " + inputModule.Assembly.FullName + "\nfile : " + inputModule.FileName);
 
                 var resolverFinder = new FormatterResolverFinder();
-                resolverTypeDefinition = resolverFinder.Find(targetModule, resolverName);
+                resolverTypeDefinition = resolverFinder.Find(inputModule, resolverName);
 
-                var messagePackAssemblyNameReference = targetModule.AssemblyReferences.First(x => x.Name == "MessagePack");
-                ReadModules(libraryPaths, modules);
-                var definitionModules = new ModuleDefinition[definitionPaths.Length];
+                logger("log resolver\nname : " + resolverTypeDefinition.FullName);
+
+                var messagePackAssemblyNameReference = inputModule.AssemblyReferences.First(x => x.Name == "MessagePack");
+                ReadModules(libraryPaths, moduleDefinitions);
+                definitionModuleDefinitions = new ModuleDefinition[definitionPaths.Length];
                 for (var index = 0; index < definitionPaths.Length; index++)
                 {
                     var path = definitionPaths[index];
-                    definitionModules[index] = ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
+                    definitionModuleDefinitions[index] = ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
                 }
 
                 var verifier = new ModuleRelationshipVerifier();
-                verifier.Verify(targetModule, modules);
+                verifier.Verify(inputModule, moduleDefinitions);
 
-                provider = new TypeProvider(targetModule, messagePackAssemblyNameReference, reportHook);
+                provider = new TypeProvider(inputModule, messagePackAssemblyNameReference, reportHook);
             }
 
             CollectedInfo[] collectedInfos;
             EnumSerializationInfo[] enumSerializationInfos;
             using (new Watcher(sw, logger, "Method Collect"))
             {
-                collectedInfos = CollectInfo(useMapMode, modules);
+                collectedInfos = CollectInfo(useMapMode, moduleDefinitions);
+                logger("collected serialization info length : " + collectedInfos.Length);
                 var enumTypeCollector = new EnumTypeCollector();
                 enumSerializationInfos = enumTypeCollector.Collect(collectedInfos);
+                logger("collected enum serialization info length : " + enumSerializationInfos.Length);
             }
 
             using (new Watcher(sw, logger, "Ensure Internal Access"))
             {
-                EnsureInternalAccessibility(targetModule, collectedInfos, provider.SystemObjectHelper);
+                EnsureInternalAccessibility(inputModule, collectedInfos, provider.SystemObjectHelper);
             }
 
             FormatterInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
-                var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor);
+                var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor, logger);
                 formatterInfos = generator.Generate(collectedInfos);
                 var oldLength = formatterInfos.Length;
+                logger("old formatter length : " + oldLength);
                 var enumGenerator = new EnumFormatterGenerator(resolverTypeDefinition, provider);
                 var enumFormatterInfos = enumGenerator.Generate(enumSerializationInfos);
-                Array.Resize(ref formatterInfos, oldLength + enumFormatterInfos.Length);
-                Array.Copy(enumFormatterInfos, 0, formatterInfos, oldLength, enumFormatterInfos.Length);
+                logger("enum formatter length : " + enumFormatterInfos.Length);
+                formatterInfos = formatterInfos.Concat(enumFormatterInfos).ToArray();
             }
 
             var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
-            var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(targetModule, pairGenerator, provider.InterfaceMessagePackFormatterHelper, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
+            var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(inputModule, pairGenerator, provider.InterfaceMessagePackFormatterHelper, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
             var (tableType, getFormatterMethodInfo) = tableGenerator.Generate(formatterInfos);
             resolverTypeDefinition.NestedTypes.Add(tableType);
 
-            var resolverInjector = new ResolverInjector(targetModule, resolverTypeDefinition, provider);
+            var resolverInjector = new ResolverInjector(inputModule, resolverTypeDefinition, provider);
             resolverInjector.Implement(getFormatterMethodInfo);
 
-            PrivateAccessEnabler.EnablePrivateAccess(targetModule, provider.SystemRuntimeExtensionsScope);
+            PrivateAccessEnabler.EnablePrivateAccess(inputModule, provider.SystemRuntimeExtensionsScope);
 
             try
             {
-                targetModule.Write();
+                inputModule.Write();
             }
             catch (Exception e)
             {
@@ -192,6 +214,35 @@ namespace MSPack.Processor.Core
                 }
 
                 modules[i + 1] = ModuleDefinition.ReadModule(path, doNotWriteReaderParam);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            if (!(moduleDefinitions is null))
+            {
+                for (var index = 0; index < moduleDefinitions.Length; index++)
+                {
+                    moduleDefinitions[index].Dispose();
+                }
+
+                moduleDefinitions = default;
+            }
+
+            if (!(definitionModuleDefinitions is null))
+            {
+                for (var index = 0; index < definitionModuleDefinitions.Length; index++)
+                {
+                    definitionModuleDefinitions[index].Dispose();
+                }
+
+                definitionModuleDefinitions = default;
             }
         }
     }
