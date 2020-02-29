@@ -17,22 +17,24 @@
     <PackageId>MSPack.Processor.Core</PackageId>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.3.0</Version>
-    <PackageReleaseNotes>0.3.0 : API update =&gt; CodeGenerator class now implements System.IDisposable interface.
+    <Version>0.3.1</Version>
+    <PackageReleaseNotes>0.3.1 : See Release Notes of MSPack.Processor.CLI
+0.3.0 : API update =&gt; CodeGenerator class now implements System.IDisposable interface.
 0.2.1 : Minor API update. Add NopReportHook,
 0.2.0 : API update =&gt; -t option now -i &amp; new -d option(for performance purpose).
 0.1.3 : Fix =&gt; IgnoresAccessChecksToAttribute generator
 0.1.2 : Fix =&gt; Unverifiable ctor is instance method.
 0.1.1 : First trial of enabling private access.
-0.1.0 : Initial Commit.</PackageReleaseNotes>
+0.1.0 : Initial Commit.
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="!Exists('/bin')">
-    <Exec Command="xcopy /I /D /Y /S /E &quot;$(ProjectDir)CodeAnalysis&quot; &quot;$(ProjectDir)..\UnityEditorExtension\Assets\Plugins\MSPack.Processor\Core\CodeAnalysis&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Generator&quot; &quot;$(ProjectDir)..\UnityEditorExtension\Assets\Plugins\MSPack.Processor\Core\Generator&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Report&quot; &quot;$(ProjectDir)..\UnityEditorExtension\Assets\Plugins\MSPack.Processor\Core\Report&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)CodeGenerator.cs&quot; &quot;$(ProjectDir)..\UnityEditorExtension\Assets\Plugins\MSPack.Processor\Core\CodeGenerator.cs&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)InstructionUtility.cs&quot; &quot;$(ProjectDir)..\UnityEditorExtension\Assets\Plugins\MSPack.Processor\Core\InstructionUtility.cs&quot;" />
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /I /D /Y /S /E &quot;$(ProjectDir)CodeAnalysis&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeAnalysis&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Generator&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Generator&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Report&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Report&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)CodeGenerator.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeGenerator.cs&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)InstructionUtility.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/InstructionUtility.cs&quot;" />
   </Target>
 
 </Project>

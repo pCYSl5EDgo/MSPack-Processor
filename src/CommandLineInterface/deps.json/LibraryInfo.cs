@@ -15,8 +15,8 @@ namespace MSPack.Processor.CLI
 
         public string hashPath { get; set; }
 
-        public bool ShouldSerializepath() => !(path is null);
+        public bool ShouldSerializepath() => !ReferenceEquals(path, null);
 
-        public bool ShouldSerializehashPath() => !(hashPath is null);
+        public bool ShouldSerializehashPath() => !ReferenceEquals(hashPath, null);
     }
 }

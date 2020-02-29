@@ -11,12 +11,12 @@ namespace MSPack.Processor.CLI
 
         public bool ShouldSerializeassemblyVersion()
         {
-            return !(assemblyVersion is null);
+            return !ReferenceEquals(assemblyVersion, null);
         }
 
         public bool ShouldSerializefileVersion()
         {
-            return !(fileVersion is null);
+            return !ReferenceEquals(fileVersion, null);
         }
     }
 }

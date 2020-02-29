@@ -14,12 +14,12 @@ namespace MSPack.Processor.CLI
 
         public bool ShouldSerializedependencies()
         {
-            return !(dependencies is null) && dependencies.Any();
+            return !ReferenceEquals(dependencies, null) && dependencies.Any();
         }
 
         public bool ShouldSerializeruntime()
         {
-            return !(runtime is null) && runtime.Any();
+            return !ReferenceEquals(runtime, null) && runtime.Any();
         }
     }
 }

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <LangVersion>7.2</LangVersion>
     <AssemblyName>MSPack.Processor.CLI</AssemblyName>
     <Title>MSPack Processor Command Line Interface</Title>
     <Authors>pCYSl5EDgo</Authors>
@@ -16,8 +17,9 @@
     <ToolCommandName>mspc</ToolCommandName>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.3.0</Version>
-    <PackageReleaseNotes>0.3.0 : See Release Notes of MSPack.Processor.Core.
+    <Version>0.3.1</Version>
+    <PackageReleaseNotes>0.3.1 : Rewrite in C#7.2.
+0.3.0 : See Release Notes of MSPack.Processor.Core.
 0.2.1 : minor fix
 0.2.0 : API Update
 0.1.1 - 0.1.3 : See Release Notes of MSPack.Processor.Core.
