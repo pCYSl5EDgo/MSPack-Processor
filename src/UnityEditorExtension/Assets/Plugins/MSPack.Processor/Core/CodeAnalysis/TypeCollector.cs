@@ -33,6 +33,7 @@ namespace MSPack.Processor.Core
             {
                 Visit(typeDefinition);
             }
+            logger(module.Name + " : class = " + classDefinitions.Count + ", struct = " + structDefinitions.Count);
         }
 
         private void Visit(TypeDefinition type)
@@ -46,7 +47,7 @@ namespace MSPack.Processor.Core
             {
                 return;
             }
-
+            logger("visit : " + type.FullName);
             var customAttributes = type.CustomAttributes;
             if (type.IsInterface)
             {
@@ -135,6 +136,11 @@ namespace MSPack.Processor.Core
         {
             if (!customAttributes.Any(CustomAttributeHelper.IsMessagePackObjectAttribute))
             {
+                logger("no messagepack obj : " + type.FullName);
+                foreach (var attribute in type.CustomAttributes)
+                {
+                    logger(attribute.AttributeType.Name + " : " + attribute.AttributeType.Scope.Name);
+                }
                 return;
             }
 

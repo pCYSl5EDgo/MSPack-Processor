@@ -7,7 +7,11 @@ namespace MSPack.Processor.Core
 {
     public static class CustomAttributeHelper
     {
+#if UNITY_2018_4_OR_NEWER
+        public static bool IsFromAnnotations(TypeReference attributeType) => true;
+#else
         public static bool IsFromAnnotations(TypeReference attributeType) => attributeType.Scope.Name == "MessagePack.Annotations";
+#endif
 
         public static bool IsUnionAttribute(CustomAttribute attribute)
         {
