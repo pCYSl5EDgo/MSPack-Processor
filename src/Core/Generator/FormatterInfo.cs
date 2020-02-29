@@ -8,14 +8,14 @@ namespace MSPack.Processor.Core
 {
     public readonly struct FormatterInfo
     {
-        public readonly TypeDefinition SerializeTypeDefinition;
+        public readonly TypeReference SerializeTypeReference;
         public readonly TypeDefinition FormatterTypeDefinition;
         public readonly MethodDefinition FormatterTypeConstructor;
         public readonly CustomAttributeArgument[] FormatterConstructorArguments;
 
-        public FormatterInfo(TypeDefinition serializeTypeDefinition, TypeDefinition formatterTypeDefinition, CustomAttributeArgument[] formatterConstructorArguments)
+        public FormatterInfo(TypeReference serializeTypeReference, TypeDefinition formatterTypeDefinition, CustomAttributeArgument[] formatterConstructorArguments)
         {
-            SerializeTypeDefinition = serializeTypeDefinition;
+            SerializeTypeReference = serializeTypeReference;
             FormatterTypeDefinition = formatterTypeDefinition;
             FormatterConstructorArguments = formatterConstructorArguments;
             foreach (var methodDefinition in FormatterTypeDefinition.Methods)
@@ -48,12 +48,12 @@ namespace MSPack.Processor.Core
                 return;
             }
 
-            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeDefinition.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
+            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeReference.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
         }
 
-        public FormatterInfo(TypeDefinition serializeTypeDefinition, TypeDefinition formatterTypeDefinition)
+        public FormatterInfo(TypeReference serializeTypeReference, TypeDefinition formatterTypeDefinition)
         {
-            SerializeTypeDefinition = serializeTypeDefinition;
+            SerializeTypeReference = serializeTypeReference;
             FormatterTypeDefinition = formatterTypeDefinition;
             FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
 
@@ -87,7 +87,7 @@ namespace MSPack.Processor.Core
                 return;
             }
 
-            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeDefinition.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
+            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeReference.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
         }
     }
 }

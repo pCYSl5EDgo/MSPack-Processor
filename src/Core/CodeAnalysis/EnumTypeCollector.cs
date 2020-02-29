@@ -106,7 +106,8 @@ namespace MSPack.Processor.Core.Definitions
                     case GenericParameter _:
                         return;
                     case GenericInstanceType genericInstanceType:
-                        Collect(genericInstanceType.ElementType);
+                        // Generic Type cannot be Enum
+                        // Collect(genericInstanceType.ElementType);
                         foreach (var genericArgument in genericInstanceType.GenericArguments)
                         {
                             Collect(genericArgument);
@@ -114,20 +115,27 @@ namespace MSPack.Processor.Core.Definitions
 
                         return;
                     default:
-                        try
-                        {
-                            Collect(reference.Resolve());
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-                        finally
-                        {
-                        }
+                        CollectTypeReference(reference);
 
                         return;
                 }
+            }
+        }
+
+        private void CollectTypeReference(TypeReference reference)
+        {
+            if (!reference.IsValueType)
+            {
+                return;
+            }
+            
+            try
+            {
+                Collect(reference.Resolve());
+            }
+            catch
+            {
+                // ignored
             }
         }
 

@@ -26,7 +26,7 @@ namespace MSPack.Processor.Core
             for (var index = 0; index < answer.Length; index++)
             {
                 ref readonly var info = ref serializationInfos[index];
-                answer[index] = new FormatterInfo(info.Definition, GetOrAdd(in info, index));
+                answer[index] = new FormatterInfo(info.Type, GetOrAdd(in info, index));
             }
 
             return answer;

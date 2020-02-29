@@ -30,7 +30,7 @@ namespace MSPack.Processor.Core.Formatter
         public void Implement(in EnumSerializationInfo info, TypeDefinition formatter)
         {
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Type);
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
             formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
 
@@ -43,7 +43,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private MethodDefinition GenerateDeserialize(in EnumSerializationInfo info)
         {
-            var target = provider.Importer.Import(info.Definition);
+            var target = provider.Importer.Import(info.Type);
             var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
             {
                 HasThis = true,
@@ -70,7 +70,7 @@ namespace MSPack.Processor.Core.Formatter
                 Parameters =
                 {
                     new ParameterDefinition("writer", ParameterAttributes.None, new ByReferenceType(writerHelper.Writer)),
-                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Definition)),
+                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Type)),
                     new ParameterDefinition("options", ParameterAttributes.None, optionsHelper.Options),
                 },
             };

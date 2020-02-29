@@ -28,7 +28,7 @@ namespace MSPack.Processor.Core
                 arrayHelper,
                 loadFactor,
                 LoadAppropriateValueFromFormatterInfo,
-                info => info.SerializeTypeDefinition,
+                info => info.SerializeTypeReference,
                 new[] { Instruction.Create(OpCodes.Ldnull), });
         }
 

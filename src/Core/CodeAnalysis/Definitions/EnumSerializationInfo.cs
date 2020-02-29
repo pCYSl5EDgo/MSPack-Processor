@@ -6,29 +6,23 @@ using System;
 
 namespace MSPack.Processor.Core.Definitions
 {
-    public enum EnumUnderlyingType
-    {
-        Byte,
-        UInt16,
-        UInt32,
-        UInt64,
-        SByte,
-        Int16,
-        Int32,
-        Int64,
-    }
-
     public readonly struct EnumSerializationInfo : IEquatable<EnumSerializationInfo>
     {
-        public readonly TypeDefinition Definition;
+        public readonly TypeReference Type;
         public readonly EnumUnderlyingType UnderlyingType;
 
-        public EnumSerializationInfo(TypeDefinition definition)
+        public EnumSerializationInfo(TypeReference reference, EnumUnderlyingType underlyingType)
         {
-            Definition = definition;
-            if (!Enum.TryParse(definition.Fields[0].FieldType.Name, out UnderlyingType))
+            Type = reference;
+            UnderlyingType = underlyingType;
+        }
+
+        public EnumSerializationInfo(TypeDefinition type)
+        {
+            Type = type;
+            if (!Enum.TryParse(type.Fields[0].FieldType.Name, out UnderlyingType))
             {
-                throw new MessagePackGeneratorResolveFailedException(definition.FullName + " has not proper underlying type.");
+                throw new MessagePackGeneratorResolveFailedException(type.FullName + " has not proper underlying type.");
             }
         }
 
@@ -59,8 +53,9 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool Equals(EnumSerializationInfo other)
         {
-            return (object)Definition == other.Definition;
+            return (object)Type == other.Type && UnderlyingType == other.UnderlyingType && Type.FullName == other.Type.FullName;
         }
+
 #if CSHARP_8_0_OR_NEWER
         public override bool Equals(object? obj)
 #else
@@ -72,7 +67,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public override int GetHashCode()
         {
-            return Definition.GetHashCode();
+            return Type.GetHashCode();
         }
     }
 }
