@@ -60,6 +60,7 @@ foreach(var item in array){#>
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleType<#=item#>>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a)
         }
 <#}#>
     }

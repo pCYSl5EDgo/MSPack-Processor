@@ -33,6 +33,9 @@ foreach(var item in array)
     [Key(0)]
     private readonly <#=item#> value;
 
+    [IgnoreMember]
+    public <#=item#> Value => value;
+
     public SimpleType<#=item#>(<#=item#> value)
     {
       this.value = value;
