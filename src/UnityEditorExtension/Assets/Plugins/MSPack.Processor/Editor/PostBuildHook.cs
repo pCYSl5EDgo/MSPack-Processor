@@ -1,11 +1,14 @@
-﻿#if UNITY_EDITOR
+﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using MSPack.Processor.Core;
 using MSPack.Processor.Core.Report;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -29,6 +32,12 @@ namespace MSPack.Processor.Unity.Editor
 
         public void OnPostBuildPlayerScriptDLLs(BuildReport report)
         {
+            var guidArray = AssetDatabase.FindAssets("t:" + nameof(MSPackProcessorUnityEditorSettingScriptableObject)) ?? Array.Empty<string>();
+            if (!ShouldProcess(guidArray))
+            {
+                return;
+            }
+
             step[0] = BeginBuildStep.Invoke(report, uniEnumExtension);
             try
             {
@@ -38,6 +47,25 @@ namespace MSPack.Processor.Unity.Editor
             {
                 EndBuildStep.Invoke(report, step);
             }
+        }
+
+        private static bool ShouldProcess(string[] guidArray)
+        {
+            if (guidArray.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var guid in guidArray)
+            {
+                var scriptableObject = AssetDatabase.LoadAssetAtPath<MSPackProcessorUnityEditorSettingScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
+                if (scriptableObject.Enabled)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static readonly StringBuilder stringBuilder = new StringBuilder();
@@ -71,6 +99,8 @@ namespace MSPack.Processor.Unity.Editor
                     case "DependentManagedLibrary":
                     case "ManagedEngineAPI":
                         definitionList.Add(path);
+                        break;
+                    case "DebugInfo":
                         break;
                     default:
                         Debug.Log("DEFAULT\n" + ToString(ref reportFile));
