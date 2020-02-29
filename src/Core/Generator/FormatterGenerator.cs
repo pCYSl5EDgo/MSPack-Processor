@@ -24,14 +24,16 @@ namespace MSPack.Processor.Core
             implementor = new ImplementorFacade(provider, loadFactor);
         }
 
-        public static int Count(CollectedInfo[] infos)
+        public int Count(CollectedInfo[] infos)
         {
             var answer = 0;
             // ReSharper disable once ForCanBeConvertedToForeach
             // ReSharper disable once LoopCanBeConvertedToQuery
             for (var index = 0; index < infos.Length; index++)
             {
-                answer += Count(infos[index]);
+                ref readonly var collectedInfo = ref infos[index];
+                logger(collectedInfo.ToString());
+                answer += Count(collectedInfo);
             }
 
             return answer;
