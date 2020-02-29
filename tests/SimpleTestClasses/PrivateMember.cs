@@ -1,7 +1,7 @@
-﻿using System;
+﻿using MessagePack;
+using System;
 using System.Globalization;
 using System.Linq;
-using MessagePack;
 
 namespace SimpleTestClasses
 {

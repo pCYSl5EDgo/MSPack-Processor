@@ -1,7 +1,7 @@
-using NUnit.Framework;
-using SimpleTestClasses;
 using MessagePack;
 using MessagePack.Resolvers;
+using NUnit.Framework;
+using SimpleTestClasses;
 
 namespace Core.Test
 {

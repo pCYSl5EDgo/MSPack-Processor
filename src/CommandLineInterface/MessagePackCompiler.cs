@@ -1,11 +1,12 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using ConsoleAppFramework;
+using Microsoft.Extensions.Hosting;
+using MSPack.Processor.Core;
+using MSPack.Processor.Core.Report;
 using System;
 using System.Threading.Tasks;
-using ConsoleAppFramework;
-using MSPack.Processor.Core;
-using Microsoft.Extensions.Hosting;
 
 namespace MSPack.Processor.CLI
 {
@@ -20,24 +21,33 @@ namespace MSPack.Processor.CLI
         }
 
         public void Run(
-            [Option("t", "Path of target dll or exe.")]string target,
-            [Option("n", "Set resolver name with namespace.")]string resolverName = "MessagePack.GeneratedResolver",
-            [Option("l", "Library dll or exe file paths that target file depends on. Split with ','.")] string libraryFiles = "",
+            [Option("i", "Path of input dll.")]string input,
+            [Option("n", "Set resolver name with namespace.")]string resolverName = "",
+            [Option("l", "Library dll file paths that target file depends on. Split with ','.")] string libraryFiles = "",
+            [Option("d", "Definition dll file paths. Split with ','.")] string definitionFiles = "",
             [Option("m", "Force use map mode serialization.")]bool useMapMode = false,
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
-            var reportHook = new NopHook();
-            var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook);
+            var reportHook = new NopReportHook();
+            using (var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook))
+            {
+                var libraryPaths = Split(libraryFiles);
+                var definitionPaths = Split(definitionFiles);
 
-            var libraryPaths = string.IsNullOrWhiteSpace(libraryFiles) ? Array.Empty<string>() : libraryFiles.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                codeGenerator
+                    .Generate(
+                        input,
+                        resolverName,
+                        libraryPaths,
+                        definitionPaths,
+                        useMapMode,
+                        loadFactor);
+            }
+        }
 
-            codeGenerator
-                .Generate(
-                    target,
-                    resolverName,
-                    libraryPaths,
-                    useMapMode,
-                    loadFactor);
+        private static string[] Split(string paths)
+        {
+            return string.IsNullOrWhiteSpace(paths) ? Array.Empty<string>() : paths.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
