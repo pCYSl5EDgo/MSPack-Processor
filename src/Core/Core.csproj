@@ -34,7 +34,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="!Exists('/bin')">
     <Exec Command="xcopy /I /D /Y /S /E &quot;$(ProjectDir)CodeAnalysis&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeAnalysis&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Generator&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Generator&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Report&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Report&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)CodeGenerator.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeGenerator.cs&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)InstructionUtility.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/InstructionUtility.cs&quot;" />
   </Target>
 
