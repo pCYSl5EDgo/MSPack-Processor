@@ -125,12 +125,7 @@ namespace MSPack.Processor.Core.Formatter
             var backingField = property.BackingFieldReference;
             if (!(backingField is null))
             {
-                var fieldReference = provider.Importer.Import(backingField);
-                var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
-                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
-                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+                SerializeBackingField(processor, backingField);
             }
             else if (property.IsReadable)
             {
@@ -147,6 +142,17 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
             }
         }
+
+        private void SerializeBackingField(ILProcessor processor, FieldReference backingField)
+        {
+            var fieldReference = provider.Importer.Import(backingField);
+            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+            processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+        }
+
         #endregion
 
         #region Deserialize
