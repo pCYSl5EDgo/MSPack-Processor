@@ -470,15 +470,13 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
                 }
             }
+            else if (backingField is null && !serializationInfo.IsReadable)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
+            }
             else
             {
-                if (backingField is null && !serializationInfo.IsReadable)
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
-                    return;
-                }
-
                 if (!resolverCalled)
                 {
                     processor.Append(Instruction.Create(OpCodes.Ldarg_3));
