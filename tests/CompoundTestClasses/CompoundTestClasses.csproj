@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.1.90" />
     <PackageReference Include="MessagePack.Annotations" Version="2.1.90" />
   </ItemGroup>
 
