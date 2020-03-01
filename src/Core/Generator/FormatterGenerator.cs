@@ -133,13 +133,9 @@ namespace MSPack.Processor.Core
 
         private TypeReference GetOrAdd(in ClassSerializationInfo info, int index)
         {
-            if (info.FormatterExists)
+            if (!(info.FormatterType is null))
             {
-#if CSHARP_8_0_OR_NEWER
-                return info.FormatterDefinition!;
-#else
                 return info.FormatterType;
-#endif
             }
 
             var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
@@ -150,13 +146,9 @@ namespace MSPack.Processor.Core
 
         private TypeReference GetOrAdd(in StructSerializationInfo info, int index)
         {
-            if (info.FormatterExists)
+            if (!(info.FormatterType is null))
             {
-#if CSHARP_8_0_OR_NEWER
-                return info.FormatterDefinition!;
-#else
                 return info.FormatterType;
-#endif
             }
 
             var formatter = new TypeDefinition(string.Empty, "SFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);

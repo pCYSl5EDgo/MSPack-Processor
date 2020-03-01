@@ -11,7 +11,7 @@ namespace MSPack.Processor.Core.Definitions
 #if CSHARP_8_0_OR_NEWER
         MethodDefinition? SerializationConstructor { get; }
 
-        TypeReference? FormatterDefinition { get; }
+        TypeReference? FormatterType { get; }
 #else
         MethodDefinition SerializationConstructor { get; }
 
@@ -25,8 +25,6 @@ namespace MSPack.Processor.Core.Definitions
         bool IsClass { get; }
 
         bool IsStruct { get; }
-
-        bool FormatterExists { get; }
 
         int KeyCount { get; }
 

@@ -57,8 +57,6 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsStruct => true;
 
-        public bool FormatterExists => !ReferenceEquals(FormatterType, null);
-
         public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
@@ -68,7 +66,7 @@ namespace MSPack.Processor.Core.Definitions
         public int MaxIntKey { get; }
 
 #if CSHARP_8_0_OR_NEWER
-        public TypeReference? FormatterDefinition { get; }
+        public TypeReference? FormatterType { get; }
 
         public MethodDefinition? SerializationConstructor { get; }
 #else
