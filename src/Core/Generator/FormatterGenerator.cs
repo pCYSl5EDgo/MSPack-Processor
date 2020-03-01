@@ -142,7 +142,7 @@ namespace MSPack.Processor.Core
 #endif
             }
 
-            var formatter = new TypeDefinition(string.Empty, "CFormatter"+ index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
