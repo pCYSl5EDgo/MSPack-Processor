@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <Nullable Condition="'$(LangVersion)' &gt;= 8">enable</Nullable>
     <DefineConstants Condition="'$(LangVersion)' &gt;= 8">CSHARP_8_0_OR_NEWER</DefineConstants>
     <Determinisitic>false</Determinisitic>
@@ -34,7 +34,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="!Exists('/bin')">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="!Exists('/bin') and '$(Configuration)' == 'Release'">
     <Exec Command="xcopy /I /D /Y /S /E &quot;$(ProjectDir)CodeAnalysis&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeAnalysis&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Generator&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Generator&quot; &#xD;&#xA;xcopy /I /D /Y /S /E &quot;$(ProjectDir)Report&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/Report&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)CodeGenerator.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/CodeGenerator.cs&quot; &#xD;&#xA;xcopy /D /Y &quot;$(ProjectDir)InstructionUtility.cs&quot; &quot;$(ProjectDir)../UnityEditorExtension/Assets/Plugins/MSPack.Processor/Core/InstructionUtility.cs&quot;" />
   </Target>
 
