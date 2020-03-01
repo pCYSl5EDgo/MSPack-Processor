@@ -351,7 +351,7 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Stloc_2));
         }
 
-        private void PostProcess(ILProcessor processor, ClassSerializationInfo info, bool shouldCallback)
+        private void PostProcess(ILProcessor processor, in ClassSerializationInfo info, bool shouldCallback)
         {
             if (shouldCallback)
             {
