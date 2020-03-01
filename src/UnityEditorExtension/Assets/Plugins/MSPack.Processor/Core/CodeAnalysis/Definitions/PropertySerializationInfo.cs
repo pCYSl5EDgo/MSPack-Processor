@@ -3,11 +3,11 @@
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Collections.Generic;
 using MSPack.Processor.Core.Provider;
 using System;
 using System.Linq;
 using System.Text;
-using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core.Definitions
 {
