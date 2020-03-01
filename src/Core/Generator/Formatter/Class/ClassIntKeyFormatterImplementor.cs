@@ -66,13 +66,8 @@ namespace MSPack.Processor.Core.Formatter
 
             processor.Append(Instruction.Create(OpCodes.Brtrue_S, notNullWriteArrayHeader));
 
-            void WriteNil()
-            {
-                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
-            }
-
-            WriteNil();
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
             processor.Append(Instruction.Create(OpCodes.Ret));
 
             processor.Append(notNullWriteArrayHeader);
@@ -96,7 +91,8 @@ namespace MSPack.Processor.Core.Formatter
                 switch (result)
                 {
                     case IndexerAccessResult.None:
-                        WriteNil();
+                        processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                        processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
                         break;
                     case IndexerAccessResult.Field:
                         SerializeField(field, processor, provider.MessagePackWriterHelper, ref resolverCalled);
