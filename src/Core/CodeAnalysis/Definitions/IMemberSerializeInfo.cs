@@ -30,6 +30,10 @@ namespace MSPack.Processor.Core.Definitions
 
         bool IsValueType { get; }
 
+        bool IsFixedArray { get; }
+        
+        uint FixedArrayLength { get; }
+
         TypeReference MemberTypeReference { get; }
 
         Collection<CustomAttribute> CustomAttributes { get; }

@@ -34,6 +34,52 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsValueType => Definition.FieldType.IsValueType;
 
+        public bool IsFixedArray
+        {
+            get
+            {
+                if (!(Definition.FieldType is ArrayType arrayType) || arrayType.Rank != 1 || !Definition.HasCustomAttributes)
+                {
+                    return false;
+                }
+
+                foreach (var attribute in Definition.CustomAttributes)
+                {
+                    if (attribute.AttributeType.Name != "FixedArrayLengthAttribute" || attribute.ConstructorArguments.Count != 1 || attribute.HasProperties || attribute.HasFields || attribute.ConstructorArguments[0].Type.FullName != "System.UInt32")
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public uint FixedArrayLength
+        {
+            get
+            {
+                if (!IsFixedArray)
+                {
+                    return default;
+                }
+
+                foreach (var attribute in Definition.CustomAttributes)
+                {
+                    if (attribute.AttributeType.Name != "FixedArrayLengthAttribute" || attribute.ConstructorArguments.Count != 1 || attribute.HasProperties || attribute.HasFields || attribute.ConstructorArguments[0].Type.FullName != "System.UInt32")
+                    {
+                        continue;
+                    }
+
+                    return (uint)attribute.ConstructorArguments[0].Value;
+                }
+
+                return default;
+            }
+        }
+
         public TypeReference MemberTypeReference => Definition.FieldType;
 
         public Collection<CustomAttribute> CustomAttributes => Definition.CustomAttributes;

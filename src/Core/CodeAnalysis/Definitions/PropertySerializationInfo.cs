@@ -32,6 +32,7 @@ namespace MSPack.Processor.Core.Definitions
         public bool CanCallGet { get; }
 
         public bool CanCallSet { get; }
+
 #if CSHARP_8_0_OR_NEWER
         public FieldReference? BackingFieldReference { get; }
 #else
@@ -41,6 +42,52 @@ namespace MSPack.Processor.Core.Definitions
         public bool PublicAccessible => BackingFieldReference is null && (!(Definition.GetMethod is null) && Definition.GetMethod.IsPublic);
 
         public bool IsValueType => Definition.PropertyType.IsValueType;
+
+        public bool IsFixedArray
+        {
+            get
+            {
+                if (!(Definition.PropertyType is ArrayType arrayType) || arrayType.Rank != 1 || !Definition.HasCustomAttributes)
+                {
+                    return false;
+                }
+
+                foreach (var attribute in Definition.CustomAttributes)
+                {
+                    if (attribute.AttributeType.Name != "FixedArrayLengthAttribute" || attribute.ConstructorArguments.Count != 1 || attribute.HasProperties || attribute.HasFields || attribute.ConstructorArguments[0].Type.FullName != "System.UInt32")
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+        
+        public uint FixedArrayLength
+        {
+            get
+            {
+                if (!IsFixedArray)
+                {
+                    return default;
+                }
+
+                foreach (var attribute in Definition.CustomAttributes)
+                {
+                    if (attribute.AttributeType.Name != "FixedArrayLengthAttribute" || attribute.ConstructorArguments.Count != 1 || attribute.HasProperties || attribute.HasFields || attribute.ConstructorArguments[0].Type.FullName != "System.UInt32")
+                    {
+                        continue;
+                    }
+
+                    return (uint)attribute.ConstructorArguments[0].Value;
+                }
+
+                return default;
+            }
+        }
 
         public TypeReference MemberTypeReference => Definition.PropertyType;
 
