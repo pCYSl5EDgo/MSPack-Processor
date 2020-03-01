@@ -11,11 +11,11 @@ namespace MSPack.Processor.Core.Definitions
 #if CSHARP_8_0_OR_NEWER
         MethodDefinition? SerializationConstructor { get; }
 
-        TypeDefinition? FormatterDefinition { get; }
+        TypeReference? FormatterDefinition { get; }
 #else
         MethodDefinition SerializationConstructor { get; }
 
-        TypeDefinition FormatterDefinition { get; }
+        TypeReference FormatterType { get; }
 #endif
 
         bool IsIntKey { get; }
@@ -31,8 +31,6 @@ namespace MSPack.Processor.Core.Definitions
         int KeyCount { get; }
 
         TypeDefinition Definition { get; }
-
-        string FormatterName { get; }
 
         int MaxIntKey { get; }
 
