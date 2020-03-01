@@ -45,6 +45,7 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Methods.Add(deserialize);
         }
 
+        #region Serialize
         private MethodDefinition GenerateSerialize(in ClassSerializationInfo info, bool shouldCallback)
         {
             var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, module.TypeSystem.Void)
@@ -65,13 +66,8 @@ namespace MSPack.Processor.Core.Formatter
 
             processor.Append(Instruction.Create(OpCodes.Brtrue_S, notNullWriteArrayHeader));
 
-            void WriteNil()
-            {
-                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
-            }
-
-            WriteNil();
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
             processor.Append(Instruction.Create(OpCodes.Ret));
 
             processor.Append(notNullWriteArrayHeader);
@@ -93,43 +89,15 @@ namespace MSPack.Processor.Core.Formatter
                 switch (result)
                 {
                     case IndexerAccessResult.None:
-                        WriteNil();
+                        processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                        processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
                         break;
                     case IndexerAccessResult.Field:
-                        {
-                            var fieldReference = provider.Importer.Import(field.Definition);
-                            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                            processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
-                            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
-                        }
+                        SerializeField(field, processor);
 
                         break;
                     case IndexerAccessResult.Property:
-                        var backingField = property.BackingFieldReference;
-                        if (!(backingField is null))
-                        {
-                            var fieldReference = provider.Importer.Import(backingField);
-                            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                            processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
-                            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
-                        }
-                        else if (property.IsReadable)
-                        {
-                            var propertyReference = provider.Importer.Import(property.Definition.GetMethod);
-                            var propertyTypeReference = provider.Importer.Import(property.Definition.PropertyType);
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                            processor.Append(Instruction.Create(property.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
-                            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(propertyTypeReference)));
-                        }
-                        else
-                        {
-                            WriteNil();
-                        }
+                        SerializeProperty(property, processor);
 
                         break;
                     default:
@@ -142,6 +110,52 @@ namespace MSPack.Processor.Core.Formatter
             return serialize;
         }
 
+        private void SerializeField(FieldSerializationInfo field, ILProcessor processor)
+        {
+            var fieldReference = provider.Importer.Import(field.Definition);
+            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+            processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+        }
+
+        private void SerializeProperty(PropertySerializationInfo property, ILProcessor processor)
+        {
+            var backingField = property.BackingFieldReference;
+            if (!(backingField is null))
+            {
+                SerializeBackingField(processor, backingField);
+            }
+            else if (property.IsReadable)
+            {
+                var propertyReference = provider.Importer.Import(property.Definition.GetMethod);
+                var propertyTypeReference = provider.Importer.Import(property.Definition.PropertyType);
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(property.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(propertyTypeReference)));
+            }
+            else
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
+            }
+        }
+
+        private void SerializeBackingField(ILProcessor processor, FieldReference backingField)
+        {
+            var fieldReference = provider.Importer.Import(backingField);
+            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+            processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+        }
+
+        #endregion
+
+        #region Deserialize
         private MethodDefinition GenerateDeserialize(in ClassSerializationInfo info, bool shouldCallback)
         {
             var target = provider.Importer.Import(info.Definition);
@@ -367,5 +381,6 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Sub));
             processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.set_Depth));
         }
+        #endregion
     }
 }

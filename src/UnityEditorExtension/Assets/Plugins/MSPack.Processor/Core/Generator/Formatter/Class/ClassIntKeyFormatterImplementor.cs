@@ -99,8 +99,7 @@ namespace MSPack.Processor.Core.Formatter
                         WriteNil();
                         break;
                     case IndexerAccessResult.Field:
-                        var fieldReference = provider.Importer.Import(field.Definition);
-                        SerializeField(field.IsMessagePackPrimitive, processor, fieldReference, provider.MessagePackWriterHelper, ref resolverCalled);
+                        SerializeField(field, processor, provider.MessagePackWriterHelper, ref resolverCalled);
                         break;
                     case IndexerAccessResult.Property:
                         var propertyReference = provider.Importer.Import(property.Definition.GetMethod);
@@ -121,43 +120,16 @@ namespace MSPack.Processor.Core.Formatter
             return serialize;
         }
 
-        private void SerializeProperty(PropertySerializationInfo property, ILProcessor processor, MessagePackWriterHelper writeHelper, MethodReference propertyReference, ref bool resolverCalled)
+        private void SerializeProperty(in PropertySerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, MethodReference propertyReference, ref bool resolverCalled)
         {
-            var propertyBackingFieldReference = property.BackingFieldReference;
+            var propertyBackingFieldReference = info.BackingFieldReference;
             if (!(propertyBackingFieldReference is null))
             {
-                SerializeField(property.IsMessagePackPrimitive, processor, provider.Importer.Import(propertyBackingFieldReference), writeHelper, ref resolverCalled);
+                SerializePropertyBackingField(info, processor, writeHelper, ref resolverCalled, propertyBackingFieldReference);
             }
-            else if (property.IsReadable)
+            else if (info.IsReadable)
             {
-                var propertyTypeReference = provider.Importer.Import(property.Definition.PropertyType);
-                if (property.IsMessagePackPrimitive)
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                    processor.Append(Instruction.Create(property.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
-                    processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(propertyTypeReference)));
-                }
-                else
-                {
-                    if (!resolverCalled)
-                    {
-                        processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                        processor.Append(Instruction.Create(OpCodes.Callvirt, provider.MessagePackSerializerOptionsHelper.get_Resolver));
-                        resolverCalled = true;
-                    }
-
-                    processor.Append(Instruction.Create(OpCodes.Dup));
-
-                    var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(property.Definition.PropertyType);
-                    processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                    processor.Append(Instruction.Create(property.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                    var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(property.Definition.PropertyType));
-                    processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
-                }
+                SerializePropertyGetter(info, processor, writeHelper, propertyReference, ref resolverCalled);
             }
             else
             {
@@ -166,10 +138,80 @@ namespace MSPack.Processor.Core.Formatter
             }
         }
 
-        private void SerializeField(bool isMessagePackPrimitive, ILProcessor processor, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled)
+        private void SerializePropertyGetter(in PropertySerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, MethodReference propertyReference, ref bool resolverCalled)
         {
+            if (info.IsMessagePackPrimitive)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(info.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
+                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(provider.Importer.Import(info.Definition.PropertyType))));
+            }
+            else
+            {
+                SerializePropertyGetterNotPrimitive(info, processor, propertyReference, ref resolverCalled);
+            }
+        }
+
+        private void SerializePropertyGetterNotPrimitive(in PropertySerializationInfo info, ILProcessor processor, MethodReference propertyReference, ref bool resolverCalled)
+        {
+            if (!resolverCalled)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.MessagePackSerializerOptionsHelper.get_Resolver));
+                resolverCalled = true;
+            }
+
+            processor.Append(Instruction.Create(OpCodes.Dup));
+
+            var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(info.Definition.PropertyType);
+            processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+            processor.Append(Instruction.Create(info.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, propertyReference));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+            var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition.PropertyType));
+            processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
+        }
+
+        private void SerializePropertyBackingField(in PropertySerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, ref bool resolverCalled, FieldReference propertyBackingFieldReference)
+        {
+            var fieldReference = provider.Importer.Import(propertyBackingFieldReference);
+            var fieldTypeReference = provider.Importer.Import(propertyBackingFieldReference.FieldType);
+            if (info.IsMessagePackPrimitive)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+            }
+            else
+            {
+                if (!resolverCalled)
+                {
+                    processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+                    processor.Append(Instruction.Create(OpCodes.Callvirt, provider.MessagePackSerializerOptionsHelper.get_Resolver));
+                    resolverCalled = true;
+                }
+
+                processor.Append(Instruction.Create(OpCodes.Dup));
+
+                var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(fieldReference.FieldType);
+                processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(fieldReference.FieldType));
+                processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
+            }
+        }
+
+        private void SerializeField(in FieldSerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, ref bool resolverCalled)
+        {
+            var fieldReference = provider.Importer.Import(info.Definition);
             var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
-            if (isMessagePackPrimitive)
+            if (info.IsMessagePackPrimitive)
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
