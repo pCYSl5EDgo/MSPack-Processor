@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Provider;
@@ -10,9 +11,9 @@ namespace MSPack.Processor.Core.Formatter
 {
     public sealed class ImplementorFacade : IFormatterImplementor
     {
-        private readonly ClassIntKeyFormatterImplementor classIntKeyImplementor;
+        private readonly ClassIntKeyFormatterImplementor classIntKeyFormatterImplementor;
         private readonly ClassIntKeyAllMessagePackPrimitiveFormatterImplementor classIntKeyAllMessagePackPrimitiveFormatterImplementor;
-        private readonly ClassStringKeyImplementor classStringKeyImplementor;
+        private readonly ClassStringKeyFormatterImplementor classStringKeyFormatterImplementor;
         private readonly ClassStringKeyAllMessagePackPrimitiveImplementor classStringKeyAllMessagePackPrimitiveImplementor;
 
         private readonly StructIntKeyFormatterImplementor structIntKeyFormatterImplementor;
@@ -33,14 +34,14 @@ namespace MSPack.Processor.Core.Formatter
             var module = provider.Module;
             var dataHelper = new DataHelper(module, provider.SystemValueTypeHelper.ValueType);
 
-            classIntKeyImplementor = new ClassIntKeyFormatterImplementor(module, provider);
+            classIntKeyFormatterImplementor = new ClassIntKeyFormatterImplementor(module, provider);
             classIntKeyAllMessagePackPrimitiveFormatterImplementor = new ClassIntKeyAllMessagePackPrimitiveFormatterImplementor(module, provider);
             structIntKeyFormatterImplementor = new StructIntKeyFormatterImplementor(module, provider);
             structIntKeyAllMessagePackPrimitiveFormatterImplementor = new StructIntKeyAllMessagePackPrimitiveFormatterImplementor(module, provider);
             structIntKeyFormatterImplementorWithConstructor = new StructIntKeyFormatterImplementorWithConstructor(module, provider);
             structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor = new StructIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor(module, provider);
 
-            classStringKeyImplementor = new ClassStringKeyImplementor(module, provider, dataHelper);
+            classStringKeyFormatterImplementor = new ClassStringKeyFormatterImplementor(module, provider, dataHelper);
             classStringKeyAllMessagePackPrimitiveImplementor = new ClassStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
             structStringKeyImplementor = new StructStringKeyImplementor(module, provider, dataHelper);
             structStringKeyAllMessagePackPrimitiveImplementor = new StructStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
@@ -76,7 +77,7 @@ namespace MSPack.Processor.Core.Formatter
                 return;
             }
 
-            classStringKeyImplementor.Implement(info, formatter);
+            classStringKeyFormatterImplementor.Implement(info, formatter);
         }
 
         private void ImplementIntKey(in ClassSerializationInfo info, TypeDefinition formatter)
@@ -103,7 +104,7 @@ namespace MSPack.Processor.Core.Formatter
                 }
             }*/
 
-            classIntKeyImplementor.Implement(info, formatter);
+            classIntKeyFormatterImplementor.Implement(info, formatter);
         }
 
         public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
@@ -185,6 +186,18 @@ namespace MSPack.Processor.Core.Formatter
             else
             {
                 unionClassFormatterImplementor.Implement(in info, formatter);
+            }
+        }
+
+        public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.IsIntKey)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
     }

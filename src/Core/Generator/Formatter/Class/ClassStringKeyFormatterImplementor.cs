@@ -12,13 +12,13 @@ using System.Linq;
 
 namespace MSPack.Processor.Core.Formatter
 {
-    public sealed class ClassStringKeyImplementor
+    public sealed class ClassStringKeyFormatterImplementor
     {
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
 
-        public ClassStringKeyImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public ClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
         {
             this.module = module;
             this.provider = provider;
