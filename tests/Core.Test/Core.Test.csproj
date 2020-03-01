@@ -47,7 +47,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mspc -i &quot;$(TargetPath)&quot; -n &quot;Core.Test.Resolver&quot; -l &quot;$(TargetDir)ComplexTestClasses.dll,$(TargetDir)SimpleTestClasses.dll,$(TargetDir)CompoundTestClasses.dll&quot;" />
+    <Exec Command="dotnet run -p &quot;$(SolutionDir)src/CommandLineInterface/CommandLineInterface.csproj&quot; --framework &quot;netcoreapp3.1&quot; -i &quot;$(TargetPath)&quot; -n &quot;Core.Test.Resolver&quot; -l &quot;$(TargetDir)ComplexTestClasses.dll,$(TargetDir)SimpleTestClasses.dll,$(TargetDir)CompoundTestClasses.dll&quot;" />
   </Target>
 
 </Project>
