@@ -60,65 +60,107 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (info.IsIntKey)
             {
-                if (info.AreAllMessagePackPrimitive)
-                {
-                    classIntKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
-                }
-                else
-                {
-                    classIntKeyImplementor.Implement(info, formatter);
-                }
+                ImplementIntKey(info, formatter);
             }
             else
             {
-                if (info.AreAllMessagePackPrimitive)
+                ImplementStringKey(info, formatter);
+            }
+        }
+
+        private void ImplementStringKey(in ClassSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.AreAllMessagePackPrimitive)
+            {
+                classStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
+                return;
+            }
+
+            classStringKeyImplementor.Implement(info, formatter);
+        }
+
+        private void ImplementIntKey(in ClassSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.AreAllMessagePackPrimitive)
+            {
+                classIntKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
+                return;
+            }
+
+            /*for (var index = 0; index < info.FieldInfos.Length; index++)
+            {
+                if (info.FieldInfos[index].IsFixedArray)
                 {
-                    classStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
-                }
-                else
-                {
-                    classStringKeyImplementor.Implement(info, formatter);
+                    return;
                 }
             }
+
+            for (var index = 0; index < info.PropertyInfos.Length; index++)
+            {
+                if (info.PropertyInfos[index].IsFixedArray)
+                {
+                    return;
+                }
+            }*/
+
+            classIntKeyImplementor.Implement(info, formatter);
         }
 
         public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
         {
             if (info.IsIntKey)
             {
-                if (info.SerializationConstructor is null)
-                {
-                    if (info.AreAllMessagePackPrimitive)
-                    {
-                        structIntKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
-                    }
-                    else
-                    {
-                        structIntKeyFormatterImplementor.Implement(info, formatter);
-                    }
-                }
-                else
-                {
-                    if (info.SerializationConstructor.Parameters.All(x => x.ParameterType.IsMessagePackPrimitive()))
-                    {
-                        structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor.Implement(info, formatter);
-                    }
-                    else
-                    {
-                        structIntKeyFormatterImplementorWithConstructor.Implement(info, formatter);
-                    }
-                }
+                ImplementIntKey(info, formatter);
             }
             else
             {
-                if (info.AreAllMessagePackPrimitive)
-                {
-                    structStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
-                }
-                else
-                {
-                    structStringKeyImplementor.Implement(info, formatter);
-                }
+                ImplementStringKey(info, formatter);
+            }
+        }
+
+        private void ImplementStringKey(in StructSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.AreAllMessagePackPrimitive)
+            {
+                structStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
+                return;
+            }
+
+            structStringKeyImplementor.Implement(info, formatter);
+        }
+
+        private void ImplementIntKey(in StructSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.SerializationConstructor is null)
+            {
+                ImplementIntKeyWithoutSerializationConstructor(info, formatter);
+            }
+            else
+            {
+                ImplementIntKeyWithSerializationConstructor(info, formatter, info.SerializationConstructor);
+            }
+        }
+
+        private void ImplementIntKeyWithoutSerializationConstructor(in StructSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.AreAllMessagePackPrimitive)
+            {
+                structIntKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
+                return;
+            }
+
+            structIntKeyFormatterImplementor.Implement(info, formatter);
+        }
+
+        private void ImplementIntKeyWithSerializationConstructor(in StructSerializationInfo info, TypeDefinition formatter, MethodDefinition serializationConstructor)
+        {
+            if (serializationConstructor.Parameters.All(x => x.ParameterType.IsMessagePackPrimitive()))
+            {
+                structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor.Implement(info, formatter);
+            }
+            else
+            {
+                structIntKeyFormatterImplementorWithConstructor.Implement(info, formatter);
             }
         }
 
