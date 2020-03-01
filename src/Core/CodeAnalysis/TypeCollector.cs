@@ -192,9 +192,9 @@ namespace MSPack.Processor.Core
 
         private GenericClassSerializationInfo[] CollectGenericClassInfos()
         {
-            var infos = genericClassDefinitions.Count == 0 ? Array.Empty<GenericClassSerializationInfo>() : new GenericClassSerializationInfo[classDefinitions.Count];
+            var infos = genericClassDefinitions.Count == 0 ? Array.Empty<GenericClassSerializationInfo>() : new GenericClassSerializationInfo[genericClassDefinitions.Count];
 
-            for (var i = 0; i < classDefinitions.Count; i++)
+            for (var i = 0; i < genericClassDefinitions.Count; i++)
             {
                 if (!GenericClassSerializationInfo.TryParse(genericClassDefinitions[i], useMapMode, out infos[i]))
                 {
