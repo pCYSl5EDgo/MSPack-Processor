@@ -12,14 +12,13 @@ namespace MSPack.Processor.Core.Definitions
     public readonly struct StructSerializationInfo : ITypeSerializationInfo
     {
 #if CSHARP_8_0_OR_NEWER
-        public StructSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
+        public StructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
 #else
-        public StructSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
+        public StructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
 #endif
         {
             Definition = definition;
-            FormatterName = formatterName;
-            FormatterDefinition = default;
+            FormatterType = default;
             FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
@@ -32,14 +31,13 @@ namespace MSPack.Processor.Core.Definitions
         }
 
 #if CSHARP_8_0_OR_NEWER
-        public StructSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
+        public StructSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
 #else
-        public StructSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
+        public StructSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
 #endif
         {
             Definition = definition;
-            FormatterName = string.Empty;
-            FormatterDefinition = formatterDefinition;
+            FormatterType = formatterType;
             FormatterConstructorArguments = constructorArguments;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
@@ -59,24 +57,22 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsStruct => true;
 
-        public bool FormatterExists => !ReferenceEquals(FormatterDefinition, null);
+        public bool FormatterExists => !ReferenceEquals(FormatterType, null);
 
         public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
-
-        public string FormatterName { get; }
 
         public int MinIntKey { get; }
 
         public int MaxIntKey { get; }
 
 #if CSHARP_8_0_OR_NEWER
-        public TypeDefinition? FormatterDefinition { get; }
+        public TypeReference? FormatterDefinition { get; }
 
         public MethodDefinition? SerializationConstructor { get; }
 #else
-        public TypeDefinition FormatterDefinition { get; }
+        public TypeReference FormatterType { get; }
 
         public MethodDefinition SerializationConstructor { get; }
 #endif
@@ -145,19 +141,12 @@ namespace MSPack.Processor.Core.Definitions
                 var propertyInfos = MessagePackObjectHelper.CollectPropertyInfos(type, isKeyAsPropertyName | useMapMode);
                 var (minIntKey, maxIntKey) = MessagePackObjectHelper.FindMinMaxIntKey(fieldInfos, propertyInfos);
 
-                info = new StructSerializationInfo(type, MessagePackObjectHelper.FindFormatterName(type), fieldInfos, propertyInfos, minIntKey, maxIntKey, serializationConstructor);
+                info = new StructSerializationInfo(type, fieldInfos, propertyInfos, minIntKey, maxIntKey, serializationConstructor);
             }
             else
             {
-                var formatterType = ((TypeReference)customFormatter.ConstructorArguments[0].Value).Resolve();
-                if (customFormatter.ConstructorArguments.Count == 2 && customFormatter.ConstructorArguments[1].Value is CustomAttributeArgument[] argumentArray)
-                {
-                    info = new StructSerializationInfo(type, formatterType, argumentArray, serializationConstructor);
-                }
-                else
-                {
-                    info = new StructSerializationInfo(type, formatterType, Array.Empty<CustomAttributeArgument>(), serializationConstructor);
-                }
+                CustomFormatterDetector.Detect(type, customFormatter, out var formatterType, out var argumentArray);
+                info = new StructSerializationInfo(type, formatterType, argumentArray, serializationConstructor);
             }
 
             return true;

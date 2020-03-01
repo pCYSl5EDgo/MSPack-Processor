@@ -13,11 +13,13 @@ namespace MSPack.Processor.Core
         private readonly FixedTypeKeyGenerator<FormatterInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator> generator;
         private readonly ModuleImporter importer;
         private readonly SystemTypeHelper typeHelper;
+        private readonly CustomFormatterConstructorImporter customFormatterConstructorImporter;
 
-        public FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(ModuleDefinition module, TypeKeyInterfaceMessagePackFormatterValuePairGenerator pairGenerator, InterfaceMessagePackFormatterHelper interfaceMessagePackFormatter, SystemObjectHelper systemObjectHelper, SystemTypeHelper typeHelper, ModuleImporter importer, SystemArrayHelper arrayHelper, double loadFactor)
+        public FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(ModuleDefinition module, TypeKeyInterfaceMessagePackFormatterValuePairGenerator pairGenerator, SystemObjectHelper systemObjectHelper, SystemTypeHelper typeHelper, ModuleImporter importer, SystemArrayHelper arrayHelper, double loadFactor)
         {
             this.importer = importer;
             this.typeHelper = typeHelper;
+            customFormatterConstructorImporter = new CustomFormatterConstructorImporter(module.TypeSystem.Void, importer);
             generator = new FixedTypeKeyGenerator<FormatterInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator>(
                 TypeName,
                 module,
@@ -135,7 +137,7 @@ namespace MSPack.Processor.Core
                 Load(constructorArgument);
             }
 
-            processor.Append(Instruction.Create(OpCodes.Newobj, importer.Import(formatterInfo.FormatterTypeConstructor))); // { Pair&, formatter }
+            processor.Append(Instruction.Create(OpCodes.Newobj, customFormatterConstructorImporter.Import(formatterInfo))); // { Pair&, formatter }
         }
     }
 }

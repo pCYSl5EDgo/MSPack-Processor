@@ -120,7 +120,7 @@ namespace MSPack.Processor.Core
             }
 
             var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
-            var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(inputModule, pairGenerator, provider.InterfaceMessagePackFormatterHelper, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
+            var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(inputModule, pairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
             var (tableType, getFormatterMethodInfo) = tableGenerator.Generate(formatterInfos);
             resolverTypeDefinition.NestedTypes.Add(tableType);
 

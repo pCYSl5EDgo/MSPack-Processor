@@ -83,7 +83,7 @@ namespace MSPack.Processor.Core
             for (var i = 0; i < collectedInfoClassSerializationInfos.Length; i++)
             {
                 ref readonly var info = ref collectedInfoClassSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index));
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), info.FormatterConstructorArguments);
                 index++;
             }
 
@@ -92,7 +92,7 @@ namespace MSPack.Processor.Core
             for (var i = 0; i < collectedInfoStructSerializationInfos.Length; i++)
             {
                 ref readonly var info = ref collectedInfoStructSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index));
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), info.FormatterConstructorArguments);
                 index++;
             }
 
@@ -101,7 +101,7 @@ namespace MSPack.Processor.Core
             for (var i = 0; i < collectedInfoInterfaceSerializationInfos.Length; i++)
             {
                 ref readonly var info = ref collectedInfoInterfaceSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index));
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
                 index++;
             }
 
@@ -110,7 +110,7 @@ namespace MSPack.Processor.Core
             for (var i = 0; i < collectedInfoUnionClassSerializationInfos.Length; i++)
             {
                 ref readonly var info = ref collectedInfoUnionClassSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index));
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
                 index++;
             }
         }
@@ -131,35 +131,35 @@ namespace MSPack.Processor.Core
             return formatter;
         }
 
-        private TypeDefinition GetOrAdd(in ClassSerializationInfo info, int index)
+        private TypeReference GetOrAdd(in ClassSerializationInfo info, int index)
         {
             if (info.FormatterExists)
             {
 #if CSHARP_8_0_OR_NEWER
                 return info.FormatterDefinition!;
 #else
-                return info.FormatterDefinition;
+                return info.FormatterType;
 #endif
             }
 
-            var formatter = new TypeDefinition(string.Empty, "C" + info.FormatterName + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(string.Empty, "CFormatter"+ index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
 
-        private TypeDefinition GetOrAdd(in StructSerializationInfo info, int index)
+        private TypeReference GetOrAdd(in StructSerializationInfo info, int index)
         {
             if (info.FormatterExists)
             {
 #if CSHARP_8_0_OR_NEWER
                 return info.FormatterDefinition!;
 #else
-                return info.FormatterDefinition;
+                return info.FormatterType;
 #endif
             }
 
-            var formatter = new TypeDefinition(string.Empty, "S" + info.FormatterName + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(string.Empty, "SFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;

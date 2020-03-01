@@ -13,14 +13,13 @@ namespace MSPack.Processor.Core.Definitions
     public readonly struct ClassSerializationInfo : ITypeSerializationInfo
     {
 #if CSHARP_8_0_OR_NEWER
-        public ClassSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
 #else
-        public ClassSerializationInfo(TypeDefinition definition, string formatterName, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
 #endif
         {
             Definition = definition;
-            FormatterName = formatterName;
-            FormatterDefinition = default;
+            FormatterType = default;
             FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
@@ -31,15 +30,15 @@ namespace MSPack.Processor.Core.Definitions
             AreAllMessagePackPrimitive = this.FieldInfos.All(x => x.IsMessagePackPrimitive) && this.PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
+
 #if CSHARP_8_0_OR_NEWER
-        public ClassSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
 #else
-        public ClassSerializationInfo(TypeDefinition definition, TypeDefinition formatterDefinition, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
 #endif
         {
             Definition = definition;
-            FormatterName = string.Empty;
-            FormatterDefinition = formatterDefinition;
+            FormatterType = formatterType;
             FormatterConstructorArguments = constructorArguments;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
@@ -65,23 +64,20 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsStruct => false;
 
-        public bool FormatterExists => !ReferenceEquals(FormatterDefinition, null);
+        public bool FormatterExists => !ReferenceEquals(FormatterType, null);
 
         public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
-
-        public string FormatterName { get; }
 
         public int MinIntKey { get; }
 
         public int MaxIntKey { get; }
 
 #if CSHARP_8_0_OR_NEWER
-        public TypeDefinition? FormatterDefinition { get; }
+        public TypeReference? FormatterDefinition { get; }
 #else
-        public TypeDefinition FormatterDefinition { get; }
-
+        public TypeReference FormatterType { get; }
 #endif
 
         public CustomAttributeArgument[] FormatterConstructorArguments { get; }
@@ -147,34 +143,15 @@ namespace MSPack.Processor.Core.Definitions
                 var propertyInfos = MessagePackObjectHelper.CollectPropertyInfos(type, isKeyAsPropertyName | useMapMode);
                 var (minIntKey, maxIntKey) = MessagePackObjectHelper.FindMinMaxIntKey(fieldInfos, propertyInfos);
 
-                info = new ClassSerializationInfo(type, MessagePackObjectHelper.FindFormatterName(type), fieldInfos, propertyInfos, minIntKey, maxIntKey, serializationConstructor);
+                info = new ClassSerializationInfo(type, fieldInfos, propertyInfos, minIntKey, maxIntKey, serializationConstructor);
             }
             else
             {
-                var formatterType = ((TypeReference)customFormatter.ConstructorArguments[0].Value).Resolve();
-                if (customFormatter.ConstructorArguments.Count == 2 && customFormatter.ConstructorArguments[1].Value is CustomAttributeArgument[] argumentArray)
-                {
-                    info = new ClassSerializationInfo(type, formatterType, argumentArray, serializationConstructor);
-                }
-                else
-                {
-                    info = new ClassSerializationInfo(type, formatterType, Array.Empty<CustomAttributeArgument>(), serializationConstructor);
-                }
+                CustomFormatterDetector.Detect(type, customFormatter, out var formatterType, out var argumentArray);
+                info = new ClassSerializationInfo(type, formatterType, argumentArray, serializationConstructor);
             }
 
-            info.Validate();
             return true;
-        }
-
-        [Conditional("DEBUG")]
-        public void Validate()
-        {
-            if (FieldInfos.All(x => !x.IsWritable) &&
-                PropertyInfos.All(x => !x.IsWritable) &&
-                !Definition.Methods.Any(x => x.IsPublic && x.Name == ".ctor" && x.Parameters.Count == 0))
-            {
-                throw new MessagePackGeneratorResolveFailedException("All key fields and properties are readonly and type does not have zero param constructor. type : " + Definition.FullName);
-            }
         }
 
         public override string ToString()

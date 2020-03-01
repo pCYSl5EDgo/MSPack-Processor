@@ -17,8 +17,9 @@
     <PackageId>MSPack.Processor.Core</PackageId>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.3.1</Version>
-    <PackageReleaseNotes>0.3.1 : See Release Notes of MSPack.Processor.CLI
+    <Version>0.3.2</Version>
+    <PackageReleaseNotes>0.3.2 : Fix =&gt; When MessagePackFormatterAttribute constructor has values, it throwed exception.
+0.3.1 : See Release Notes of MSPack.Processor.CLI
 0.3.0 : API update =&gt; CodeGenerator class now implements System.IDisposable interface.
 0.2.1 : Minor API update. Add NopReportHook,
 0.2.0 : API update =&gt; -t option now -i &amp; new -d option(for performance purpose).

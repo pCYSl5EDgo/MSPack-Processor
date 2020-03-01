@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Formatter;
@@ -26,7 +27,7 @@ namespace MSPack.Processor.Core
             for (var index = 0; index < answer.Length; index++)
             {
                 ref readonly var info = ref serializationInfos[index];
-                answer[index] = new FormatterInfo(info.Type, GetOrAdd(in info, index));
+                answer[index] = new FormatterInfo(info.Type, GetOrAdd(in info, index), Array.Empty<CustomAttributeArgument>());
             }
 
             return answer;

@@ -3,91 +3,42 @@
 
 using Mono.Cecil;
 using System;
+using System.Linq;
 
 namespace MSPack.Processor.Core
 {
-    public readonly struct FormatterInfo
+    public readonly struct FormatterInfo : IEquatable<FormatterInfo>
     {
         public readonly TypeReference SerializeTypeReference;
-        public readonly TypeDefinition FormatterTypeDefinition;
-        public readonly MethodDefinition FormatterTypeConstructor;
+        public readonly TypeReference FormatterType;
         public readonly CustomAttributeArgument[] FormatterConstructorArguments;
 
-        public FormatterInfo(TypeReference serializeTypeReference, TypeDefinition formatterTypeDefinition, CustomAttributeArgument[] formatterConstructorArguments)
+        public FormatterInfo(TypeReference serializeTypeReference, TypeReference formatterType, CustomAttributeArgument[] formatterConstructorArguments)
         {
             SerializeTypeReference = serializeTypeReference;
-            FormatterTypeDefinition = formatterTypeDefinition;
+            FormatterType = formatterType;
             FormatterConstructorArguments = formatterConstructorArguments;
-            foreach (var methodDefinition in FormatterTypeDefinition.Methods)
-            {
-                if (methodDefinition.Name != ".ctor" || !methodDefinition.IsRuntimeSpecialName || !methodDefinition.IsSpecialName)
-                {
-                    continue;
-                }
-
-                if (methodDefinition.Parameters.Count != formatterConstructorArguments.Length)
-                {
-                    continue;
-                }
-
-                for (var index = 0; index < methodDefinition.Parameters.Count; index++)
-                {
-                    var methodDefinitionParameter = methodDefinition.Parameters[index];
-                    var argument = FormatterConstructorArguments[index];
-                    if (!string.Equals(methodDefinitionParameter.ParameterType.FullName, argument.Type.FullName))
-                    {
-                        goto CONTINUATION;
-                    }
-                }
-
-                goto SUCCESS;
-            CONTINUATION:
-                continue;
-            SUCCESS:
-                FormatterTypeConstructor = methodDefinition;
-                return;
-            }
-
-            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeReference.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
         }
 
-        public FormatterInfo(TypeReference serializeTypeReference, TypeDefinition formatterTypeDefinition)
+        public bool Equals(FormatterInfo other)
         {
-            SerializeTypeReference = serializeTypeReference;
-            FormatterTypeDefinition = formatterTypeDefinition;
-            FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
+            return ReferenceEquals(SerializeTypeReference, other.SerializeTypeReference) && ReferenceEquals(FormatterType, other.FormatterType) && FormatterConstructorArguments.SequenceEqual(other.FormatterConstructorArguments);
+        }
 
-            foreach (var methodDefinition in FormatterTypeDefinition.Methods)
+        public override bool Equals(object obj)
+        {
+            return obj is FormatterInfo other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
             {
-                if (methodDefinition.Name != ".ctor" || !methodDefinition.IsRuntimeSpecialName || !methodDefinition.IsSpecialName)
-                {
-                    continue;
-                }
-
-                if (methodDefinition.Parameters.Count != 0)
-                {
-                    continue;
-                }
-
-                for (var index = 0; index < methodDefinition.Parameters.Count; index++)
-                {
-                    var methodDefinitionParameter = methodDefinition.Parameters[index];
-                    var argument = FormatterConstructorArguments[index];
-                    if (!string.Equals(methodDefinitionParameter.ParameterType.FullName, argument.Type.FullName))
-                    {
-                        goto CONTINUATION;
-                    }
-                }
-
-                goto SUCCESS;
-            CONTINUATION:
-                continue;
-            SUCCESS:
-                FormatterTypeConstructor = methodDefinition;
-                return;
+                var hashCode = (SerializeTypeReference != null ? SerializeTypeReference.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (FormatterType != null ? FormatterType.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (FormatterConstructorArguments != null ? FormatterConstructorArguments.GetHashCode() : 0);
+                return hashCode;
             }
-
-            throw new MessagePackGeneratorResolveFailedException("serialization target type : " + SerializeTypeReference.FullName + " , serializer type : " + FormatterTypeDefinition.FullName + " does not have correct constructor.");
         }
     }
 }
