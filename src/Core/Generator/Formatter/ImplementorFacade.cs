@@ -29,6 +29,9 @@ namespace MSPack.Processor.Core.Formatter
         private readonly UnionClassFormatterAllConsequentImplementor unionClassFormatterAllConsequentImplementor;
         private readonly UnionClassFormatterImplementor unionClassFormatterImplementor;
 
+        private readonly GenericClassIntKeyFormatterImplementor genericClassIntKeyFormatterImplementor;
+        private readonly GenericClassStringKeyFormatterImplementor genericClassStringKeyFormatterImplementor;
+
         public ImplementorFacade(TypeProvider provider, double loadFactor)
         {
             var module = provider.Module;
@@ -55,6 +58,9 @@ namespace MSPack.Processor.Core.Formatter
             var fixedTypeKeyInt32Generator = new FixedTypeKeyInt32ValueHashtableGenerator(module, typeKeyInt32ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
             unionInterfaceFormatterAllConsequentImplementor = new UnionInterfaceFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
             unionClassFormatterAllConsequentImplementor = new UnionClassFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
+
+            genericClassIntKeyFormatterImplementor = new GenericClassIntKeyFormatterImplementor(module, provider);
+            genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper);
         }
 
         public void Implement(in ClassSerializationInfo info, TypeDefinition formatter)
@@ -193,11 +199,11 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (info.IsIntKey)
             {
-                throw new NotImplementedException();
+                genericClassIntKeyFormatterImplementor.Implement(in info, formatter);
             }
             else
             {
-                throw new NotImplementedException();
+                genericClassStringKeyFormatterImplementor.Implement(in info, formatter);
             }
         }
     }

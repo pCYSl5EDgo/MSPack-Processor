@@ -9,10 +9,10 @@ namespace CompoundTestClasses
 {
     [MessagePackObject]
     [GenericArgument(typeof(int), typeof(int))]
-    [GenericArgument(typeof(int), typeof(ulong))]
+    [GenericArgument(typeof(ulong), typeof(ulong))]
     public class Generics<T0, T1> : IEquatable<Generics<T0, T1>>
-        where T0 : IEquatable<T0>
-        where T1 : IEquatable<T1>
+        where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
+        where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
         [Key(0)] public T0 A;
         [Key(1)] public T1 B;

@@ -67,7 +67,7 @@ namespace MSPack.Processor.Core
             using (new Watcher(sw, logger, "Module Reading"))
             {
                 moduleDefinitions[0] = inputModule = ModuleDefinition.ReadModule(inputPath, readerParam);
-
+                
                 logger("log inputModule\nassembly : " + inputModule.Assembly.FullName + "\nfile : " + inputModule.FileName);
 
                 var resolverFinder = new FormatterResolverFinder();
@@ -155,6 +155,7 @@ namespace MSPack.Processor.Core
                 ignoresAccessChecksToAttributeGenerator.EnsureAccess(collectedInfo.Module.Assembly.Name);
             }
         }
+
 #if CSHARP_8_0_OR_NEWER
         private ref struct Watcher
 #else

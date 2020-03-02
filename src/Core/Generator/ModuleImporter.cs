@@ -31,8 +31,6 @@ namespace MSPack.Processor.Core
 
         private PointerType Import(PointerType type) => new PointerType(Import(type.ElementType));
 
-        private TypeReference Import(GenericParameter type) => module.ImportReference(type);
-
         public TypeReference Import(TypeReference reference)
         {
             if (ReferenceEquals(module, reference.Module))
@@ -49,7 +47,9 @@ namespace MSPack.Processor.Core
                 case PointerType pointerType:
                     return Import(pointerType);
                 case GenericParameter genericParameter:
-                    return Import(genericParameter);
+                    return genericParameter;
+                case RequiredModifierType requiredModifierType:
+                    return new RequiredModifierType(Import(requiredModifierType.ModifierType), Import(requiredModifierType.ElementType));
                 default:
                     return module.ImportReference(reference);
             }
