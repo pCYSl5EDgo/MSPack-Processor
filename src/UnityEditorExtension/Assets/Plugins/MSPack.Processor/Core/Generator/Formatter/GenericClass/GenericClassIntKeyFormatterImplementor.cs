@@ -491,115 +491,156 @@ namespace MSPack.Processor.Core.Formatter
                     return @default;
 
                 case IndexerAccessResult.Field:
-                    var storeFieldReference = new FieldReference(field.Definition.Name, provider.Importer.Import(field.Definition.FieldType), targetGenericInstanceType);
-                    if (field.IsMessagePackPrimitive)
-                    {
-                        return new[]
-                        {
-                            Instruction.Create(OpCodes.Ldloc_2),
-                            Instruction.Create(OpCodes.Ldarg_1),
-                            Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(storeFieldReference.FieldType)),
-                            Instruction.Create(OpCodes.Stfld, storeFieldReference),
-                        };
-                    }
-                    else
-                    {
-                        var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(storeFieldReference.FieldType);
-                        var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(storeFieldReference.FieldType);
-                        var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
-                        return new[]
-                        {
-                            Instruction.Create(OpCodes.Ldloc_2),
-                            Instruction.Create(OpCodes.Ldloc_3),
-                            Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
-                            Instruction.Create(OpCodes.Ldarg_1),
-                            Instruction.Create(OpCodes.Ldarg_2),
-                            Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                            Instruction.Create(OpCodes.Stfld, storeFieldReference),
-                        };
-                    }
+                    return DeserializeField(field, targetGenericInstanceType);
 
                 case IndexerAccessResult.Property:
                     if (property.IsMessagePackPrimitive)
                     {
-                        if (property.BackingFieldReference is null)
-                        {
-                            if (property.Definition.SetMethod is null)
-                            {
-                                goto case IndexerAccessResult.None;
-                            }
-
-                            var setMethod = new MethodReference(property.Definition.Name, provider.Importer.Import(property.Definition.PropertyType), targetGenericInstanceType)
-                            {
-                                HasThis = true,
-                                Parameters =
-                                {
-                                    new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(property.Definition.SetMethod.Parameters[0].ParameterType)),
-                                },
-                            };
-                            return new[]
-                            {
-                                Instruction.Create(OpCodes.Ldloc_2),
-                                Instruction.Create(OpCodes.Ldarg_1),
-                                Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(field.Definition.FieldType)),
-                                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
-                            };
-                        }
-
-                        var backingField = provider.Importer.Import(property.BackingFieldReference);
-                        return new[]
-                        {
-                            Instruction.Create(OpCodes.Ldloc_2),
-                            Instruction.Create(OpCodes.Ldarg_1),
-                            Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(property.Definition.PropertyType)),
-                            Instruction.Create(OpCodes.Stfld, backingField),
-                        };
+                        return DeserializePropertyPrimitive(field, property, targetGenericInstanceType, @default);
                     }
                     else
                     {
-                        if (property.BackingFieldReference is null)
-                        {
-                            if (property.Definition.SetMethod is null)
-                            {
-                                goto case IndexerAccessResult.None;
-                            }
-
-                            var setMethod = provider.Importer.Import(property.Definition.SetMethod);
-                            var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(property.Definition.PropertyType);
-                            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(property.Definition.PropertyType);
-                            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
-                            return new[]
-                            {
-                                Instruction.Create(OpCodes.Ldloc_2),
-                                Instruction.Create(OpCodes.Ldloc_3),
-                                Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
-                                Instruction.Create(OpCodes.Ldarg_1),
-                                Instruction.Create(OpCodes.Ldarg_2),
-                                Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
-                            };
-                        }
-                        else
-                        {
-                            var backingField = provider.Importer.Import(property.BackingFieldReference);
-                            var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(property.Definition.PropertyType);
-                            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(property.Definition.PropertyType);
-                            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
-                            return new[]
-                            {
-                                Instruction.Create(OpCodes.Ldloc_2),
-                                Instruction.Create(OpCodes.Ldloc_3),
-                                Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
-                                Instruction.Create(OpCodes.Ldarg_1),
-                                Instruction.Create(OpCodes.Ldarg_2),
-                                Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                                Instruction.Create(OpCodes.Stfld, backingField),
-                            };
-                        }
+                        return DeserializePropertyNotPrimitive(property, targetGenericInstanceType, @default);
                     }
 
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private Instruction[] DeserializePropertyNotPrimitive(PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType, Instruction[] @default)
+        {
+            if (property.BackingFieldReference is null)
+            {
+                if (property.Definition.SetMethod is null)
+                {
+                    return @default;
+                }
+
+                return DeserializePropertyNotPrimitiveSetter(property, targetGenericInstanceType);
+            }
+
+            var backing = new FieldReference(property.BackingFieldReference.Name, provider.Importer.Import(property.Definition.PropertyType), targetGenericInstanceType);
+            return DeserializePropertyNotPrimitiveBackingField(property, backing);
+        }
+
+        private Instruction[] DeserializePropertyNotPrimitiveBackingField(PropertySerializationInfo property, FieldReference backingField)
+        {
+            var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(property.Definition.PropertyType);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(property.Definition.PropertyType);
+            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            return new[]
+            {
+                Instruction.Create(OpCodes.Ldloc_2),
+                Instruction.Create(OpCodes.Ldloc_3),
+                Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Ldarg_2),
+                Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
+                Instruction.Create(OpCodes.Stfld, backingField),
+            };
+        }
+
+        private Instruction[] DeserializePropertyNotPrimitiveSetter(PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType)
+        {
+            var definitionSetMethod = property.Definition.SetMethod;
+            var setMethod = new MethodReference(definitionSetMethod.Name, provider.Importer.Import(definitionSetMethod.ReturnType), targetGenericInstanceType)
+            {
+                HasThis = true,
+                Parameters =
+                {
+                    new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(definitionSetMethod.Parameters[0].ParameterType))
+                }
+            };
+            var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(setMethod.Parameters[0].ParameterType);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(setMethod.Parameters[0].ParameterType);
+            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            return new[]
+            {
+                Instruction.Create(OpCodes.Ldloc_2),
+                Instruction.Create(OpCodes.Ldloc_3),
+                Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Ldarg_2),
+                Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
+                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
+            };
+        }
+
+        private Instruction[] DeserializePropertyPrimitive(FieldSerializationInfo field, PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType, Instruction[] @default)
+        {
+            if (property.BackingFieldReference is null)
+            {
+                if (property.Definition.SetMethod is null)
+                {
+                    return @default;
+                }
+
+                return DeserializePropertyPrimitiveSetter(field, property, targetGenericInstanceType);
+            }
+
+            return DeserializePropertyPrimitiveBackingField(property);
+        }
+
+        private Instruction[] DeserializePropertyPrimitiveSetter(FieldSerializationInfo field, PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType)
+        {
+            var setMethod = new MethodReference(property.Definition.Name, provider.Importer.Import(property.Definition.PropertyType), targetGenericInstanceType)
+            {
+                HasThis = true,
+                Parameters =
+                {
+                    new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(property.Definition.SetMethod.Parameters[0].ParameterType)),
+                },
+            };
+            return new[]
+            {
+                Instruction.Create(OpCodes.Ldloc_2),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(field.Definition.FieldType)),
+                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
+            };
+        }
+
+        private Instruction[] DeserializePropertyPrimitiveBackingField(PropertySerializationInfo property)
+        {
+            var backingField = provider.Importer.Import(property.BackingFieldReference);
+            return new[]
+            {
+                Instruction.Create(OpCodes.Ldloc_2),
+                Instruction.Create(OpCodes.Ldarg_1),
+                Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(property.Definition.PropertyType)),
+                Instruction.Create(OpCodes.Stfld, backingField),
+            };
+        }
+
+        private Instruction[] DeserializeField(in FieldSerializationInfo field, GenericInstanceType targetGenericInstanceType)
+        {
+            var storeFieldReference = new FieldReference(field.Definition.Name, provider.Importer.Import(field.Definition.FieldType), targetGenericInstanceType);
+            if (field.IsMessagePackPrimitive)
+            {
+                return new[]
+                {
+                    Instruction.Create(OpCodes.Ldloc_2),
+                    Instruction.Create(OpCodes.Ldarg_1),
+                    Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(storeFieldReference.FieldType)),
+                    Instruction.Create(OpCodes.Stfld, storeFieldReference),
+                };
+            }
+            else
+            {
+                var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(storeFieldReference.FieldType);
+                var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(storeFieldReference.FieldType);
+                var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+                return new[]
+                {
+                    Instruction.Create(OpCodes.Ldloc_2),
+                    Instruction.Create(OpCodes.Ldloc_3),
+                    Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
+                    Instruction.Create(OpCodes.Ldarg_1),
+                    Instruction.Create(OpCodes.Ldarg_2),
+                    Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
+                    Instruction.Create(OpCodes.Stfld, storeFieldReference),
+                };
             }
         }
 
