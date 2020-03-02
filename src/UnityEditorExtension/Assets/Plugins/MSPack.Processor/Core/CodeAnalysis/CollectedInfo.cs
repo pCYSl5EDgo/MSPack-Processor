@@ -26,7 +26,9 @@ namespace MSPack.Processor.Core.Definitions
             this.InterfaceSerializationInfos = interfaceSerializationInfos;
             this.GenericClassSerializationInfos = genericClassSerializationInfos;
 
-            PublicAccessible = ClassSerializationInfos.All(x => x.PublicAccessible);
+            PublicAccessible = ClassSerializationInfos.All(x => x.PublicAccessible)
+                && StructSerializationInfos.All(x => x.PublicAccessible)
+                && GenericClassSerializationInfos.All(x => x.PublicAccessible);
         }
 
         public override string ToString()

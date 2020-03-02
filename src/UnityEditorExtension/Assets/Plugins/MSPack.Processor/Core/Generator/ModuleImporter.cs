@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using Mono.Cecil;
 
 namespace MSPack.Processor.Core
@@ -31,8 +32,6 @@ namespace MSPack.Processor.Core
 
         private PointerType Import(PointerType type) => new PointerType(Import(type.ElementType));
 
-        private TypeReference Import(GenericParameter type) => module.ImportReference(type);
-
         public TypeReference Import(TypeReference reference)
         {
             if (ReferenceEquals(module, reference.Module))
@@ -49,7 +48,9 @@ namespace MSPack.Processor.Core
                 case PointerType pointerType:
                     return Import(pointerType);
                 case GenericParameter genericParameter:
-                    return Import(genericParameter);
+                    return genericParameter;
+                case RequiredModifierType requiredModifierType:
+                    return new RequiredModifierType(Import(requiredModifierType.ModifierType), Import(requiredModifierType.ElementType));
                 default:
                     return module.ImportReference(reference);
             }

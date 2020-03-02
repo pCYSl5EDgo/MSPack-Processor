@@ -44,7 +44,8 @@ namespace MSPack.Processor.Core
             return info.ClassSerializationInfos.Length
                    + info.StructSerializationInfos.Length
                    + info.InterfaceSerializationInfos.Length
-                   + info.UnionClassSerializationInfos.Length;
+                   + info.UnionClassSerializationInfos.Length
+                   + info.GenericClassSerializationInfos.Length;
         }
 
         public FormatterInfo[] Generate(CollectedInfo[] collectedReadOnlySpan)
@@ -113,6 +114,14 @@ namespace MSPack.Processor.Core
                 formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
                 index++;
             }
+
+            var collectedInfoGenericClassSerializationInfos = collectedInfo.GenericClassSerializationInfos;
+            for (var i = 0; i < collectedInfoGenericClassSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoGenericClassSerializationInfos[i];
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
         }
 
         private TypeDefinition GetOrAdd(in UnionClassSerializationInfo info, int index)
@@ -139,6 +148,19 @@ namespace MSPack.Processor.Core
             }
 
             var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            implementor.Implement(info, formatter);
+            resolver.NestedTypes.Add(formatter);
+            return formatter;
+        }
+
+        private TypeReference GetOrAdd(in GenericClassSerializationInfo info, int index)
+        {
+            if (!(info.FormatterType is null))
+            {
+                return info.FormatterType;
+            }
+
+            var formatter = new TypeDefinition(string.Empty, "GCFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;

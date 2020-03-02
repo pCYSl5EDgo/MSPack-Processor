@@ -15,5 +15,7 @@ namespace MSPack.Processor.Core.Formatter
         void Implement(in UnionInterfaceSerializationInfo info, TypeDefinition formatter);
 
         void Implement(in UnionClassSerializationInfo info, TypeDefinition formatter);
+
+        void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter);
     }
 }

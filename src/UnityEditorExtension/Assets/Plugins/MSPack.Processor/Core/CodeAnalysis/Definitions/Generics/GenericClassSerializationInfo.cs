@@ -9,7 +9,7 @@ using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
-    public struct GenericClassSerializationInfo : ITypeSerializationInfo
+    public readonly struct GenericClassSerializationInfo : ITypeSerializationInfo
     {
         public GenericClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey)
         {
