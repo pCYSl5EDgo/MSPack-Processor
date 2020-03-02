@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using MSPack.Processor.Core;
 using MSPack.Processor.Core.Report;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MSPack.Processor.CLI
@@ -28,12 +29,32 @@ namespace MSPack.Processor.CLI
             [Option("m", "Force use map mode serialization.")]bool useMapMode = false,
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
+            if (!File.Exists(input))
+            {
+                throw new FileNotFoundException("Input dll not found. path : " + input);
+            }
+
+            var libraryPaths = Split(libraryFiles);
+            foreach (var path in libraryPaths)
+            {
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException("Library dll not found. path : " + path);
+                }
+            }
+
+            var definitionPaths = Split(definitionFiles);
+            foreach (var path in definitionPaths)
+            {
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException("Definition dll not found. path : " + path);
+                }
+            }
+
             var reportHook = new NopReportHook();
             using (var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook))
             {
-                var libraryPaths = Split(libraryFiles);
-                var definitionPaths = Split(definitionFiles);
-
                 codeGenerator
                     .Generate(
                         input,
