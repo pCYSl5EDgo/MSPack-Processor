@@ -1,4 +1,4 @@
-﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
+﻿/*// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -87,4 +87,4 @@ namespace CompoundTestClasses
 
         public override int GetHashCode() => halfA.GetHashCode() ^ halfB.GetHashCode();
     }
-}
+}*/

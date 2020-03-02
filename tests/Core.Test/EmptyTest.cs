@@ -19,7 +19,6 @@ namespace Core.Test
             {
                 Resolver.Instance,
                 BuiltinResolver.Instance,
-                StandardResolver.Instance,
             });
             var option = MessagePackSerializerOptions.Standard.WithResolver(StaticCompositeResolver.Instance);
 
