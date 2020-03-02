@@ -55,6 +55,11 @@ namespace MSPack.Processor.Core
             }
         }
 
+        public CustomAttribute Import(CustomAttribute attribute)
+        {
+            return new CustomAttribute(Import(attribute.Constructor), attribute.GetBlob());
+        }
+
         public FieldReference Import(FieldReference reference)
         {
             return ReferenceEquals(module, reference.Module) ? reference : module.ImportReference(reference);

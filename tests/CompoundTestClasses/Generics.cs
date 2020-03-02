@@ -1,4 +1,4 @@
-﻿/*// Copyright (c) pCYSl5EDgo. All rights reserved.
+﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -7,15 +7,17 @@ using MSPack.Processor.Annotation;
 
 namespace CompoundTestClasses
 {
-    [MessagePackObject]
+    [MessagePackObject(true)]
     [GenericArgument(typeof(int), typeof(int))]
     [GenericArgument(typeof(ulong), typeof(ulong))]
     public class Generics<T0, T1> : IEquatable<Generics<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
-        [Key(0)] public T0 A;
-        [Key(1)] public T1 B;
+        //[Key(0)] 
+        public T0 A { get; }
+        //[Key(1)] 
+        public T1 B { get; }
 
         public bool Equals(Generics<T0, T1> other)
         {
@@ -40,7 +42,8 @@ namespace CompoundTestClasses
             IComparable<IntValue>,
             IDouble<IntValue>
     {
-        [Key(0)] public int Value;
+        [Key(0)] 
+        public int Value;
 
         public bool Equals(IntValue other) => Value == other.Value;
 
@@ -53,7 +56,7 @@ namespace CompoundTestClasses
         public override int GetHashCode() => Value;
     }
 
-    [MessagePackObject]
+    [MessagePackObject(true)]
     [GenericArgument(typeof(int), typeof(int))]
     [GenericArgument(typeof(ulong), typeof(ulong))]
     public class Generics1<T0, T1> : IEquatable<Generics1<T0, T1>>
@@ -63,14 +66,14 @@ namespace CompoundTestClasses
         private T0 halfA;
         private T1 halfB;
 
-        [Key(0)]
+        //[Key(0)]
         public T0 A
         {
             get => halfA.Double();
             set => halfA = value.Half();
         }
 
-        [Key(1)]
+        //[Key(1)]
         public T1 B
         {
             get => halfB.Double();
@@ -87,4 +90,4 @@ namespace CompoundTestClasses
 
         public override int GetHashCode() => halfA.GetHashCode() ^ halfB.GetHashCode();
     }
-}*/
+}

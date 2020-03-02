@@ -7,7 +7,6 @@ using Mono.Cecil.Rocks;
 using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Provider;
 using System;
-using Mono.Collections.Generic;
 
 namespace MSPack.Processor.Core.Formatter
 {
@@ -15,11 +14,13 @@ namespace MSPack.Processor.Core.Formatter
     {
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
+        private readonly ModuleImporter importer;
 
-        public GenericClassIntKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider)
+        public GenericClassIntKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, ModuleImporter importer)
         {
             this.module = module;
             this.provider = provider;
+            this.importer = importer;
         }
 
         /// <summary>
@@ -29,8 +30,7 @@ namespace MSPack.Processor.Core.Formatter
         /// <param name="formatter">formatter type. Must be empty.</param>
         public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
         {
-            GenerateGenericParameters(formatter, info.Definition.GenericParameters);
-            var targetGenericInstanceType = GenerateGenericInstanceSerializeType(info.Definition, formatter.GenericParameters);
+            var targetGenericInstanceType = GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer);
 
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(targetGenericInstanceType);
@@ -46,94 +46,6 @@ namespace MSPack.Processor.Core.Formatter
             var deserialize = GenerateDeserialize(in info, shouldCallback, targetGenericInstanceType);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
-        }
-
-        private GenericInstanceType GenerateGenericInstanceSerializeType(TypeDefinition infoDefinition, Collection<GenericParameter> formatterGenericParameters)
-        {
-            var answer = new GenericInstanceType(provider.Importer.Import(infoDefinition));
-            foreach (var parameter in formatterGenericParameters)
-            {
-                answer.GenericArguments.Add(parameter);
-            }
-
-            return answer;
-        }
-
-        private void GenerateGenericParameters(TypeDefinition formatter, Collection<GenericParameter> genericParameters)
-        {
-            FirstAddGenericParameters(formatter, genericParameters);
-
-            var formatterGenericParameters = formatter.GenericParameters;
-            for (var index = 0; index < formatterGenericParameters.Count; index++)
-            {
-                var formatterGenericParameter = formatterGenericParameters[index];
-                var baseGenericParameter = genericParameters[index];
-                TransplantCustomAttributes(formatterGenericParameter, baseGenericParameter);
-                TransplantConstraints(formatterGenericParameter, formatterGenericParameters, baseGenericParameter);
-            }
-        }
-
-        private void TransplantConstraints(GenericParameter formatterGenericParameter, Collection<GenericParameter> formatterGenericParameters, GenericParameter baseGenericParameter)
-        {
-            for (var index = 0; index < baseGenericParameter.Constraints.Count; index++)
-            {
-                var baseConstraint = baseGenericParameter.Constraints[index];
-                var baseConstraintType = baseConstraint.ConstraintType;
-                if (baseConstraintType is GenericInstanceType genericInstanceType)
-                {
-                    var transplanted = Transplant(genericInstanceType, formatterGenericParameters);
-                    formatterGenericParameter.Constraints.Add(new GenericParameterConstraint(transplanted));
-                }
-                else
-                {
-                    formatterGenericParameter.Constraints.Add(new GenericParameterConstraint(provider.Importer.Import(baseConstraintType)));
-                }
-            }
-        }
-
-        private GenericInstanceType Transplant(GenericInstanceType genericInstanceType, Collection<GenericParameter> formatterGenericParameters)
-        {
-            var element = provider.Importer.Import(genericInstanceType.ElementType);
-            var answer = new GenericInstanceType(element);
-            foreach (var argument in genericInstanceType.GenericArguments)
-            {
-                if (argument is GenericInstanceType genericInstanceArgument)
-                {
-                    answer.GenericArguments.Add(Transplant(genericInstanceArgument, formatterGenericParameters));
-                }
-                else if (argument is GenericParameter genericParameter)
-                {
-                    answer.GenericArguments.Add(formatterGenericParameters[genericParameter.Position]);
-                }
-                else
-                {
-                    answer.GenericArguments.Add(provider.Importer.Import(argument));
-                }
-            }
-
-            return answer;
-        }
-
-        private void TransplantCustomAttributes(GenericParameter formatterGenericParameter, GenericParameter baseGenericParameter)
-        {
-            for (var index = 0; index < baseGenericParameter.CustomAttributes.Count; index++)
-            {
-                var baseAttribute = baseGenericParameter.CustomAttributes[index];
-                var transplant = new CustomAttribute(provider.Importer.Import(baseAttribute.Constructor), baseAttribute.GetBlob());
-                formatterGenericParameter.CustomAttributes.Add(transplant);
-            }
-        }
-
-        private static void FirstAddGenericParameters(TypeDefinition formatter, Collection<GenericParameter> genericParameters)
-        {
-            foreach (var parameter in genericParameters)
-            {
-                var cloneParameter = new GenericParameter(parameter.Name + "Emulate", formatter)
-                {
-                    Attributes = parameter.Attributes,
-                };
-                formatter.GenericParameters.Add(cloneParameter);
-            }
         }
 
         #region Serialize
@@ -191,7 +103,7 @@ namespace MSPack.Processor.Core.Formatter
                         SerializeField(field, processor, provider.MessagePackWriterHelper, ref resolverCalled, targetGenericInstanceType);
                         break;
                     case IndexerAccessResult.Property:
-                        var propertyReference = GenericsUtility.Transplant(property.Definition.GetMethod, targetGenericInstanceType, provider.Importer);
+                        var propertyReference = GenericsUtility.Transplant(property.Definition.GetMethod, targetGenericInstanceType, importer);
                         SerializeProperty(property, processor, provider.MessagePackWriterHelper, propertyReference, ref resolverCalled, targetGenericInstanceType);
                         break;
                     default:
@@ -213,7 +125,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (!(info.BackingFieldReference is null))
             {
-                SerializePropertyBackingField(info, processor, writeHelper, ref resolverCalled, GenericsUtility.Transplant(info.BackingFieldReference, targetGenericInstanceType, provider.Importer));
+                SerializePropertyBackingField(info, processor, writeHelper, ref resolverCalled, GenericsUtility.Transplant(info.BackingFieldReference, targetGenericInstanceType, importer));
             }
             else if (info.IsReadable)
             {
@@ -233,7 +145,7 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(info.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, transplantedPropertyReference));
-                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(provider.Importer.Import(info.Definition.PropertyType))));
+                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(importer.Import(info.Definition.PropertyType))));
             }
             else
             {
@@ -264,7 +176,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private void SerializePropertyBackingField(in PropertySerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, ref bool resolverCalled, FieldReference propertyBackingFieldReference)
         {
-            var fieldTypeReference = provider.Importer.Import(propertyBackingFieldReference.FieldType);
+            var fieldTypeReference = importer.Import(propertyBackingFieldReference.FieldType);
             if (info.IsMessagePackPrimitive)
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
@@ -296,7 +208,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private void SerializeField(in FieldSerializationInfo info, ILProcessor processor, MessagePackWriterHelper writeHelper, ref bool resolverCalled, GenericInstanceType targetGenericInstanceType)
         {
-            var fieldReference = GenericsUtility.Transplant(info.Definition, targetGenericInstanceType, provider.Importer);
+            var fieldReference = GenericsUtility.Transplant(info.Definition, targetGenericInstanceType, importer);
             var fieldTypeReference = fieldReference.FieldType;
             if (info.IsMessagePackPrimitive)
             {
@@ -378,7 +290,7 @@ namespace MSPack.Processor.Core.Formatter
 
             Assignment(processor, info, targetGenericInstanceType);
 
-            PostProcess(processor, info, shouldCallback);
+            PostProcess(processor, shouldCallback, targetGenericInstanceType);
 
             return deserialize;
         }
@@ -446,11 +358,11 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Stloc_3));
         }
 
-        private void PostProcess(ILProcessor processor, in GenericClassSerializationInfo info, bool shouldCallback)
+        private void PostProcess(ILProcessor processor, bool shouldCallback, GenericInstanceType targetGenericInstanceType)
         {
             if (shouldCallback)
             {
-                CallbackAfterDeserialization(info, processor);
+                CallbackAfterDeserialization(processor, targetGenericInstanceType);
             }
 
             DecrementDepth(processor);
@@ -519,7 +431,7 @@ namespace MSPack.Processor.Core.Formatter
                 return DeserializePropertyNotPrimitiveSetter(property, targetGenericInstanceType);
             }
 
-            var backing = GenericsUtility.Transplant(property.BackingFieldReference, targetGenericInstanceType, provider.Importer);
+            var backing = GenericsUtility.Transplant(property.BackingFieldReference, targetGenericInstanceType, importer);
             return DeserializePropertyNotPrimitiveBackingField(backing);
         }
 
@@ -542,7 +454,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private Instruction[] DeserializePropertyNotPrimitiveSetter(in PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType)
         {
-            var setMethod = GenericsUtility.Transplant(property.Definition.SetMethod, targetGenericInstanceType, provider.Importer);
+            var setMethod = GenericsUtility.Transplant(property.Definition.SetMethod, targetGenericInstanceType, importer);
             var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(setMethod.Parameters[0].ParameterType);
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(setMethod.Parameters[0].ParameterType);
             var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
@@ -570,12 +482,12 @@ namespace MSPack.Processor.Core.Formatter
                 return DeserializePropertyPrimitiveSetter(property, targetGenericInstanceType);
             }
 
-            return DeserializePropertyPrimitiveBackingField(GenericsUtility.Transplant(property.BackingFieldReference, targetGenericInstanceType, provider.Importer));
+            return DeserializePropertyPrimitiveBackingField(GenericsUtility.Transplant(property.BackingFieldReference, targetGenericInstanceType, importer));
         }
 
         private Instruction[] DeserializePropertyPrimitiveSetter(in PropertySerializationInfo property, GenericInstanceType targetGenericInstanceType)
         {
-            var setMethod = GenericsUtility.Transplant(property.Definition.SetMethod, targetGenericInstanceType, provider.Importer);
+            var setMethod = GenericsUtility.Transplant(property.Definition.SetMethod, targetGenericInstanceType, importer);
             return new[]
             {
                 Instruction.Create(OpCodes.Ldloc_2),
@@ -598,12 +510,12 @@ namespace MSPack.Processor.Core.Formatter
 
         private Instruction[] DeserializeField(in FieldSerializationInfo field, GenericInstanceType targetGenericInstanceType)
         {
-            var storeFieldReference = GenericsUtility.Transplant(field.Definition, targetGenericInstanceType, provider.Importer);
+            var storeFieldReference = GenericsUtility.Transplant(field.Definition, targetGenericInstanceType, importer);
             if (field.IsMessagePackPrimitive)
             {
                 return DeserializeFieldPrimitive(storeFieldReference);
             }
-            
+
             return DeserializeFieldNotPrimitive(storeFieldReference);
         }
 
@@ -650,13 +562,15 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Callvirt, provider.MessagePackSecurityHelper.DepthStep));
         }
 
-        private void CallbackAfterDeserialization(in GenericClassSerializationInfo info, ILProcessor processor)
+        private void CallbackAfterDeserialization(ILProcessor processor, GenericInstanceType targetGenericInstanceType)
         {
-            if (!CallbackTestUtility.NoOperationInAfterDeserializationCallback(info.Definition, out var callback))
+            var onAfterDeserialize = new MethodReference("OnAfterDeserialize", module.TypeSystem.Void, targetGenericInstanceType)
             {
-                processor.Append(Instruction.Create(OpCodes.Ldloc_2));
-                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
-            }
+                HasThis = true,
+            };
+            processor.Append(Instruction.Create(OpCodes.Ldloc_2));
+            processor.Append(Instruction.Create(OpCodes.Constrained, targetGenericInstanceType));
+            processor.Append(Instruction.Create(OpCodes.Callvirt, GenericsUtility.Transplant(onAfterDeserialize, targetGenericInstanceType, importer)));
         }
 
         private void DecrementDepth(ILProcessor processor)
