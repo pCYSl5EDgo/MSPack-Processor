@@ -29,6 +29,24 @@ namespace MSPack.Processor.CLI
             [Option("m", "Force use map mode serialization.")]bool useMapMode = false,
             [Option("load-factor", "Specific setting of dictionary load factor")]double loadFactor = 0.75)
         {
+            var (libraryPaths, definitionPaths) = ValidateArguments(input, libraryFiles, definitionFiles);
+
+            var reportHook = new NopReportHook();
+            using (var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook))
+            {
+                codeGenerator
+                    .Generate(
+                        input,
+                        resolverName,
+                        libraryPaths,
+                        definitionPaths,
+                        useMapMode,
+                        loadFactor);
+            }
+        }
+
+        private static (string[] libraryPaths, string[] definitionPaths) ValidateArguments(string input, string libraryFiles, string definitionFiles)
+        {
             if (!File.Exists(input))
             {
                 throw new FileNotFoundException("Input dll not found. path : " + input);
@@ -51,19 +69,7 @@ namespace MSPack.Processor.CLI
                     throw new FileNotFoundException("Definition dll not found. path : " + path);
                 }
             }
-
-            var reportHook = new NopReportHook();
-            using (var codeGenerator = new CodeGenerator(Console.WriteLine, reportHook))
-            {
-                codeGenerator
-                    .Generate(
-                        input,
-                        resolverName,
-                        libraryPaths,
-                        definitionPaths,
-                        useMapMode,
-                        loadFactor);
-            }
+            return (libraryPaths, definitionPaths);
         }
 
         private static string[] Split(string paths)
