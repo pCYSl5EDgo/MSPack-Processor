@@ -110,7 +110,7 @@ namespace MSPack.Processor.Core
             FormatterInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
-                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions, provider.Importer);
+                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions);
             }
 
             var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
@@ -134,7 +134,7 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private FormatterInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules, ModuleImporter importer)
+        private static FormatterInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules)
         {
             var answer = new List<FormatterInfo>();
             var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor);
@@ -149,7 +149,7 @@ namespace MSPack.Processor.Core
                     {
                         if (formatterInfo.FormatterType is TypeDefinition formatterTypeDefinition)
                         {
-                            var calculateGenericInstanceVariation = CalculateGenericInstanceVariation(in formatterInfo, modules, formatterTypeDefinition, serializeTypeDefinition, importer);
+                            var calculateGenericInstanceVariation = CalculateGenericInstanceVariation(in formatterInfo, modules, formatterTypeDefinition, serializeTypeDefinition);
                             answer.AddRange(calculateGenericInstanceVariation);
                         }
                     }
@@ -166,7 +166,7 @@ namespace MSPack.Processor.Core
             return answer.ToArray();
         }
 
-        private static List<FormatterInfo> CalculateGenericInstanceVariation(in FormatterInfo formatterInfo, ModuleDefinition[] modules, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, ModuleImporter importer)
+        private static List<FormatterInfo> CalculateGenericInstanceVariation(in FormatterInfo formatterInfo, ModuleDefinition[] modules, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition)
         {
             var list = new List<FormatterInfo>();
 
@@ -175,7 +175,7 @@ namespace MSPack.Processor.Core
                 foreach (var attribute in module.CustomAttributes)
                 {
                     var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
-                    if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, importer, out var genericFormatterInfo))
+                    if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
                     {
                         list.Add(genericFormatterInfo);
                     }
@@ -185,7 +185,7 @@ namespace MSPack.Processor.Core
             foreach (var attribute in serializeTypeDefinition.CustomAttributes)
             {
                 var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
-                if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, importer, out var genericFormatterInfo))
+                if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
                 {
                     list.Add(genericFormatterInfo);
                 }
@@ -194,7 +194,7 @@ namespace MSPack.Processor.Core
             return list;
         }
 
-        private static bool TryCalculateGenericFormatterInfo(FormatterInfo formatterInfo, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, CustomAttribute attribute, string attributeName, ModuleImporter importer, out FormatterInfo genericFormatterInfo)
+        private static bool TryCalculateGenericFormatterInfo(FormatterInfo formatterInfo, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, CustomAttribute attribute, string attributeName, out FormatterInfo genericFormatterInfo)
         {
             genericFormatterInfo = default;
             if (attribute.AttributeType.FullName != attributeName)
@@ -269,7 +269,7 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private CollectedInfo[] CollectInfo(bool useMapMode, ModuleDefinition[] modules)
+        private static CollectedInfo[] CollectInfo(bool useMapMode, ModuleDefinition[] modules)
         {
             if (modules.Length == 0)
             {
