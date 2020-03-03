@@ -117,7 +117,8 @@ namespace MSPack.Processor.Core.Formatter
 
         public static FieldReference Transplant(FieldReference reference, GenericInstanceType targetType, ModuleImporter importer)
         {
-            return new FieldReference(reference.Name, importer.Import(reference.FieldType), targetType);
+            var transplant = new FieldReference(reference.Name, importer.Import(reference.FieldType), targetType);
+            return transplant;
         }
     }
 }
