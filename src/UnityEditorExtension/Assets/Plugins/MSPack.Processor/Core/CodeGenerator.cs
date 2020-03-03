@@ -6,6 +6,7 @@ using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Provider;
 using MSPack.Processor.Core.Report;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -67,7 +68,7 @@ namespace MSPack.Processor.Core
             using (new Watcher(sw, logger, "Module Reading"))
             {
                 moduleDefinitions[0] = inputModule = ModuleDefinition.ReadModule(inputPath, readerParam);
-                
+
                 logger("log inputModule\nassembly : " + inputModule.Assembly.FullName + "\nfile : " + inputModule.FileName);
 
                 var resolverFinder = new FormatterResolverFinder();
@@ -109,14 +110,7 @@ namespace MSPack.Processor.Core
             FormatterInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
-                var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor, logger);
-                formatterInfos = generator.Generate(collectedInfos);
-                var oldLength = formatterInfos.Length;
-                logger("old formatter length : " + oldLength);
-                var enumGenerator = new EnumFormatterGenerator(resolverTypeDefinition, provider);
-                var enumFormatterInfos = enumGenerator.Generate(enumSerializationInfos);
-                logger("enum formatter length : " + enumFormatterInfos.Length);
-                formatterInfos = formatterInfos.Concat(enumFormatterInfos).ToArray();
+                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions, provider.Importer);
             }
 
             var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
@@ -140,6 +134,100 @@ namespace MSPack.Processor.Core
             }
         }
 
+        private FormatterInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules, ModuleImporter importer)
+        {
+            var answer = new List<FormatterInfo>();
+            var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor);
+            var formatterInfos = generator.Generate(collectedInfos);
+
+            for (var index = 0; index < formatterInfos.Length; index++)
+            {
+                ref readonly var formatterInfo = ref formatterInfos[index];
+                if (formatterInfo.SerializeTypeReference.HasGenericParameters)
+                {
+                    if (formatterInfo.SerializeTypeReference is TypeDefinition serializeTypeDefinition)
+                    {
+                        if (formatterInfo.FormatterType is TypeDefinition formatterTypeDefinition)
+                        {
+                            var calculateGenericInstanceVariation = CalculateGenericInstanceVariation(in formatterInfo, modules, formatterTypeDefinition, serializeTypeDefinition, importer);
+                            answer.AddRange(calculateGenericInstanceVariation);
+                        }
+                    }
+                }
+                else
+                {
+                    answer.Add(formatterInfo);
+                }
+            }
+
+            var enumGenerator = new EnumFormatterGenerator(resolverTypeDefinition, provider);
+            var enumFormatterInfos = enumGenerator.Generate(enumSerializationInfos);
+            answer.AddRange(enumFormatterInfos);
+            return answer.ToArray();
+        }
+
+        private static List<FormatterInfo> CalculateGenericInstanceVariation(in FormatterInfo formatterInfo, ModuleDefinition[] modules, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, ModuleImporter importer)
+        {
+            var list = new List<FormatterInfo>();
+
+            foreach (var module in modules)
+            {
+                foreach (var attribute in module.CustomAttributes)
+                {
+                    var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
+                    if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, importer, out var genericFormatterInfo))
+                    {
+                        list.Add(genericFormatterInfo);
+                    }
+                }
+            }
+
+            foreach (var attribute in serializeTypeDefinition.CustomAttributes)
+            {
+                var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
+                if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, importer, out var genericFormatterInfo))
+                {
+                    list.Add(genericFormatterInfo);
+                }
+            }
+
+            return list;
+        }
+
+        private static bool TryCalculateGenericFormatterInfo(FormatterInfo formatterInfo, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, CustomAttribute attribute, string attributeName, ModuleImporter importer, out FormatterInfo genericFormatterInfo)
+        {
+            genericFormatterInfo = default;
+            if (attribute.AttributeType.FullName != attributeName)
+            {
+                return false;
+            }
+
+            if (!(attribute.ConstructorArguments[0].Value is GenericInstanceType serializeTarget))
+            {
+                return false;
+            }
+
+            if (serializeTarget.ElementType.FullName != serializeTypeDefinition.FullName)
+            {
+                return false;
+            }
+
+            var serializeTargetGenericArguments = serializeTarget.GenericArguments;
+            if (formatterTypeDefinition.GenericParameters.Count != serializeTargetGenericArguments.Count)
+            {
+                return false;
+            }
+
+            var genericFormatter = new GenericInstanceType(formatterTypeDefinition);
+            foreach (var genericArgument in serializeTargetGenericArguments)
+            {
+                genericFormatter.GenericArguments.Add(genericArgument);
+            }
+
+            genericFormatterInfo = new FormatterInfo(serializeTarget, genericFormatter, formatterInfo.FormatterConstructorArguments);
+            return true;
+        }
+
         private static void EnsureInternalAccessibility(ModuleDefinition targetModule, CollectedInfo[] collectedInfos, SystemObjectHelper systemObjectHelper)
         {
             var ignoresAccessChecksToAttributeGenerator = new IgnoresAccessChecksToAttributeGenerator(targetModule, systemObjectHelper);
@@ -149,7 +237,7 @@ namespace MSPack.Processor.Core
                 ref readonly var collectedInfo = ref collectedInfos[i];
                 if (collectedInfo.PublicAccessible)
                 {
-                    continue;
+                    // continue;
                 }
 
                 ignoresAccessChecksToAttributeGenerator.EnsureAccess(collectedInfo.Module.Assembly.Name);
@@ -191,7 +279,7 @@ namespace MSPack.Processor.Core
             var collectors = new TypeCollector[modules.Length];
             for (var i = 0; i < modules.Length; i++)
             {
-                collectors[i] = new TypeCollector(modules[i], useMapMode, logger);
+                collectors[i] = new TypeCollector(modules[i], useMapMode);
             }
 
             var answers = new CollectedInfo[modules.Length];

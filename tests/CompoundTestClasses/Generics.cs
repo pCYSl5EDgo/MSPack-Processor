@@ -8,8 +8,8 @@ using MSPack.Processor.Annotation;
 namespace CompoundTestClasses
 {
     [MessagePackObject(true)]
-    [GenericArgument(typeof(int), typeof(int))]
-    [GenericArgument(typeof(ulong), typeof(ulong))]
+    [GenericArgument(typeof(Generics<int, int>))]
+    [GenericArgument(typeof(Generics<long, long>))]
     public class Generics<T0, T1> : IEquatable<Generics<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
@@ -42,7 +42,7 @@ namespace CompoundTestClasses
             IComparable<IntValue>,
             IDouble<IntValue>
     {
-        [Key(0)] 
+        [Key(0)]
         public int Value;
 
         public bool Equals(IntValue other) => Value == other.Value;
@@ -57,8 +57,7 @@ namespace CompoundTestClasses
     }
 
     [MessagePackObject(true)]
-    [GenericArgument(typeof(int), typeof(int))]
-    [GenericArgument(typeof(ulong), typeof(ulong))]
+    [GenericArgument(typeof(Generics1<IntValue, IntValue>))]
     public class Generics1<T0, T1> : IEquatable<Generics1<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>, IDouble<T0>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>, IDouble<T1>

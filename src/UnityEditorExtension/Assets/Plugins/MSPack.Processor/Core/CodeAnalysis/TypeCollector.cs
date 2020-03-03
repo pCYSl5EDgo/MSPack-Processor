@@ -14,7 +14,6 @@ namespace MSPack.Processor.Core
     {
         private readonly ModuleDefinition module;
         private readonly bool useMapMode;
-        private readonly Action<string> logger;
         private readonly List<TypeDefinition> unionInterfaceDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> unionClassDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> classDefinitions = new List<TypeDefinition>();
@@ -24,16 +23,14 @@ namespace MSPack.Processor.Core
         private readonly List<TypeDefinition> genericClassDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> genericStructDefinitions = new List<TypeDefinition>();
 
-        public TypeCollector(ModuleDefinition module, bool useMapMode, Action<string> logger)
+        public TypeCollector(ModuleDefinition module, bool useMapMode)
         {
             this.module = module;
             this.useMapMode = useMapMode;
-            this.logger = logger;
             foreach (var typeDefinition in module.Types)
             {
                 Visit(typeDefinition);
             }
-            logger(module.Name + " : class = " + classDefinitions.Count + ", struct = " + structDefinitions.Count);
         }
 
         #region Visit
@@ -48,7 +45,6 @@ namespace MSPack.Processor.Core
             {
                 return;
             }
-            logger("visit : " + type.FullName);
             var customAttributes = type.CustomAttributes;
             if (type.IsInterface)
             {
@@ -137,11 +133,6 @@ namespace MSPack.Processor.Core
         {
             if (!customAttributes.Any(CustomAttributeHelper.IsMessagePackObjectAttribute))
             {
-                logger("no messagepack obj : " + type.FullName);
-                foreach (var attribute in type.CustomAttributes)
-                {
-                    logger(attribute.AttributeType.Name + " : " + attribute.AttributeType.Scope.Name);
-                }
                 return;
             }
 

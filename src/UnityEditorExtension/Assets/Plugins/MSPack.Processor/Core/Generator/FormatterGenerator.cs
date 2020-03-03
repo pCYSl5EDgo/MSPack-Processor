@@ -15,11 +15,8 @@ namespace MSPack.Processor.Core
         private readonly TypeDefinition resolver;
         private readonly IFormatterImplementor implementor;
 
-        private readonly Action<string> logger;
-
-        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor, Action<string> logger)
+        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor)
         {
-            this.logger = logger;
             this.resolver = resolver;
             implementor = new ImplementorFacade(provider, loadFactor);
         }
@@ -32,7 +29,6 @@ namespace MSPack.Processor.Core
             for (var index = 0; index < infos.Length; index++)
             {
                 ref readonly var collectedInfo = ref infos[index];
-                logger(collectedInfo.ToString());
                 answer += Count(collectedInfo);
             }
 
@@ -52,18 +48,14 @@ namespace MSPack.Processor.Core
         {
             if (collectedReadOnlySpan.Length == 0)
             {
-                logger(nameof(FormatterGenerator) + " -> 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
 
             var count = Count(collectedReadOnlySpan);
             if (count == 0)
             {
-                logger(nameof(FormatterGenerator) + " -> total 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
-
-            logger(nameof(FormatterGenerator) + " -> answer length : " + count);
 
             var answer = new FormatterInfo[count];
             var index = 0;
