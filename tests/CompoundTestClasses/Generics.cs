@@ -7,16 +7,23 @@ using MSPack.Processor.Annotation;
 
 namespace CompoundTestClasses
 {
-    [MessagePackObject(true)]
+    [MessagePackObject(false)]
     [GenericArgument(typeof(Generics<int, int>))]
     [GenericArgument(typeof(Generics<long, long>))]
     public class Generics<T0, T1> : IEquatable<Generics<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
-        //[Key(0)] 
+        public Generics() { }
+        public Generics(T0 a, T1 b)
+        {
+            A = a;
+            B = b;
+        }
+
+        [Key(0)] 
         public T0 A { get; }
-        //[Key(1)] 
+        [Key(1)] 
         public T1 B { get; }
 
         public bool Equals(Generics<T0, T1> other)
@@ -56,7 +63,7 @@ namespace CompoundTestClasses
         public override int GetHashCode() => Value;
     }
 
-    [MessagePackObject(true)]
+    [MessagePackObject(false)]
     [GenericArgument(typeof(Generics1<IntValue, IntValue>))]
     public class Generics1<T0, T1> : IEquatable<Generics1<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>, IDouble<T0>
@@ -65,14 +72,14 @@ namespace CompoundTestClasses
         private T0 halfA;
         private T1 halfB;
 
-        //[Key(0)]
+        [Key(0)]
         public T0 A
         {
             get => halfA.Double();
             set => halfA = value.Half();
         }
 
-        //[Key(1)]
+        [Key(1)]
         public T1 B
         {
             get => halfB.Double();
