@@ -33,7 +33,8 @@ namespace MSPack.Processor.Core.Formatter
         /// <param name="formatter">formatter type. Must be empty.</param>
         public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
         {
-            var targetGenericInstanceType = GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer);
+            formatter.IsBeforeFieldInit = false;
+            GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out var genericInstanceFormatter, out var targetGenericInstanceType);
 
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(targetGenericInstanceType);
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
@@ -42,7 +43,9 @@ namespace MSPack.Processor.Core.Formatter
             FieldDefinition keyMapping = new FieldDefinition(nameof(keyMapping), FieldAttributes.Private | FieldAttributes.InitOnly, provider.AutomataDictionaryHelper.AutomataDictionary);
             formatter.Fields.Add(keyMapping);
 
-            var constructor = GenerateConstructor(in info, keyMapping, targetGenericInstanceType);
+            var keyMappingGeneric = new FieldReference(keyMapping.Name, keyMapping.FieldType, genericInstanceFormatter);
+
+            var constructor = GenerateConstructor(in info, keyMappingGeneric);
             formatter.Methods.Add(constructor);
 
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
@@ -51,36 +54,44 @@ namespace MSPack.Processor.Core.Formatter
             serialize.Body.Optimize();
             formatter.Methods.Add(serialize);
 
-            var deserialize = GenerateDeserialize(in info, shouldCallback, keyMapping, targetGenericInstanceType);
+            var deserialize = GenerateDeserialize(in info, shouldCallback, keyMappingGeneric, targetGenericInstanceType);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
         }
 
-        private MethodDefinition GenerateConstructor(in GenericClassSerializationInfo info, FieldDefinition keyMapping, GenericInstanceType targetGenericInstanceType)
+        private MethodDefinition GenerateConstructor(in GenericClassSerializationInfo info, FieldReference keyMappingGeneric)
         {
-            var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
-            var last = constructor.Body.Instructions[constructor.Body.Instructions.Count - 1];
+            var constructor = new MethodDefinition(
+                ".ctor",
+                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                module.TypeSystem.Void)
+            {
+                HasThis = true,
+            };
             var processor = constructor.Body.GetILProcessor();
 
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Newobj, provider.AutomataDictionaryHelper.Ctor));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            processor.Append(Instruction.Create(OpCodes.Dup));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemObjectHelper.Ctor));
+            processor.Append(Instruction.Create(OpCodes.Newobj, provider.AutomataDictionaryHelper.Ctor));
 
             var index = 0;
             foreach (var (key, _) in info.EnumerateStringKeyValuePairs())
             {
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Dup));
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Ldstr, string.Intern(key)));
-                processor.InsertBefore(last, InstructionUtility.LdcI4(index++));
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.Add));
+                processor.Append(Instruction.Create(OpCodes.Dup));
+                processor.Append(Instruction.Create(OpCodes.Ldstr, string.Intern(key)));
+                processor.Append(InstructionUtility.LdcI4(index++));
+                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.Add));
             }
 
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Stfld, GenericsUtility.Transplant(keyMapping, targetGenericInstanceType, importer)));
+            processor.Append(Instruction.Create(OpCodes.Stfld, keyMappingGeneric));
+            processor.Append(Instruction.Create(OpCodes.Ret));
 
             return constructor;
         }
 
         #region Deserialize
-        private MethodDefinition GenerateDeserialize(in GenericClassSerializationInfo info, in bool shouldCallback, FieldDefinition keyMapping, GenericInstanceType targetGenericInstanceType)
+        private MethodDefinition GenerateDeserialize(in GenericClassSerializationInfo info, in bool shouldCallback, FieldReference keyMappingGeneric, GenericInstanceType targetGenericInstanceType)
         {
             var targetCtor = new MethodReference(".ctor", module.TypeSystem.Void, targetGenericInstanceType)
             {
@@ -124,20 +135,20 @@ namespace MSPack.Processor.Core.Formatter
             LoadResolver(processor);
             InitializeObject(processor, targetCtor);
 
-            Assignment(processor, in info, keyMapping, targetGenericInstanceType);
+            Assignment(processor, in info, keyMappingGeneric, targetGenericInstanceType);
 
             PostProcess(processor, shouldCallback, targetGenericInstanceType);
 
             return deserialize;
         }
 
-        private void Assignment(ILProcessor processor, in GenericClassSerializationInfo info, FieldDefinition keyMapping, GenericInstanceType targetGenericInstanceType)
+        private void Assignment(ILProcessor processor, in GenericClassSerializationInfo info, FieldReference keyMappingGeneric, GenericInstanceType targetGenericInstanceType)
         {
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
             var loopStart = Instruction.Create(OpCodes.Ldarg_0);
             processor.Append(loopStart);
-            processor.Append(Instruction.Create(OpCodes.Ldfld, GenericsUtility.Transplant(keyMapping, targetGenericInstanceType, importer)));
+            processor.Append(Instruction.Create(OpCodes.Ldfld, keyMappingGeneric));
             processor.Append(Instruction.Create(OpCodes.Ldarg_1));
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
             processor.Append(Instruction.Create(OpCodes.Ldloca_S, processor.Body.Variables[4]));

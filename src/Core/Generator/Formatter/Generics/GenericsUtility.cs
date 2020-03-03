@@ -8,12 +8,20 @@ namespace MSPack.Processor.Core.Formatter
 {
     public static class GenericsUtility
     {
-        public static GenericInstanceType TransplantGenericParameters(TypeDefinition targetType, TypeDefinition baseTypeDefinition, ModuleImporter importer)
+        /// <summary>
+        /// Transplants generic parameters from serialize target type to formatter type.
+        /// </summary>
+        /// <param name="formatterTypeDefinition">Destination formatter type.</param>
+        /// <param name="serializeTargetTypeDefinition">Source serializable type.</param>
+        /// <param name="importer">Module importer.</param>
+        /// <param name="genericInstanceFormatter">Generic instance of formatter type.</param>
+        /// <param name="genericInstanceSerializeTarget">Generic instance of serializable type.</param>
+        public static void TransplantGenericParameters(TypeDefinition formatterTypeDefinition, TypeDefinition serializeTargetTypeDefinition, ModuleImporter importer, out GenericInstanceType genericInstanceFormatter, out GenericInstanceType genericInstanceSerializeTarget)
         {
-            var baseGenericParameters = baseTypeDefinition.GenericParameters;
-            FirstAddGenericParameters(targetType, baseGenericParameters);
+            var baseGenericParameters = serializeTargetTypeDefinition.GenericParameters;
+            FirstAddGenericParameters(formatterTypeDefinition, baseGenericParameters);
 
-            var targetTypeGenericParameters = targetType.GenericParameters;
+            var targetTypeGenericParameters = formatterTypeDefinition.GenericParameters;
             for (var index = 0; index < targetTypeGenericParameters.Count; index++)
             {
                 var formatterGenericParameter = targetTypeGenericParameters[index];
@@ -22,13 +30,13 @@ namespace MSPack.Processor.Core.Formatter
                 TransplantConstraints(formatterGenericParameter, targetTypeGenericParameters, baseGenericParameter, importer);
             }
 
-            var answer = new GenericInstanceType(importer.Import(baseTypeDefinition));
-            foreach (var parameter in targetTypeGenericParameters)
+            genericInstanceFormatter = new GenericInstanceType(formatterTypeDefinition);
+            genericInstanceSerializeTarget = new GenericInstanceType(importer.Import(serializeTargetTypeDefinition));
+            foreach (var parameter in formatterTypeDefinition.GenericParameters)
             {
-                answer.GenericArguments.Add(parameter);
+                genericInstanceFormatter.GenericArguments.Add(parameter);
+                genericInstanceSerializeTarget.GenericArguments.Add(parameter);
             }
-
-            return answer;
         }
 
         private static void TransplantConstraints(GenericParameter formatterGenericParameter, Collection<GenericParameter> formatterGenericParameters, GenericParameter baseGenericParameter, ModuleImporter importer)
@@ -117,7 +125,9 @@ namespace MSPack.Processor.Core.Formatter
 
         public static FieldReference Transplant(FieldReference reference, GenericInstanceType targetType, ModuleImporter importer)
         {
-            var transplant = new FieldReference(reference.Name, importer.Import(reference.FieldType), targetType);
+            var importedFieldType = importer.Import(reference.FieldType);
+            var importedDeclaringType = importer.Import(targetType);
+            var transplant = new FieldReference(reference.Name, importedFieldType, importedDeclaringType);
             return transplant;
         }
     }

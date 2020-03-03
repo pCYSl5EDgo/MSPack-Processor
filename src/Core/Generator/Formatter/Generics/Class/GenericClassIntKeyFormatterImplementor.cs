@@ -30,7 +30,7 @@ namespace MSPack.Processor.Core.Formatter
         /// <param name="formatter">formatter type. Must be empty.</param>
         public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
         {
-            var targetGenericInstanceType = GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer);
+            GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out _, out var targetGenericInstanceType);
 
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(targetGenericInstanceType);
