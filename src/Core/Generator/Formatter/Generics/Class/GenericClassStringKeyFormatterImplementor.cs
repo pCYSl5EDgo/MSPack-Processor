@@ -200,7 +200,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in GenericClassSerializationInfo info, GenericInstanceType targetGenericInstanceType)
         {
-            var answers = new Instruction[info.KeyCount][];
+            var answers = new Instruction[info.Count][];
             var @default = new[]
             {
                 Instruction.Create(OpCodes.Ldarg_1),
@@ -613,7 +613,7 @@ namespace MSPack.Processor.Core.Formatter
         private void WriteMapHeader(ILProcessor processor, in GenericClassSerializationInfo info, Instruction notNullWriteMapHeader)
         {
             processor.Append(notNullWriteMapHeader);
-            processor.Append(InstructionUtility.LdcI4(info.KeyCount));
+            processor.Append(InstructionUtility.LdcI4(info.Count));
             processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMapHeaderInt));
         }
         #endregion

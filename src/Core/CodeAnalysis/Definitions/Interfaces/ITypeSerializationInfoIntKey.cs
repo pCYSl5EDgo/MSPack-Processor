@@ -5,8 +5,6 @@ namespace MSPack.Processor.Core.Definitions
 {
     public interface ITypeSerializationInfoIntKey : ITypeSerializationInfo
     {
-        int KeyCount { get; }
-
         int MaxIntKey { get; }
 
         int MinIntKey { get; }

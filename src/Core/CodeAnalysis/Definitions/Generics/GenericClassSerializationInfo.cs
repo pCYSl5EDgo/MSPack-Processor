@@ -51,7 +51,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsClass => true;
 
-        public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
+        public int Count => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
 

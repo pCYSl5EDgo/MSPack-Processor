@@ -26,5 +26,7 @@ namespace MSPack.Processor.Core.Definitions
         bool AreAllMessagePackPrimitive { get; }
 
         bool PublicAccessible { get; }
+
+        int Count { get; }
     }
 }
