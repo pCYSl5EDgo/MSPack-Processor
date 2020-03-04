@@ -43,6 +43,18 @@ namespace MSPack.Processor.Core.Formatter
         {
             for (var index = 0; index < baseGenericParameter.Constraints.Count; index++)
             {
+#if UNITY_2018_4_OR_NEWER
+                var baseConstraintType = baseGenericParameter.Constraints[index];
+                if (baseConstraintType is GenericInstanceType genericInstanceType)
+                {
+                    var transplanted = TransplantInternal(genericInstanceType, formatterGenericParameters, importer);
+                    formatterGenericParameter.Constraints.Add(transplanted);
+                }
+                else
+                {
+                    formatterGenericParameter.Constraints.Add(importer.Import(baseConstraintType));
+                }
+#else
                 var baseConstraint = baseGenericParameter.Constraints[index];
                 var baseConstraintType = baseConstraint.ConstraintType;
                 if (baseConstraintType is GenericInstanceType genericInstanceType)
@@ -54,6 +66,7 @@ namespace MSPack.Processor.Core.Formatter
                 {
                     formatterGenericParameter.Constraints.Add(new GenericParameterConstraint(importer.Import(baseConstraintType)));
                 }
+#endif
             }
         }
 
