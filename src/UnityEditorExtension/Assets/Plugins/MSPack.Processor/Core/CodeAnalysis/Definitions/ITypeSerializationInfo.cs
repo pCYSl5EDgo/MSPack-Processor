@@ -18,21 +18,9 @@ namespace MSPack.Processor.Core.Definitions
         TypeReference FormatterType { get; }
 #endif
 
-        bool IsIntKey { get; }
-
-        bool IsStringKey { get; }
-
         bool IsClass { get; }
 
-        bool IsStruct { get; }
-
-        int KeyCount { get; }
-
         TypeDefinition Definition { get; }
-
-        int MaxIntKey { get; }
-
-        int MinIntKey { get; }
 
         CustomAttributeArgument[] FormatterConstructorArguments { get; }
 
@@ -43,9 +31,5 @@ namespace MSPack.Processor.Core.Definitions
         bool AreAllMessagePackPrimitive { get; }
 
         bool PublicAccessible { get; }
-
-        FieldOrPropertyInfo this[int key] { get; }
-
-        IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs();
     }
 }

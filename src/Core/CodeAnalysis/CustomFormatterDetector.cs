@@ -8,16 +8,17 @@ namespace MSPack.Processor.Core.Definitions
 {
     public static class CustomFormatterDetector
     {
-        public static void Detect(TypeReference ownerTypeReference, CustomAttribute messagePackFormatterAttribute, out TypeReference customFormatterTypeReference, out CustomAttributeArgument[] customAttributeArguments)
+        public static CustomFormatterTypeInfo Detect(TypeReference ownerTypeReference, CustomAttribute messagePackFormatterAttribute)
         {
             var arguments = messagePackFormatterAttribute.ConstructorArguments;
-
+            TypeReference customFormatterTypeReference;
+            CustomAttributeArgument[] customAttributeArguments;
             switch (arguments.Count)
             {
                 case 1:
                     customFormatterTypeReference = (TypeReference)arguments[0].Value;
                     customAttributeArguments = Array.Empty<CustomAttributeArgument>();
-                    return;
+                    return new CustomFormatterTypeInfo(customFormatterTypeReference, customAttributeArguments);
                 case 2:
                     customFormatterTypeReference = (TypeReference)arguments[0].Value;
                     var argumentObjectArray = (CustomAttributeArgument[])arguments[1].Value;
@@ -27,7 +28,7 @@ namespace MSPack.Processor.Core.Definitions
                         ref var argument = ref argumentObjectArray[index];
                         customAttributeArguments[index] = (CustomAttributeArgument)argument.Value;
                     }
-                    return;
+                    return new CustomFormatterTypeInfo(customFormatterTypeReference, customAttributeArguments);
                 default:
                     throw new MessagePackGeneratorResolveFailedException("MessagePackFormatterAttribute should have 1 or 2 constructor argument(s). type : " + ownerTypeReference.FullName);
             }
