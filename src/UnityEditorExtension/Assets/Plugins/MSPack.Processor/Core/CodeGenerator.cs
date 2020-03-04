@@ -137,7 +137,7 @@ namespace MSPack.Processor.Core
         private static FormatterInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules)
         {
             var answer = new List<FormatterInfo>();
-            var generator = new FormatterGenerator(resolverTypeDefinition, provider, loadFactor);
+            var generator = new FormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, loadFactor);
             var formatterInfos = generator.Generate(collectedInfos);
 
             for (var index = 0; index < formatterInfos.Length; index++)

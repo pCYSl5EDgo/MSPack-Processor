@@ -6,18 +6,10 @@ using MSPack.Processor.Core.Definitions;
 
 namespace MSPack.Processor.Core.Formatter
 {
-    public interface IFormatterImplementor
+    public interface IUnionFormatterImplementor
     {
-        void Implement(in ClassSerializationInfo info, TypeDefinition formatter);
-
-        void Implement(in StructSerializationInfo info, TypeDefinition formatter);
-
         void Implement(in UnionInterfaceSerializationInfo info, TypeDefinition formatter);
 
         void Implement(in UnionClassSerializationInfo info, TypeDefinition formatter);
-
-        void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter);
-        
-        void Implement(in GenericStructSerializationInfo info, TypeDefinition formatter);
     }
 }

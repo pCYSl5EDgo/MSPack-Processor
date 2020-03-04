@@ -10,15 +10,100 @@ using System.Globalization;
 
 namespace MSPack.Processor.Core
 {
-    public sealed class FormatterGenerator
+    public sealed class FormatterBaseTypeDefinitionGenerator
     {
         private readonly TypeDefinition resolver;
-        private readonly IFormatterImplementor implementor;
+        private readonly ModuleDefinition module;
+        private readonly TypeProvider provider;
+        private readonly DataHelper dataHelper;
+        private readonly double loadFactor;
 
-        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor)
+#if CSHARP_8_0_OR_NEWER
+        private IClassFormatterImplementor? classFormatterImplementor;
+        private IStructFormatterImplementor? structFormatterImplementor;
+        private IGenericClassFormatterImplementor? genericClassFormatterImplementor;
+        private IGenericStructFormatterImplementor? genericStructFormatterImplementor;
+        private IUnionFormatterImplementor? unionFormatterImplementor;
+#else
+        private IClassFormatterImplementor classFormatterImplementor;
+        private IStructFormatterImplementor structFormatterImplementor;
+        private IGenericClassFormatterImplementor genericClassFormatterImplementor;
+        private IGenericStructFormatterImplementor genericStructFormatterImplementor;
+        private IUnionFormatterImplementor unionFormatterImplementor;
+#endif
+
+        public FormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor)
         {
             this.resolver = resolver;
-            implementor = new ImplementorFacade(provider, loadFactor);
+            module = resolver.Module;
+            this.provider = provider;
+            this.loadFactor = loadFactor;
+            dataHelper = new DataHelper(module, provider.SystemValueTypeHelper.ValueType);
+        }
+
+        private IClassFormatterImplementor ClassImplementor
+        {
+            get
+            {
+                if (classFormatterImplementor is null)
+                {
+                    classFormatterImplementor = new ClassImplementorFacade(module, provider, dataHelper);
+                }
+
+                return classFormatterImplementor;
+            }
+        }
+
+        private IStructFormatterImplementor StructImplementor
+        {
+            get
+            {
+                if (structFormatterImplementor is null)
+                {
+                    structFormatterImplementor = new StructImplementorFacade(module, provider, dataHelper);
+                }
+
+                return structFormatterImplementor;
+            }
+        }
+
+        private IGenericClassFormatterImplementor GenericClassImplementor
+        {
+            get
+            {
+                if (genericClassFormatterImplementor is null)
+                {
+                    genericClassFormatterImplementor = new GenericClassImplementorFacade(module, provider, dataHelper);
+                }
+
+                return genericClassFormatterImplementor;
+            }
+        }
+
+        private IGenericStructFormatterImplementor GenericStructImplementor
+        {
+            get
+            {
+                if (genericStructFormatterImplementor is null)
+                {
+                    genericStructFormatterImplementor = new GenericStructImplementorFacade(module, provider, dataHelper);
+                }
+
+                return genericStructFormatterImplementor;
+            }
+        }
+
+        private IUnionFormatterImplementor UnionImplementor
+        {
+            get
+            {
+                if (unionFormatterImplementor is null)
+                {
+                    unionFormatterImplementor = new UnionImplementorFacade(module, provider, loadFactor);
+                }
+
+                return unionFormatterImplementor;
+            }
         }
 
         public int Count(CollectedInfo[] infos)
@@ -132,7 +217,7 @@ namespace MSPack.Processor.Core
         private TypeDefinition GetOrAdd(in UnionClassSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "UFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            UnionImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
@@ -140,7 +225,7 @@ namespace MSPack.Processor.Core
         private TypeDefinition GetOrAdd(in UnionInterfaceSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "UFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            UnionImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
@@ -148,7 +233,7 @@ namespace MSPack.Processor.Core
         private TypeReference GetOrAdd(in ClassSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            ClassImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
@@ -156,7 +241,7 @@ namespace MSPack.Processor.Core
         private TypeReference GetOrAdd(in GenericClassSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "GCFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            GenericClassImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
@@ -164,7 +249,7 @@ namespace MSPack.Processor.Core
         private TypeReference GetOrAdd(in GenericStructSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "GSFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            GenericStructImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
@@ -172,7 +257,7 @@ namespace MSPack.Processor.Core
         private TypeReference GetOrAdd(in StructSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "SFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
-            implementor.Implement(info, formatter);
+            StructImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
         }
