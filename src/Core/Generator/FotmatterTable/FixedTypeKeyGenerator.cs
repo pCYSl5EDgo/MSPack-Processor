@@ -83,7 +83,7 @@ namespace MSPack.Processor.Core
             var getPair = new MethodDefinition(
                 "GetPair",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Static,
-                importer.Import(pairGenerator.Value.FieldType))
+                importer.Import(pairGenerator.Value.FieldType).Reference)
             {
                 HasThis = false,
                 Parameters =
@@ -119,7 +119,7 @@ namespace MSPack.Processor.Core
             var loopStart = Instruction.Create(OpCodes.Ldloc_0);
             processor.Append(loopStart); // { Pair[] }
             processor.Append(Instruction.Create(OpCodes.Ldloc_1)); // { Pair[], native int }
-            processor.Append(Instruction.Create(OpCodes.Ldelema, importer.Import(pairGenerator.Pair))); // { Pair& }
+            processor.Append(Instruction.Create(OpCodes.Ldelema, importer.Import(pairGenerator.Pair).Reference)); // { Pair& }
             processor.Append(Instruction.Create(OpCodes.Dup)); // { Pair&, Pair& }
             processor.Append(Instruction.Create(OpCodes.Ldfld, importer.Import(pairGenerator.Key))); // { Pair&, Type }
             processor.Append(Instruction.Create(OpCodes.Ldarg_0)); // { Pair&, Type, Type }
@@ -183,11 +183,12 @@ namespace MSPack.Processor.Core
             processor.Append(Instruction.Create(OpCodes.Newarr, pairArray)); // { Pair[][] }
             processor.Append(Instruction.Create(OpCodes.Stsfld, tableField)); // { }
 
+            var importedPairTypeReference = importer.Import(pairGenerator.Pair).Reference;
             for (var i = 0; i < infos.Length; i++)
             {
                 ref var info = ref infos[i];
 
-                processor.Append(Instruction.Create(OpCodes.Ldtoken, importer.Import(ldTokenTypeReferenceFunc(info)))); // { RuntimeTypeHandle }
+                processor.Append(Instruction.Create(OpCodes.Ldtoken, importer.Import(ldTokenTypeReferenceFunc(info)).Reference)); // { RuntimeTypeHandle }
                 processor.Append(Instruction.Create(OpCodes.Call, typeHelper.GetTypeFromHandle)); // { Type }
                 processor.Append(Instruction.Create(OpCodes.Stloc_0)); // { }
                 processor.Append(Instruction.Create(OpCodes.Ldloc_0)); // { Type }
@@ -202,7 +203,7 @@ namespace MSPack.Processor.Core
                 processor.Append(Instruction.Create(OpCodes.Brtrue_S, resizeSectionStart)); // { }
 
                 processor.Append(InstructionUtility.LdcI4(1)); // { int32 }
-                processor.Append(Instruction.Create(OpCodes.Newarr, importer.Import(pairGenerator.Pair))); // { Pair[] }
+                processor.Append(Instruction.Create(OpCodes.Newarr, importedPairTypeReference)); // { Pair[] }
                 processor.Append(Instruction.Create(OpCodes.Stloc_3)); // { }
                 processor.Append(Instruction.Create(OpCodes.Ldsfld, tableField)); // { Pair[][] }
                 processor.Append(Instruction.Create(OpCodes.Ldloc_1)); // { Pair[][], int32 }
@@ -232,7 +233,7 @@ namespace MSPack.Processor.Core
 
                 processor.Append(commonSectionStart); // { } -> { Pair[] }
                 processor.Append(Instruction.Create(OpCodes.Ldloc_2)); // { Pair[], int32 }
-                processor.Append(Instruction.Create(OpCodes.Ldelema, importer.Import(pairGenerator.Pair))); // { Pair& }
+                processor.Append(Instruction.Create(OpCodes.Ldelema, importedPairTypeReference)); // { Pair& }
                 processor.Append(Instruction.Create(OpCodes.Dup)); // { Pair&, Pair& }
 
                 processor.Append(Instruction.Create(OpCodes.Ldloc_0)); // { Pair&, Pair&, Type }

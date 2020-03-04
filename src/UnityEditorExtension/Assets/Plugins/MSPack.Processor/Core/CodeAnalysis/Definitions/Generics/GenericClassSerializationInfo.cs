@@ -14,8 +14,7 @@ namespace MSPack.Processor.Core.Definitions
         public GenericClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey)
         {
             Definition = definition;
-            FormatterType = default;
-            FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
+            CustomFormatter = CustomFormatterTypeInfo.Default;
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
             MinIntKey = minIntKey;
@@ -26,11 +25,10 @@ namespace MSPack.Processor.Core.Definitions
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
 
-        public GenericClassSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments)
+        public GenericClassSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter)
         {
             Definition = definition;
-            FormatterType = formatterType;
-            FormatterConstructorArguments = constructorArguments;
+            CustomFormatter = customFormatter;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
             MinIntKey = 0;
@@ -53,9 +51,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsClass => true;
 
-        public bool IsStruct => false;
-
-        public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
+        public int Count => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
 
@@ -63,13 +59,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public int MaxIntKey { get; }
 
-#if CSHARP_8_0_OR_NEWER
-        public TypeReference? FormatterType { get; }
-#else
-        public TypeReference FormatterType { get; }
-#endif
-
-        public CustomAttributeArgument[] FormatterConstructorArguments { get; }
+        public CustomFormatterTypeInfo CustomFormatter { get; }
 
         public FieldSerializationInfo[] FieldInfos { get; }
 
@@ -134,8 +124,7 @@ namespace MSPack.Processor.Core.Definitions
             }
             else
             {
-                CustomFormatterDetector.Detect(type, customFormatter, out var formatterType, out var argumentArray);
-                info = new GenericClassSerializationInfo(type, formatterType, argumentArray);
+                info = new GenericClassSerializationInfo(type, CustomFormatterDetector.Detect(type, customFormatter));
             }
 
             return true;

@@ -31,9 +31,9 @@ namespace MSPack.Processor.Core.Formatter
         /// <param name="formatter">formatter type. Must be empty.</param>
         public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
         {
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition);
-            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
-            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(info.Definition);
+            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
+            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             FieldDefinition keyMapping = new FieldDefinition(nameof(keyMapping), FieldAttributes.Private | FieldAttributes.InitOnly, provider.AutomataDictionaryHelper.AutomataDictionary);
             formatter.Fields.Add(keyMapping);
@@ -79,7 +79,7 @@ namespace MSPack.Processor.Core.Formatter
         #region Serialize
         private MethodDefinition GenerateSerialize(in StructSerializationInfo info, bool shouldCallback)
         {
-            var valueParam = new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition));
+            var valueParam = new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition).Reference);
             var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, module.TypeSystem.Void)
             {
                 HasThis = true,
@@ -201,7 +201,7 @@ namespace MSPack.Processor.Core.Formatter
         private void WriteMapHeader(ILProcessor processor, in StructSerializationInfo info)
         {
             processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-            processor.Append(InstructionUtility.LdcI4(info.KeyCount));
+            processor.Append(InstructionUtility.LdcI4(info.Count));
             processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMapHeaderInt));
         }
         #endregion
@@ -210,8 +210,8 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateDeserialize(in StructSerializationInfo info, in bool shouldCallback, FieldDefinition keyMapping)
         {
             var target = provider.Importer.Import(info.Definition);
-            var targetVariable = new VariableDefinition(target);
-            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
+            var targetVariable = new VariableDefinition(target.Reference);
+            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target.Reference)
             {
                 HasThis = true,
                 Parameters =
@@ -313,7 +313,7 @@ namespace MSPack.Processor.Core.Formatter
 
         private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in StructSerializationInfo info, VariableDefinition targetVariable)
         {
-            var answers = new Instruction[info.KeyCount][];
+            var answers = new Instruction[info.Count][];
             var @default = new[]
             {
                 Instruction.Create(OpCodes.Ldarg_1),

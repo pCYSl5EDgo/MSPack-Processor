@@ -30,9 +30,9 @@ namespace MSPack.Processor.Core.Formatter
         public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
         {
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition);
-            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
-            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(info.Definition);
+            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
+            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
 
@@ -56,7 +56,7 @@ namespace MSPack.Processor.Core.Formatter
         #region Serialize
         private MethodDefinition GenerateSerialize(in StructSerializationInfo info, bool shouldCallback)
         {
-            var valueParam = new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition));
+            var valueParam = new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition).Reference);
             var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, module.TypeSystem.Void)
             {
                 HasThis = true,
@@ -140,7 +140,7 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                     processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                     processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
-                    processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+                    processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(fieldTypeReference.Reference)));
                 }
                 else
                 {
@@ -159,7 +159,8 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                     processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
                     processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                    var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(fieldReference.FieldType));
+                    var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(fieldReference.FieldType);
+                    var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
                     processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
                 }
             }
@@ -171,7 +172,7 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                     processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                     processor.Append(Instruction.Create(OpCodes.Call, propertyReference));
-                    processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(propertyTypeReference)));
+                    processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(propertyTypeReference.Reference)));
                 }
                 else
                 {
@@ -190,7 +191,8 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                     processor.Append(Instruction.Create(OpCodes.Call, propertyReference));
                     processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                    var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(property.Definition.PropertyType));
+                    var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(property.Definition.PropertyType);
+                    var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
                     processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
                 }
             }
@@ -244,7 +246,8 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(fieldReference.FieldType));
+                var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(fieldReference.FieldType);
+                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
                 processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
             }
         }
@@ -254,7 +257,7 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateDeserialize(in StructSerializationInfo info, bool shouldCallback, MethodDefinition infoSerializationConstructor)
         {
             var target = provider.Importer.Import(info.Definition);
-            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
+            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target.Reference)
             {
                 HasThis = true,
                 Parameters =
@@ -300,7 +303,7 @@ namespace MSPack.Processor.Core.Formatter
             var argumentVariableStartIndex = variables.Count;
             foreach (var parameter in infoSerializationConstructor.Parameters)
             {
-                variables.Add(new VariableDefinition(provider.Importer.Import(parameter.ParameterType)));
+                variables.Add(new VariableDefinition(provider.Importer.Import(parameter.ParameterType).Reference));
             }
 
             var processor = deserialize.Body.GetILProcessor();
@@ -331,20 +334,20 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
-        private void ImplementParamCallback(MethodDefinition deserialize, in StructSerializationInfo info, MethodDefinition infoSerializationConstructor, TypeReference target)
+        private void ImplementParamCallback(MethodDefinition deserialize, in StructSerializationInfo info, MethodDefinition infoSerializationConstructor, ImportedTypeReference target)
         {
             var variables = deserialize.Body.Variables;
             deserialize.Body.InitLocals = true;
             variables.Add(new VariableDefinition(module.TypeSystem.Int32));
             variables.Add(new VariableDefinition(module.TypeSystem.Int32));
             variables.Add(new VariableDefinition(provider.InterfaceFormatterResolverHelper.IFormatterResolver));
-            var targetVariable = new VariableDefinition(target);
+            var targetVariable = new VariableDefinition(target.Reference);
             variables.Add(targetVariable);
 
             var argumentVariableStartIndex = variables.Count;
             foreach (var parameter in infoSerializationConstructor.Parameters)
             {
-                variables.Add(new VariableDefinition(provider.Importer.Import(parameter.ParameterType)));
+                variables.Add(new VariableDefinition(provider.Importer.Import(parameter.ParameterType).Reference));
             }
 
             var processor = deserialize.Body.GetILProcessor();
@@ -387,11 +390,11 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Throw));
         }
 
-        private void ImplementNoParamCallback(MethodDefinition deserialize, in StructSerializationInfo info, MethodDefinition infoSerializationConstructor, TypeReference target)
+        private void ImplementNoParamCallback(MethodDefinition deserialize, in StructSerializationInfo info, MethodDefinition infoSerializationConstructor, ImportedTypeReference target)
         {
             deserialize.Body.InitLocals = true;
             var variables = deserialize.Body.Variables;
-            var targetVariable = new VariableDefinition(target);
+            var targetVariable = new VariableDefinition(target.Reference);
             variables.Add(targetVariable);
 
             var processor = deserialize.Body.GetILProcessor();
@@ -524,8 +527,8 @@ namespace MSPack.Processor.Core.Formatter
             else
             {
                 var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(variable.VariableType);
-                var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(variable.VariableType);
-                var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+                var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(variable.VariableType);
+                var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
                 return new[]
                 {
                     Instruction.Create(OpCodes.Ldloc_3),

@@ -40,9 +40,9 @@ namespace MSPack.Processor.Core.Formatter
 
         public void Implement(in UnionClassSerializationInfo info, TypeDefinition formatter)
         {
-            var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition);
-            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
-            formatter.Interfaces.Add(new InterfaceImplementation(interfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(info.Definition);
+            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
+            formatter.Interfaces.Add(new InterfaceImplementation(interfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, objectHelper));
 
@@ -62,8 +62,8 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateDeserialize(in UnionClassSerializationInfo info)
         {
             var target = importer.Import(info.Definition);
-            var targetVariable = new VariableDefinition(target);
-            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
+            var targetVariable = new VariableDefinition(target.Reference);
+            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target.Reference)
             {
                 HasThis = true,
                 Parameters =
@@ -167,8 +167,8 @@ namespace MSPack.Processor.Core.Formatter
         private Instruction[] FillAnswer(in UnionSerializationInfo unionSerializationInfo, VariableDefinition targetVariable)
         {
             var formatterWithVerifyGeneric = formatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(unionSerializationInfo.Type);
-            var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(unionSerializationInfo.Type);
-            var deserializeGeneric = interfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(unionSerializationInfo.Type);
+            var deserializeGeneric = interfaceMessagePackFormatterHelper.DeserializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
             if (unionSerializationInfo.Type.IsValueType)
             {
                 return new[]
@@ -179,7 +179,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Ldarg_2),
                     Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                    Instruction.Create(OpCodes.Box, importer.Import(unionSerializationInfo.Type)),
+                    Instruction.Create(OpCodes.Box, importer.Import(unionSerializationInfo.Type).Reference),
                     InstructionUtility.StoreVariable(targetVariable),
                 };
             }
@@ -238,7 +238,7 @@ namespace MSPack.Processor.Core.Formatter
                 Parameters =
                 {
                     new ParameterDefinition("writer", ParameterAttributes.None, new ByReferenceType(writerHelper.Writer)),
-                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Definition)),
+                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Definition).Reference),
                     new ParameterDefinition("options", ParameterAttributes.None, messagePackSerializerOptionsHelper.Options),
                 },
                 Body =
@@ -315,8 +315,8 @@ namespace MSPack.Processor.Core.Formatter
             {
                 ref readonly var unionSerializationInfo = ref info.SerializationInfo[i];
                 var formatterWithVerifyGeneric = formatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(unionSerializationInfo.Type);
-                var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(unionSerializationInfo.Type);
-                var serializeGeneric = interfaceMessagePackFormatterHelper.SerializeGeneric(iMessagePackFormatterGeneric);
+                var iMessagePackFormatterGeneric = interfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(unionSerializationInfo.Type);
+                var serializeGeneric = interfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
                 switchInstructions[i] = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_3),
@@ -324,7 +324,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Ldarg_2),
-                    Instruction.Create(OpCodes.Castclass, importer.Import(unionSerializationInfo.Type)),
+                    Instruction.Create(OpCodes.Castclass, importer.Import(unionSerializationInfo.Type).Reference),
                     Instruction.Create(OpCodes.Ldarg_3),
                     Instruction.Create(OpCodes.Callvirt, serializeGeneric),
                 };

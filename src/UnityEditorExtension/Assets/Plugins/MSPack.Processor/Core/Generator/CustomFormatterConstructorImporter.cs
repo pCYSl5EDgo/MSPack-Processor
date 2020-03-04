@@ -27,7 +27,7 @@ namespace MSPack.Processor.Core
                 return importer.Import(FindConstructor(definition, formatterInfo.FormatterConstructorArguments));
             }
 
-            var answer = new MethodReference(".ctor", voidTypeReference, importer.Import(formatterType))
+            var answer = new MethodReference(".ctor", voidTypeReference, importer.Import(formatterType).Reference)
             {
                 HasThis = true,
             };
@@ -78,7 +78,7 @@ namespace MSPack.Processor.Core
                     .Append("\n\tType : ")
                     .Append(argument.Type.FullName)
                     .Append(", Value : ")
-                    .Append(argument.Value.ToString());
+                    .Append(argument.Value);
             }
 
             throw new MessagePackGeneratorResolveFailedException(buffer.ToString());

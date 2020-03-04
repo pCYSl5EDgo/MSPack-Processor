@@ -16,13 +16,12 @@ namespace MSPack.Processor.Core.Provider
         private readonly ModuleImporter importer;
 
 #if CSHARP_8_0_OR_NEWER
-        private TypeReference? _IMessagePackFormatterNoGeneric;
-        private TypeReference? _IMessagePackFormatterBase;
+        private TypeReference? iMessagePackFormatterNoGeneric;
+        private TypeReference? iMessagePackFormatterBase;
 #else
-        private TypeReference _IMessagePackFormatterNoGeneric;
-        private TypeReference _IMessagePackFormatterBase;
+        private TypeReference iMessagePackFormatterNoGeneric;
+        private TypeReference iMessagePackFormatterBase;
 #endif
-
 
         public InterfaceMessagePackFormatterHelper(ModuleDefinition module, IMetadataScope messagePackScope, MessagePackWriterHelper writerHelper, MessagePackReaderHelper readerHelper, MessagePackSerializerOptionsHelper optionsHelper, ModuleImporter importer)
         {
@@ -34,36 +33,36 @@ namespace MSPack.Processor.Core.Provider
             this.importer = importer;
         }
 
-        public TypeReference IMessagePackFormatterNoGeneric
+        public TypeReference InterfaceMessagePackFormatterNoGeneric
         {
             get
             {
-                if (_IMessagePackFormatterNoGeneric == null)
+                if (iMessagePackFormatterNoGeneric == null)
                 {
-                    _IMessagePackFormatterNoGeneric = new TypeReference("MessagePack.Formatters", "IMessagePackFormatter", module, messagePackScope, false);
+                    iMessagePackFormatterNoGeneric = new TypeReference("MessagePack.Formatters", "IMessagePackFormatter", module, messagePackScope, false);
                 }
 
-                return _IMessagePackFormatterNoGeneric;
+                return iMessagePackFormatterNoGeneric;
             }
         }
 
-        public TypeReference IMessagePackFormatterBase
+        public TypeReference InterfaceMessagePackFormatterBase
         {
             get
             {
-                if (_IMessagePackFormatterBase == null)
+                if (iMessagePackFormatterBase == null)
                 {
-                    _IMessagePackFormatterBase = new TypeReference("MessagePack.Formatters", "IMessagePackFormatter`1", module, messagePackScope, false);
-                    _IMessagePackFormatterBase.GenericParameters.Add(new GenericParameter("T", _IMessagePackFormatterBase));
+                    iMessagePackFormatterBase = new TypeReference("MessagePack.Formatters", "IMessagePackFormatter`1", module, messagePackScope, false);
+                    iMessagePackFormatterBase.GenericParameters.Add(new GenericParameter("T", iMessagePackFormatterBase));
                 }
 
-                return _IMessagePackFormatterBase;
+                return iMessagePackFormatterBase;
             }
         }
 
-        private readonly List<(TypeReference elementType, GenericInstanceType answerType)> memoGeneric = new List<(TypeReference elementType, GenericInstanceType answerType)>();
+        private readonly List<(TypeReference elementType, ImportedTypeReference answerType)> memoGeneric = new List<(TypeReference elementType, ImportedTypeReference answerType)>();
 
-        public GenericInstanceType IMessagePackFormatterGeneric(TypeReference element)
+        public ImportedTypeReference InterfaceMessagePackFormatterGeneric(TypeReference element)
         {
             foreach (var (elementType, answerType) in memoGeneric)
             {
@@ -73,11 +72,11 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var importedElementType = importer.Import(element);
-            var answer = new GenericInstanceType(IMessagePackFormatterBase)
+            var importedElementType = importer.Import(element).Reference;
+            var answer = new ImportedTypeReference(new GenericInstanceType(InterfaceMessagePackFormatterBase)
             {
                 GenericArguments = { importedElementType, },
-            };
+            });
             memoGeneric.Add((element, answer));
             return answer;
         }
@@ -94,14 +93,14 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var imported = importer.Import(genericFormatter);
+            var imported = importer.Import(genericFormatter).Reference;
             var answer = new MethodReference("Serialize", module.TypeSystem.Void, imported)
             {
                 HasThis = true,
                 Parameters =
                 {
                     new ParameterDefinition("writer", ParameterAttributes.None, new ByReferenceType(writerHelper.Writer)),
-                    new ParameterDefinition("value", ParameterAttributes.None, IMessagePackFormatterBase.GenericParameters[0]),
+                    new ParameterDefinition("value", ParameterAttributes.None, InterfaceMessagePackFormatterBase.GenericParameters[0]),
                     new ParameterDefinition("options", ParameterAttributes.None, optionsHelper.Options),
                 },
             };
@@ -121,8 +120,8 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var imported = importer.Import(genericFormatter);
-            var answer = new MethodReference("Deserialize", IMessagePackFormatterBase.GenericParameters[0], imported)
+            var imported = importer.Import(genericFormatter).Reference;
+            var answer = new MethodReference("Deserialize", InterfaceMessagePackFormatterBase.GenericParameters[0], imported)
             {
                 HasThis = true,
                 Parameters =

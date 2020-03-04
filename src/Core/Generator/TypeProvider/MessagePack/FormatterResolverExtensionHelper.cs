@@ -43,7 +43,7 @@ namespace MSPack.Processor.Core.Provider
                     };
                     var t = new GenericParameter("T", getFormatterWithVerifyBase);
                     getFormatterWithVerifyBase.GenericParameters.Add(t);
-                    getFormatterWithVerifyBase.ReturnType = iMessagePackFormatterHelper.IMessagePackFormatterGeneric(t);
+                    getFormatterWithVerifyBase.ReturnType = iMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(t).Reference;
                 }
 
                 return getFormatterWithVerifyBase;
@@ -64,12 +64,31 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var importedElement = importer.Import(element);
+            var importedElement = importer.Import(element).Reference;
             var answer = new GenericInstanceMethod(GetFormatterWithVerifyBase)
             {
                 GenericArguments = { importedElement, },
             };
             memoGeneric.Add((element, answer));
+            return answer;
+        }
+
+        public GenericInstanceMethod GetFormatterWithVerifyGeneric(ImportedTypeReference importedTypeReference)
+        {
+            foreach (var (elementType, answerMethod) in memoGeneric)
+            {
+                if (ReferenceEquals(elementType, importedTypeReference.Reference))
+                {
+                    return answerMethod;
+                }
+            }
+
+            var importedElement = importedTypeReference.Reference;
+            var answer = new GenericInstanceMethod(GetFormatterWithVerifyBase)
+            {
+                GenericArguments = { importedElement, },
+            };
+            memoGeneric.Add((importedElement, answer));
             return answer;
         }
     }

@@ -33,9 +33,9 @@ namespace MSPack.Processor.Core.Formatter
             GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out _, out var targetGenericInstanceType);
 
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(targetGenericInstanceType);
-            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
-            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(targetGenericInstanceType);
+            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
+            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
 
@@ -145,7 +145,7 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(info.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, transplantedPropertyReference));
-                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(importer.Import(info.Definition.PropertyType))));
+                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(importer.Import(info.Definition.PropertyType).Reference)));
             }
             else
             {
@@ -170,7 +170,8 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Ldarg_2));
             processor.Append(Instruction.Create(info.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, transplantedPropertyReference));
             processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-            var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition.PropertyType));
+            var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(info.Definition.PropertyType);
+            var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
             processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
         }
 
@@ -182,7 +183,7 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, propertyBackingFieldReference));
-                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(fieldTypeReference)));
+                processor.Append(Instruction.Create(OpCodes.Call, writeHelper.WriteMessagePackPrimitive(fieldTypeReference.Reference)));
             }
             else
             {
@@ -201,7 +202,8 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, propertyBackingFieldReference));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(propertyBackingFieldReference.FieldType));
+                var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(propertyBackingFieldReference.FieldType);
+                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
                 processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
             }
         }
@@ -233,7 +235,8 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_3));
-                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(fieldReference.FieldType));
+                var interfaceMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(fieldReference.FieldType);
+                var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric((GenericInstanceType)interfaceMessagePackFormatterGeneric.Reference);
                 processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
             }
         }
@@ -438,8 +441,8 @@ namespace MSPack.Processor.Core.Formatter
         private Instruction[] DeserializePropertyNotPrimitiveBackingField(FieldReference backingField)
         {
             var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(backingField.FieldType);
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(backingField.FieldType);
-            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(backingField.FieldType);
+            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
             return new[]
             {
                 Instruction.Create(OpCodes.Ldloc_2),
@@ -456,8 +459,8 @@ namespace MSPack.Processor.Core.Formatter
         {
             var setMethod = GenericsUtility.Transplant(property.Definition.SetMethod, targetGenericInstanceType, importer);
             var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(setMethod.Parameters[0].ParameterType);
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(setMethod.Parameters[0].ParameterType);
-            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(setMethod.Parameters[0].ParameterType);
+            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
             return new[]
             {
                 Instruction.Create(OpCodes.Ldloc_2),
@@ -533,8 +536,8 @@ namespace MSPack.Processor.Core.Formatter
         private Instruction[] DeserializeFieldNotPrimitive(FieldReference storeFieldReference)
         {
             var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(storeFieldReference.FieldType);
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(storeFieldReference.FieldType);
-            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(storeFieldReference.FieldType);
+            var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric((GenericInstanceType)iMessagePackFormatterGeneric.Reference);
             return new[]
             {
                 Instruction.Create(OpCodes.Ldloc_2),

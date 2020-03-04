@@ -55,7 +55,7 @@ namespace MSPack.Processor.Core
                             processor.Append(InstructionUtility.LdcBoolean((bool)value));
                             break;
                         case "System.Type":
-                            processor.Append(Instruction.Create(OpCodes.Ldtoken, importer.Import((TypeReference)value)));
+                            processor.Append(Instruction.Create(OpCodes.Ldtoken, importer.Import((TypeReference)value).Reference));
                             processor.Append(Instruction.Create(OpCodes.Call, typeHelper.GetTypeFromHandle));
                             break;
                         case "System.Object":

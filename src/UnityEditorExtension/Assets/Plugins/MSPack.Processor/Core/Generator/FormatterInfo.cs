@@ -7,10 +7,22 @@ using System.Linq;
 
 namespace MSPack.Processor.Core
 {
+    /// <summary>
+    /// Formatter Info is registered to type-key hash table.
+    /// </summary>
     public readonly struct FormatterInfo : IEquatable<FormatterInfo>
     {
+        /// <summary>
+        /// Concrete serializable type.
+        /// </summary>
         public readonly TypeReference SerializeTypeReference;
+        /// <summary>
+        /// Concrete type to serialize target or deserialize target.
+        /// </summary>
         public readonly TypeReference FormatterType;
+        /// <summary>
+        /// Arguments to create instance of formatter.
+        /// </summary>
         public readonly CustomAttributeArgument[] FormatterConstructorArguments;
 
         public FormatterInfo(TypeReference serializeTypeReference, TypeReference formatterType, CustomAttributeArgument[] formatterConstructorArguments)

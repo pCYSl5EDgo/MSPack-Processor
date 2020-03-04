@@ -30,9 +30,9 @@ namespace MSPack.Processor.Core.Formatter
         public void Implement(in EnumSerializationInfo info, TypeDefinition formatter)
         {
             formatter.Methods.Add(ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper));
-            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Type);
-            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
-            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(info.Type);
+            formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
+            formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             var serialize = GenerateSerialize(in info);
             formatter.Methods.Add(serialize);
@@ -44,7 +44,7 @@ namespace MSPack.Processor.Core.Formatter
         private MethodDefinition GenerateDeserialize(in EnumSerializationInfo info)
         {
             var target = provider.Importer.Import(info.Type);
-            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
+            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target.Reference)
             {
                 HasThis = true,
                 Parameters =
@@ -70,7 +70,7 @@ namespace MSPack.Processor.Core.Formatter
                 Parameters =
                 {
                     new ParameterDefinition("writer", ParameterAttributes.None, new ByReferenceType(writerHelper.Writer)),
-                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Type)),
+                    new ParameterDefinition("value", ParameterAttributes.None, importer.Import(info.Type).Reference),
                     new ParameterDefinition("options", ParameterAttributes.None, optionsHelper.Options),
                 },
             };

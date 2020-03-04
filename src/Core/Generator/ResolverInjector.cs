@@ -48,8 +48,8 @@ namespace MSPack.Processor.Core
             getFormatter.Body.InitLocals = false;
 
             var formatterCacheGenericInstanceType = new GenericInstanceType(formatterCache) { GenericArguments = { getFormatter.GenericParameters[0], }, };
-            var formatterFieldTypeGenericInstanceType = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(formatterCache.GenericParameters[0]);
-            var formatterFieldGenericInstance = new FieldReference(formatterField.Name, formatterFieldTypeGenericInstanceType, formatterCacheGenericInstanceType);
+            var formatterFieldTypeGenericInstanceType = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(formatterCache.GenericParameters[0]);
+            var formatterFieldGenericInstance = new FieldReference(formatterField.Name, formatterFieldTypeGenericInstanceType.Reference, formatterCacheGenericInstanceType);
             var processor = getFormatter.Body.GetILProcessor();
             processor.Append(Instruction.Create(OpCodes.Ldsfld, formatterFieldGenericInstance));
             processor.Append(Instruction.Create(OpCodes.Ret));
@@ -84,7 +84,7 @@ namespace MSPack.Processor.Core
         {
             cctor.Body.InitLocals = true;
             cctor.Body.Variables.Clear();
-            cctor.Body.Variables.Add(new VariableDefinition(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric));
+            cctor.Body.Variables.Add(new VariableDefinition(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
             cctor.Body.Instructions.Clear();
 
@@ -102,8 +102,8 @@ namespace MSPack.Processor.Core
             processor.Append(Instruction.Create(OpCodes.Brfalse_S, returnInstruction));
 
             processor.Append(Instruction.Create(OpCodes.Ldloc_0));
-            var formatterTypeGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(cctor.DeclaringType.GenericParameters[0]);
-            processor.Append(Instruction.Create(OpCodes.Castclass, formatterTypeGeneric));
+            var formatterTypeGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(cctor.DeclaringType.GenericParameters[0]);
+            processor.Append(Instruction.Create(OpCodes.Castclass, formatterTypeGeneric.Reference));
             var formatterCacheGeneric = new GenericInstanceType(cctor.DeclaringType)
             {
                 GenericArguments =
@@ -139,8 +139,8 @@ namespace MSPack.Processor.Core
 
         private FieldDefinition AddFormatterField(TypeDefinition formatterCache)
         {
-            var iMessagePackFormatter = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(formatterCache.GenericParameters[0]);
-            var formatterField = new FieldDefinition(FormatterFieldName, FieldAttributes.Assembly | FieldAttributes.Static | FieldAttributes.InitOnly, iMessagePackFormatter);
+            var iMessagePackFormatter = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(formatterCache.GenericParameters[0]);
+            var formatterField = new FieldDefinition(FormatterFieldName, FieldAttributes.Assembly | FieldAttributes.Static | FieldAttributes.InitOnly, iMessagePackFormatter.Reference);
             formatterCache.Fields.Add(formatterField);
             return formatterField;
         }

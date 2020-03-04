@@ -61,7 +61,7 @@ namespace MSPack.Processor.Core.Provider
             {
                 GenericArguments =
                 {
-                    importer.Import(element),
+                    importer.Import(element).Reference,
                 },
             };
             memoResize.Add((element, answer));

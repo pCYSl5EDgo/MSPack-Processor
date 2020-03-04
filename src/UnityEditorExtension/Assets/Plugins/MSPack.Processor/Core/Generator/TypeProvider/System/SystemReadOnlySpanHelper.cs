@@ -56,7 +56,7 @@ namespace MSPack.Processor.Core.Provider
             {
                 GenericArguments =
                 {
-                    importer.Import(type),
+                    importer.Import(type).Reference,
                 },
             };
             memoGeneric.Add((type, answer));
@@ -76,7 +76,7 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var method = new MethodReference("get_Length", module.TypeSystem.Int32, importer.Import(type))
+            var method = new MethodReference("get_Length", module.TypeSystem.Int32, importer.Import(type).Reference)
             {
                 HasThis = true,
             };
@@ -96,7 +96,7 @@ namespace MSPack.Processor.Core.Provider
                 }
             }
 
-            var ctor = new MethodReference(".ctor", module.TypeSystem.Void, importer.Import(type))
+            var ctor = new MethodReference(".ctor", module.TypeSystem.Void, importer.Import(type).Reference)
             {
                 HasThis = true,
                 Parameters =

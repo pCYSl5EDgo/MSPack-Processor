@@ -18,29 +18,27 @@ namespace MSPack.Processor.Core.Definitions
 #endif
         {
             Definition = definition;
-            FormatterType = default;
-            FormatterConstructorArguments = Array.Empty<CustomAttributeArgument>();
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
             MinIntKey = minIntKey;
             MaxIntKey = maxIntKey;
             SerializationConstructor = serializationConstructorDefinition;
+            CustomFormatter = CustomFormatterTypeInfo.Default;
 
             AreAllMessagePackPrimitive = this.FieldInfos.All(x => x.IsMessagePackPrimitive) && this.PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
 
 #if CSHARP_8_0_OR_NEWER
-        public ClassSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition? serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatterTypeInfo, MethodDefinition? serializationConstructorDefinition)
 #else
-        public ClassSerializationInfo(TypeDefinition definition, TypeReference formatterType, CustomAttributeArgument[] constructorArguments, MethodDefinition serializationConstructorDefinition)
+        public ClassSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatterTypeInfo, MethodDefinition serializationConstructorDefinition)
 #endif
         {
             Definition = definition;
-            FormatterType = formatterType;
-            FormatterConstructorArguments = constructorArguments;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
+            CustomFormatter = customFormatterTypeInfo;
             MinIntKey = 0;
             MaxIntKey = 0;
             SerializationConstructor = serializationConstructorDefinition;
@@ -61,9 +59,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool IsClass => true;
 
-        public bool IsStruct => false;
-
-        public int KeyCount => FieldInfos.Length + PropertyInfos.Length;
+        public int Count => FieldInfos.Length + PropertyInfos.Length;
 
         public TypeDefinition Definition { get; }
 
@@ -71,13 +67,7 @@ namespace MSPack.Processor.Core.Definitions
 
         public int MaxIntKey { get; }
 
-#if CSHARP_8_0_OR_NEWER
-        public TypeReference? FormatterType { get; }
-#else
-        public TypeReference FormatterType { get; }
-#endif
-
-        public CustomAttributeArgument[] FormatterConstructorArguments { get; }
+        public CustomFormatterTypeInfo CustomFormatter { get; }
 
         public FieldSerializationInfo[] FieldInfos { get; }
 
@@ -144,8 +134,7 @@ namespace MSPack.Processor.Core.Definitions
             }
             else
             {
-                CustomFormatterDetector.Detect(type, customFormatter, out var formatterType, out var argumentArray);
-                info = new ClassSerializationInfo(type, formatterType, argumentArray, serializationConstructor);
+                info = new ClassSerializationInfo(type, CustomFormatterDetector.Detect(type, customFormatter), serializationConstructor);
             }
 
             return true;

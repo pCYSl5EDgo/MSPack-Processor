@@ -88,7 +88,7 @@ namespace MSPack.Processor.Core
             keyField = new FieldDefinition("Key", ThisFieldAttributes, provider.SystemTypeHelper.Type);
             type.Fields.Add(keyField);
 
-            valueField = new FieldDefinition("Value", ThisFieldAttributes, provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterNoGeneric);
+            valueField = new FieldDefinition("Value", ThisFieldAttributes, provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric);
             type.Fields.Add(valueField);
 
             return type;

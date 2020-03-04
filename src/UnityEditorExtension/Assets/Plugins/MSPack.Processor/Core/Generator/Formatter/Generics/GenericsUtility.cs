@@ -31,7 +31,7 @@ namespace MSPack.Processor.Core.Formatter
             }
 
             genericInstanceFormatter = new GenericInstanceType(formatterTypeDefinition);
-            genericInstanceSerializeTarget = new GenericInstanceType(importer.Import(serializeTargetTypeDefinition));
+            genericInstanceSerializeTarget = new GenericInstanceType(importer.Import(serializeTargetTypeDefinition).Reference);
             foreach (var parameter in formatterTypeDefinition.GenericParameters)
             {
                 genericInstanceFormatter.GenericArguments.Add(parameter);
@@ -64,7 +64,7 @@ namespace MSPack.Processor.Core.Formatter
                 }
                 else
                 {
-                    formatterGenericParameter.Constraints.Add(new GenericParameterConstraint(importer.Import(baseConstraintType)));
+                    formatterGenericParameter.Constraints.Add(new GenericParameterConstraint(importer.Import(baseConstraintType).Reference));
                 }
 #endif
             }
@@ -73,7 +73,7 @@ namespace MSPack.Processor.Core.Formatter
         private static GenericInstanceType TransplantInternal(GenericInstanceType genericInstanceType, Collection<GenericParameter> formatterGenericParameters, ModuleImporter importer)
         {
             var element = importer.Import(genericInstanceType.ElementType);
-            var answer = new GenericInstanceType(element);
+            var answer = new GenericInstanceType(element.Reference);
             foreach (var argument in genericInstanceType.GenericArguments)
             {
                 if (argument is GenericInstanceType genericInstanceArgument)
@@ -86,7 +86,7 @@ namespace MSPack.Processor.Core.Formatter
                 }
                 else
                 {
-                    answer.GenericArguments.Add(importer.Import(argument));
+                    answer.GenericArguments.Add(importer.Import(argument).Reference);
                 }
             }
 
@@ -117,7 +117,7 @@ namespace MSPack.Processor.Core.Formatter
 
         public static MethodReference Transplant(MethodReference reference, GenericInstanceType targetType, ModuleImporter importer)
         {
-            var answer = new MethodReference(reference.Name, importer.Import(reference.ReturnType), targetType)
+            var answer = new MethodReference(reference.Name, importer.Import(reference.ReturnType).Reference, targetType)
             {
                 HasThis = reference.HasThis,
             };
@@ -125,7 +125,7 @@ namespace MSPack.Processor.Core.Formatter
             for (var index = 0; index < reference.Parameters.Count; index++)
             {
                 var parameter = reference.Parameters[index];
-                var item = new ParameterDefinition(parameter.Name, parameter.Attributes, importer.Import(parameter.ParameterType));
+                var item = new ParameterDefinition(parameter.Name, parameter.Attributes, importer.Import(parameter.ParameterType).Reference);
                 answer.Parameters.Add(item);
                 foreach (var attribute in parameter.CustomAttributes)
                 {
@@ -138,8 +138,8 @@ namespace MSPack.Processor.Core.Formatter
 
         public static FieldReference Transplant(FieldReference reference, GenericInstanceType targetType, ModuleImporter importer)
         {
-            var importedFieldType = importer.Import(reference.FieldType);
-            var importedDeclaringType = importer.Import(targetType);
+            var importedFieldType = importer.Import(reference.FieldType).Reference;
+            var importedDeclaringType = importer.Import(targetType).Reference;
             var transplant = new FieldReference(reference.Name, importedFieldType, importedDeclaringType);
             return transplant;
         }
