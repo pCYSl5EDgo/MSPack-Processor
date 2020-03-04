@@ -172,6 +172,7 @@ namespace MSPack.Processor.Core
             var unionClassInfos = CollectUnionClassInfos();
             var interfaceInfos = CollectInterfaceInfos();
             var genericClassInfos = CollectGenericClassInfos();
+            var genericStructInfos = CollectGenericStructInfos();
 
             return new CollectedInfo(
                 module,
@@ -179,7 +180,8 @@ namespace MSPack.Processor.Core
                 structInfos,
                 unionClassInfos,
                 interfaceInfos,
-                genericClassInfos);
+                genericClassInfos,
+                genericStructInfos);
         }
 
         private GenericClassSerializationInfo[] CollectGenericClassInfos()
@@ -191,6 +193,21 @@ namespace MSPack.Processor.Core
                 if (!GenericClassSerializationInfo.TryParse(genericClassDefinitions[i], useMapMode, out infos[i]))
                 {
                     throw new InvalidOperationException(genericClassDefinitions[i].FullName);
+                }
+            }
+
+            return infos;
+        }
+
+        private GenericStructSerializationInfo[] CollectGenericStructInfos()
+        {
+            var infos = genericStructDefinitions.Count == 0 ? Array.Empty<GenericStructSerializationInfo>() : new GenericStructSerializationInfo[genericStructDefinitions.Count];
+
+            for (var i = 0; i < genericStructDefinitions.Count; i++)
+            {
+                if (!GenericStructSerializationInfo.TryParse(genericStructDefinitions[i], useMapMode, out infos[i]))
+                {
+                    throw new InvalidOperationException(genericStructDefinitions[i].FullName);
                 }
             }
 

@@ -30,6 +30,8 @@ namespace MSPack.Processor.Core.Formatter
 
         private readonly GenericClassIntKeyFormatterImplementor genericClassIntKeyFormatterImplementor;
         private readonly GenericClassStringKeyFormatterImplementor genericClassStringKeyFormatterImplementor;
+        private readonly GenericStructIntKeyFormatterImplementor genericStructIntKeyFormatterImplementor;
+        private readonly GenericStructStringKeyFormatterImplementor genericStructStringKeyFormatterImplementor;
 
         public ImplementorFacade(TypeProvider provider, double loadFactor)
         {
@@ -61,6 +63,8 @@ namespace MSPack.Processor.Core.Formatter
 
             genericClassIntKeyFormatterImplementor = new GenericClassIntKeyFormatterImplementor(module, provider, importer);
             genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, importer);
+            genericStructIntKeyFormatterImplementor = new GenericStructIntKeyFormatterImplementor(module, provider, importer);
+            genericStructStringKeyFormatterImplementor = new GenericStructStringKeyFormatterImplementor(module, provider, dataHelper, importer);
         }
 
         public void Implement(in ClassSerializationInfo info, TypeDefinition formatter)
@@ -204,6 +208,18 @@ namespace MSPack.Processor.Core.Formatter
             else
             {
                 genericClassStringKeyFormatterImplementor.Implement(in info, formatter);
+            }
+        }
+
+        public void Implement(in GenericStructSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.IsIntKey)
+            {
+                genericStructIntKeyFormatterImplementor.Implement(in info, formatter);
+            }
+            else
+            {
+                genericStructStringKeyFormatterImplementor.Implement(in info, formatter);
             }
         }
     }
