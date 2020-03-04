@@ -9,4 +9,8 @@
     <PackageReference Include="MessagePack.Annotations" Version="2.1.90" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Annotation\Annotation.csproj" />
+  </ItemGroup>
+
 </Project>

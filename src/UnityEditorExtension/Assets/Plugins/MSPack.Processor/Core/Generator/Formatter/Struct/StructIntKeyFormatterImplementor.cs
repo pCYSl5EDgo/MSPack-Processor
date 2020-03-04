@@ -204,10 +204,9 @@ namespace MSPack.Processor.Core.Formatter
                 FixedSizeBufferUtility.SerializeFixedSizeBuffer(
                     processor,
                     valueParam,
-                    serializationInfo.Definition,
+                    fieldReference,
                     module,
                     provider.MessagePackWriterHelper,
-                    provider.Importer,
                     serializationInfo.ElementType,
                     serializationInfo.FixedSizeBufferCount,
                     ref intPtrVariable);

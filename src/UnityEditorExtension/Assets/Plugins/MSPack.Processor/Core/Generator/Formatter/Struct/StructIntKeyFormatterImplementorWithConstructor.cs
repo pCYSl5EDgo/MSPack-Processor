@@ -207,16 +207,15 @@ namespace MSPack.Processor.Core.Formatter
         private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, FieldReference fieldReference, MessagePackWriterHelper writeHelper, ref bool resolverCalled, ref VariableDefinition intPtrVariable)
 #endif
         {
-            var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
+            var fieldTypeReference = fieldReference.FieldType;
             if (serializationInfo.IsFixedSizeBuffer)
             {
                 FixedSizeBufferUtility.SerializeFixedSizeBuffer(
                     processor,
                     valueParam,
-                    serializationInfo.Definition,
+                    fieldReference,
                     module,
                     provider.MessagePackWriterHelper,
-                    provider.Importer,
                     serializationInfo.ElementType,
                     serializationInfo.FixedSizeBufferCount,
                     ref intPtrVariable);

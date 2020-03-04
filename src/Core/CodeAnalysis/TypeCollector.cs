@@ -14,28 +14,26 @@ namespace MSPack.Processor.Core
     {
         private readonly ModuleDefinition module;
         private readonly bool useMapMode;
-        private readonly Action<string> logger;
         private readonly List<TypeDefinition> unionInterfaceDefinitions = new List<TypeDefinition>();
-        private readonly List<TypeDefinition> unionInterfaceGenericDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> unionClassDefinitions = new List<TypeDefinition>();
-        private readonly List<TypeDefinition> unionClassGenericDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> classDefinitions = new List<TypeDefinition>();
-        private readonly List<TypeDefinition> classGenericDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> structDefinitions = new List<TypeDefinition>();
-        private readonly List<TypeDefinition> structGenericDefinitions = new List<TypeDefinition>();
+        private readonly List<TypeDefinition> genericUnionInterfaceDefinitions = new List<TypeDefinition>();
+        private readonly List<TypeDefinition> genericUnionClassDefinitions = new List<TypeDefinition>();
+        private readonly List<TypeDefinition> genericClassDefinitions = new List<TypeDefinition>();
+        private readonly List<TypeDefinition> genericStructDefinitions = new List<TypeDefinition>();
 
-        public TypeCollector(ModuleDefinition module, bool useMapMode, Action<string> logger)
+        public TypeCollector(ModuleDefinition module, bool useMapMode)
         {
             this.module = module;
             this.useMapMode = useMapMode;
-            this.logger = logger;
             foreach (var typeDefinition in module.Types)
             {
                 Visit(typeDefinition);
             }
-            logger(module.Name + " : class = " + classDefinitions.Count + ", struct = " + structDefinitions.Count);
         }
 
+        #region Visit
         private void Visit(TypeDefinition type)
         {
             foreach (var typeNestedType in type.NestedTypes)
@@ -47,7 +45,7 @@ namespace MSPack.Processor.Core
             {
                 return;
             }
-            logger("visit : " + type.FullName);
+
             var customAttributes = type.CustomAttributes;
             if (type.IsInterface)
             {
@@ -71,7 +69,7 @@ namespace MSPack.Processor.Core
         {
             if (type.HasGenericParameters)
             {
-                classGenericDefinitions.Add(type);
+                genericClassDefinitions.Add(type);
             }
             else
             {
@@ -99,7 +97,7 @@ namespace MSPack.Processor.Core
             {
                 if (type.HasGenericParameters)
                 {
-                    unionClassGenericDefinitions.Add(type);
+                    genericUnionClassDefinitions.Add(type);
                 }
                 else
                 {
@@ -136,17 +134,12 @@ namespace MSPack.Processor.Core
         {
             if (!customAttributes.Any(CustomAttributeHelper.IsMessagePackObjectAttribute))
             {
-                logger("no messagepack obj : " + type.FullName);
-                foreach (var attribute in type.CustomAttributes)
-                {
-                    logger(attribute.AttributeType.Name + " : " + attribute.AttributeType.Scope.Name);
-                }
                 return;
             }
 
             if (type.HasGenericParameters)
             {
-                structGenericDefinitions.Add(type);
+                genericStructDefinitions.Add(type);
             }
             else
             {
@@ -163,13 +156,14 @@ namespace MSPack.Processor.Core
 
             if (type.HasGenericParameters)
             {
-                unionInterfaceGenericDefinitions.Add(type);
+                genericUnionInterfaceDefinitions.Add(type);
             }
             else
             {
                 unionInterfaceDefinitions.Add(type);
             }
         }
+        #endregion
 
         public CollectedInfo Collect()
         {
@@ -177,13 +171,47 @@ namespace MSPack.Processor.Core
             var structInfos = CollectStructInfos();
             var unionClassInfos = CollectUnionClassInfos();
             var interfaceInfos = CollectInterfaceInfos();
+            var genericClassInfos = CollectGenericClassInfos();
+            var genericStructInfos = CollectGenericStructInfos();
 
             return new CollectedInfo(
                 module,
                 classInfos,
                 structInfos,
                 unionClassInfos,
-                interfaceInfos);
+                interfaceInfos,
+                genericClassInfos,
+                genericStructInfos);
+        }
+
+        private GenericClassSerializationInfo[] CollectGenericClassInfos()
+        {
+            var infos = genericClassDefinitions.Count == 0 ? Array.Empty<GenericClassSerializationInfo>() : new GenericClassSerializationInfo[genericClassDefinitions.Count];
+
+            for (var i = 0; i < genericClassDefinitions.Count; i++)
+            {
+                if (!GenericClassSerializationInfo.TryParse(genericClassDefinitions[i], useMapMode, out infos[i]))
+                {
+                    throw new InvalidOperationException(genericClassDefinitions[i].FullName);
+                }
+            }
+
+            return infos;
+        }
+
+        private GenericStructSerializationInfo[] CollectGenericStructInfos()
+        {
+            var infos = genericStructDefinitions.Count == 0 ? Array.Empty<GenericStructSerializationInfo>() : new GenericStructSerializationInfo[genericStructDefinitions.Count];
+
+            for (var i = 0; i < genericStructDefinitions.Count; i++)
+            {
+                if (!GenericStructSerializationInfo.TryParse(genericStructDefinitions[i], useMapMode, out infos[i]))
+                {
+                    throw new InvalidOperationException(genericStructDefinitions[i].FullName);
+                }
+            }
+
+            return infos;
         }
 
         private UnionClassSerializationInfo[] CollectUnionClassInfos()

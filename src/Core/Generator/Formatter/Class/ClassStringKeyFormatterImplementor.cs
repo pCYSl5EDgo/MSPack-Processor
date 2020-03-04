@@ -8,16 +8,17 @@ using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Provider;
 using System;
+using System.Linq;
 
 namespace MSPack.Processor.Core.Formatter
 {
-    public sealed class StructStringKeyImplementor
+    public sealed class ClassStringKeyFormatterImplementor
     {
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
 
-        public StructStringKeyImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public ClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
         {
             this.module = module;
             this.provider = provider;
@@ -29,7 +30,7 @@ namespace MSPack.Processor.Core.Formatter
         /// </summary>
         /// <param name="info">information.</param>
         /// <param name="formatter">formatter type. Must be empty.</param>
-        public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
+        public void Implement(in ClassSerializationInfo info, TypeDefinition formatter)
         {
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(info.Definition);
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric));
@@ -39,7 +40,6 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Fields.Add(keyMapping);
 
             var constructor = GenerateConstructor(in info, keyMapping);
-            constructor.Body.Optimize();
             formatter.Methods.Add(constructor);
 
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
@@ -53,7 +53,7 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Methods.Add(deserialize);
         }
 
-        private MethodDefinition GenerateConstructor(in StructSerializationInfo info, FieldDefinition keyMapping)
+        private MethodDefinition GenerateConstructor(in ClassSerializationInfo info, FieldDefinition keyMapping)
         {
             var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
             var last = constructor.Body.Instructions[constructor.Body.Instructions.Count - 1];
@@ -77,10 +77,15 @@ namespace MSPack.Processor.Core.Formatter
         }
 
         #region Deserialize
-        private MethodDefinition GenerateDeserialize(in StructSerializationInfo info, in bool shouldCallback, FieldDefinition keyMapping)
+        private MethodDefinition GenerateDeserialize(in ClassSerializationInfo info, in bool shouldCallback, FieldDefinition keyMapping)
         {
             var target = provider.Importer.Import(info.Definition);
-            var targetVariable = new VariableDefinition(target);
+            var targetCtor = provider.Importer.Import(info.Definition.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 0 && x.HasThis));
+            if (targetCtor is null)
+            {
+                throw new MessagePackGeneratorResolveFailedException("serializable class type should have zero param constructor. type : " + info.Definition.FullName);
+            }
+
             var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
             {
                 HasThis = true,
@@ -96,7 +101,7 @@ namespace MSPack.Processor.Core.Formatter
                     {
                         new VariableDefinition(module.TypeSystem.Int32), // map length
                         new VariableDefinition(module.TypeSystem.Int32), // map index
-                        targetVariable, // target
+                        new VariableDefinition(target), // target
                         new VariableDefinition(provider.InterfaceFormatterResolverHelper.IFormatterResolver), // resolver
                         new VariableDefinition(module.TypeSystem.Int32), // TryGetValue destination value
                     },
@@ -110,22 +115,22 @@ namespace MSPack.Processor.Core.Formatter
             var notNil = Instruction.Create(OpCodes.Ldarg_2);
             processor.Append(Instruction.Create(OpCodes.Brfalse_S, notNil));
 
-            processor.Append(Instruction.Create(OpCodes.Ldstr, "typecode is null, struct not supported"));
-            processor.Append(Instruction.Create(OpCodes.Newobj, provider.SystemInvalidOperationExceptionHelper.Ctor));
-            processor.Append(Instruction.Create(OpCodes.Throw));
+            processor.Append(Instruction.Create(OpCodes.Ldnull));
+            processor.Append(Instruction.Create(OpCodes.Ret));
 
             EnsureDepthStep(processor, notNil);
             ReadMapHeader(processor);
             LoadResolver(processor);
+            InitializeObject(processor, targetCtor);
 
-            Assignment(processor, info, keyMapping, targetVariable);
+            Assignment(processor, in info, keyMapping);
 
-            PostProcess(processor, info, shouldCallback, targetVariable);
+            PostProcess(processor, info, shouldCallback);
 
             return deserialize;
         }
 
-        private void Assignment(ILProcessor processor, in StructSerializationInfo info, FieldDefinition keyMapping, VariableDefinition targetVariable)
+        private void Assignment(ILProcessor processor, in ClassSerializationInfo info, FieldDefinition keyMapping)
         {
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
@@ -144,7 +149,7 @@ namespace MSPack.Processor.Core.Formatter
             var nextInstruction = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
 
-            var (switchInstructions, defaultInstructions, switchTable) = GenerateSwitchStatements(info, targetVariable);
+            var (switchInstructions, defaultInstructions, switchTable) = GenerateSwitchStatements(info);
 
             processor.Append(foundInstruction);
             processor.Append(Instruction.Create(OpCodes.Switch, switchTable));
@@ -181,7 +186,7 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Blt, loopStart));
         }
 
-        private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in StructSerializationInfo info, VariableDefinition targetVariable)
+        private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in ClassSerializationInfo info)
         {
             var answers = new Instruction[info.KeyCount][];
             var @default = new[]
@@ -193,7 +198,7 @@ namespace MSPack.Processor.Core.Formatter
             var index = 0;
             foreach (var (_, (result, field, property)) in info.EnumerateStringKeyValuePairs())
             {
-                answers[index++] = FillAnswer(result, field, property, @default, targetVariable);
+                answers[index++] = FillAnswer(result, field, property, @default);
             }
 
             var table = new Instruction[answers.Length];
@@ -205,7 +210,7 @@ namespace MSPack.Processor.Core.Formatter
             return (answers, @default, table);
         }
 
-        private Instruction[] FillAnswer(IndexerAccessResult result, in FieldSerializationInfo serializationInfo, in PropertySerializationInfo property, Instruction[] @default, VariableDefinition targetVariable)
+        private Instruction[] FillAnswer(IndexerAccessResult result, in FieldSerializationInfo field, in PropertySerializationInfo property, Instruction[] @default)
         {
             switch (result)
             {
@@ -213,37 +218,25 @@ namespace MSPack.Processor.Core.Formatter
                     return @default;
 
                 case IndexerAccessResult.Field:
-                    var storeFieldReference = provider.Importer.Import(serializationInfo.Definition);
-                    if (serializationInfo.IsFixedSizeBuffer)
-                    {
-                        return FixedSizeBufferUtility.DeserializeFixedSizeBuffer(
-                            targetVariable,
-                            serializationInfo.Definition,
-                            module,
-                            provider.MessagePackReaderHelper,
-                            provider.Importer,
-                            provider.SystemInvalidOperationExceptionHelper,
-                            serializationInfo.ElementType,
-                            serializationInfo.FixedSizeBufferCount);
-                    }
-                    else if (serializationInfo.IsMessagePackPrimitive)
+                    var storeFieldReference = provider.Importer.Import(field.Definition);
+                    if (field.IsMessagePackPrimitive)
                     {
                         return new[]
                         {
-                            Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                            Instruction.Create(OpCodes.Ldloc_2),
                             Instruction.Create(OpCodes.Ldarg_1),
-                            Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(serializationInfo.Definition.FieldType)),
+                            Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(field.Definition.FieldType)),
                             Instruction.Create(OpCodes.Stfld, storeFieldReference),
                         };
                     }
                     else
                     {
-                        var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(serializationInfo.Definition.FieldType);
-                        var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(serializationInfo.Definition.FieldType);
+                        var formatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(field.Definition.FieldType);
+                        var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(field.Definition.FieldType);
                         var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
                         return new[]
                         {
-                            Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                            Instruction.Create(OpCodes.Ldloc_2),
                             Instruction.Create(OpCodes.Ldloc_3),
                             Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
                             Instruction.Create(OpCodes.Ldarg_1),
@@ -266,17 +259,17 @@ namespace MSPack.Processor.Core.Formatter
                             var setMethod = provider.Importer.Import(property.Definition.SetMethod);
                             return new[]
                             {
-                                Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                                Instruction.Create(OpCodes.Ldloc_2),
                                 Instruction.Create(OpCodes.Ldarg_1),
-                                Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(serializationInfo.Definition.FieldType)),
-                                Instruction.Create(OpCodes.Call, setMethod),
+                                Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(field.Definition.FieldType)),
+                                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
                             };
                         }
 
                         var backingField = provider.Importer.Import(property.BackingFieldReference);
                         return new[]
                         {
-                            Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                            Instruction.Create(OpCodes.Ldloc_2),
                             Instruction.Create(OpCodes.Ldarg_1),
                             Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(property.Definition.PropertyType)),
                             Instruction.Create(OpCodes.Stfld, backingField),
@@ -297,13 +290,13 @@ namespace MSPack.Processor.Core.Formatter
                             var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
                             return new[]
                             {
-                                Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                                Instruction.Create(OpCodes.Ldloc_2),
                                 Instruction.Create(OpCodes.Ldloc_3),
                                 Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
                                 Instruction.Create(OpCodes.Ldarg_1),
                                 Instruction.Create(OpCodes.Ldarg_2),
                                 Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                                Instruction.Create(OpCodes.Call, setMethod),
+                                Instruction.Create(property.CanCallSet ? OpCodes.Call : OpCodes.Callvirt, setMethod),
                             };
                         }
                         else
@@ -314,7 +307,7 @@ namespace MSPack.Processor.Core.Formatter
                             var deserializeGeneric = provider.InterfaceMessagePackFormatterHelper.DeserializeGeneric(iMessagePackFormatterGeneric);
                             return new[]
                             {
-                                Instruction.Create(OpCodes.Ldloca_S, targetVariable),
+                                Instruction.Create(OpCodes.Ldloc_2),
                                 Instruction.Create(OpCodes.Ldloc_3),
                                 Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
                                 Instruction.Create(OpCodes.Ldarg_1),
@@ -352,11 +345,17 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Stloc_3));
         }
 
-        private void PostProcess(ILProcessor processor, StructSerializationInfo info, bool shouldCallback, VariableDefinition targetVariable)
+        private static void InitializeObject(ILProcessor processor, MethodReference targetCtor)
+        {
+            processor.Append(Instruction.Create(OpCodes.Newobj, targetCtor));
+            processor.Append(Instruction.Create(OpCodes.Stloc_2));
+        }
+
+        private void PostProcess(ILProcessor processor, in ClassSerializationInfo info, bool shouldCallback)
         {
             if (shouldCallback)
             {
-                CallbackAfterDeserialization(info, processor, targetVariable);
+                CallbackAfterDeserialization(info, processor);
             }
 
             DecrementDepth(processor);
@@ -365,16 +364,13 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
-        private void CallbackAfterDeserialization(in StructSerializationInfo info, ILProcessor processor, VariableDefinition targetVariable)
+        private void CallbackAfterDeserialization(in ClassSerializationInfo info, ILProcessor processor)
         {
-            if (CallbackTestUtility.NoOperationInAfterDeserializationCallback(info.Definition, out var callback))
+            if (!CallbackTestUtility.NoOperationInAfterDeserializationCallback(info.Definition, out var callback))
             {
-                return;
+                processor.Append(Instruction.Create(OpCodes.Ldloc_2));
+                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
             }
-
-            processor.Append(Instruction.Create(OpCodes.Ldloca_S, targetVariable));
-            processor.Append(Instruction.Create(OpCodes.Constrained, targetVariable.VariableType));
-            processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
         }
 
         private void DecrementDepth(ILProcessor processor)
@@ -389,43 +385,55 @@ namespace MSPack.Processor.Core.Formatter
         #endregion
 
         #region Serialize
-        private MethodDefinition GenerateSerialize(in StructSerializationInfo info, in bool shouldCallback)
+        private MethodDefinition GenerateSerialize(in ClassSerializationInfo info, in bool shouldCallback)
         {
-            var valueParam = new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition));
             var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, module.TypeSystem.Void)
             {
                 HasThis = true,
                 Parameters =
                 {
                     new ParameterDefinition("writer", ParameterAttributes.None, new ByReferenceType(provider.MessagePackWriterHelper.Writer)),
-                    valueParam,
+                    new ParameterDefinition("value", ParameterAttributes.None, provider.Importer.Import(info.Definition)),
                     new ParameterDefinition("options", ParameterAttributes.None, provider.MessagePackSerializerOptionsHelper.Options),
                 },
             };
 
             var processor = serialize.Body.GetILProcessor();
-            WriteMapHeader(processor, info);
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+
+            var notNullWriteMapHeader = Instruction.Create(OpCodes.Ldarg_1);
+
+            processor.Append(Instruction.Create(OpCodes.Brtrue_S, notNullWriteMapHeader));
+
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
+            processor.Append(Instruction.Create(OpCodes.Ret));
+
+            WriteMapHeader(processor, info, notNullWriteMapHeader);
 
             if (shouldCallback)
             {
-                Preprocess(info, processor, valueParam);
+                if (!CallbackTestUtility.NoOperationInBeforeSerializationCallback(info.Definition, out var callback))
+                {
+                    processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                    processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
+                }
             }
 
             var resolverCalled = false;
             var readOnlySpanByte = provider.SystemReadOnlySpanHelper.ReadOnlySpanGeneric(module.TypeSystem.Byte);
             var readOnlySpanCtor = provider.SystemReadOnlySpanHelper.CtorPointer(readOnlySpanByte);
-            var intPtrVariable = default(VariableDefinition);
 
             foreach (var serializationInfo in info.FieldInfos)
             {
                 WriteHead(processor, readOnlySpanCtor, serializationInfo);
-                WriteElement(processor, in serializationInfo, valueParam, ref resolverCalled, ref intPtrVariable);
+                SerializeField(in serializationInfo, processor, ref resolverCalled);
             }
 
             foreach (var serializationInfo in info.PropertyInfos)
             {
                 WriteHead(processor, readOnlySpanCtor, serializationInfo);
-                WriteElement(processor, in serializationInfo, valueParam, ref resolverCalled);
+                SerializeProperty(in serializationInfo, processor, ref resolverCalled);
             }
 
             if (resolverCalled)
@@ -437,51 +445,73 @@ namespace MSPack.Processor.Core.Formatter
             return serialize;
         }
 
-        private void Preprocess(in StructSerializationInfo info, ILProcessor processor, ParameterDefinition valueParam)
-        {
-            if (CallbackTestUtility.NoOperationInBeforeSerializationCallback(info.Definition, out var callback))
-            {
-                return;
-            }
-
-            processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
-            processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
-        }
-
-        private void WriteElement(ILProcessor processor, in PropertySerializationInfo serializationInfo, ParameterDefinition valueParam, ref bool resolverCalled)
+        private void SerializeProperty(in PropertySerializationInfo serializationInfo, ILProcessor processor, ref bool resolverCalled)
         {
             var backingField = serializationInfo.BackingFieldReference;
-            if (serializationInfo.IsMessagePackPrimitive)
+
+            if (!(backingField is null))
             {
-                if (!(backingField is null))
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
-                    processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(backingField)));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(backingField.FieldType)));
-                }
-                else if (serializationInfo.IsReadable)
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.Importer.Import(serializationInfo.Definition.GetMethod)));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(serializationInfo.Definition.PropertyType)));
-                }
-                else
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
-                }
+                SerializePropertyBackingField(serializationInfo, processor, ref resolverCalled, backingField);
+            }
+            else if (serializationInfo.IsReadable)
+            {
+                SerializePropertyGetter(serializationInfo, processor, ref resolverCalled);
             }
             else
             {
-                if (backingField is null && !serializationInfo.IsReadable)
-                {
-                    processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                    processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
-                    return;
-                }
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
+            }
+        }
 
+        private void SerializePropertyGetter(in PropertySerializationInfo serializationInfo, ILProcessor processor, ref bool resolverCalled)
+        {
+            if (serializationInfo.IsMessagePackPrimitive)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(serializationInfo.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, provider.Importer.Import(serializationInfo.Definition.GetMethod)));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(serializationInfo.Definition.PropertyType)));
+            }
+            else
+            {
+                SerializePropertyGetterNotPrimitive(serializationInfo, processor, ref resolverCalled);
+            }
+        }
+
+        private void SerializePropertyGetterNotPrimitive(in PropertySerializationInfo serializationInfo, ILProcessor processor, ref bool resolverCalled)
+        {
+            if (!resolverCalled)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.MessagePackSerializerOptionsHelper.get_Resolver));
+                resolverCalled = true;
+            }
+
+            processor.Append(Instruction.Create(OpCodes.Dup));
+            var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(serializationInfo.Definition.PropertyType);
+            processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+
+            processor.Append(Instruction.Create(serializationInfo.CanCallGet ? OpCodes.Call : OpCodes.Callvirt, provider.Importer.Import(serializationInfo.Definition.GetMethod)));
+
+            processor.Append(Instruction.Create(OpCodes.Ldarg_3));
+            var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(serializationInfo.Definition.PropertyType));
+            processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
+        }
+
+        private void SerializePropertyBackingField(in PropertySerializationInfo serializationInfo, ILProcessor processor, ref bool resolverCalled, FieldReference backingField)
+        {
+            if (serializationInfo.IsMessagePackPrimitive)
+            {
+                processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(backingField)));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(backingField.FieldType)));
+            }
+            else
+            {
                 if (!resolverCalled)
                 {
                     processor.Append(Instruction.Create(OpCodes.Ldarg_3));
@@ -493,41 +523,20 @@ namespace MSPack.Processor.Core.Formatter
                 var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(serializationInfo.Definition.PropertyType);
                 processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
-
-                processor.Append(backingField is null
-                    ? Instruction.Create(OpCodes.Call, provider.Importer.Import(serializationInfo.Definition.GetMethod))
-                    : Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(backingField)));
-
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
+                processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(backingField)));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_3));
                 var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(serializationInfo.Definition.PropertyType));
                 processor.Append(Instruction.Create(OpCodes.Callvirt, serializeGeneric));
             }
         }
 
-#if CSHARP_8_0_OR_NEWER
-        private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref bool resolverCalled, ref VariableDefinition? intPtrVariable)
-#else
-        private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref bool resolverCalled, ref VariableDefinition intPtrVariable)
-#endif
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ref bool resolverCalled)
         {
-            if (serializationInfo.IsFixedSizeBuffer)
-            {
-                FixedSizeBufferUtility.SerializeFixedSizeBuffer(
-                    processor,
-                    valueParam,
-                    serializationInfo.Definition,
-                    module,
-                    provider.MessagePackWriterHelper,
-                    provider.Importer,
-                    serializationInfo.ElementType,
-                    serializationInfo.FixedSizeBufferCount,
-                    ref intPtrVariable);
-            }
-            else if (serializationInfo.IsMessagePackPrimitive)
+            if (serializationInfo.IsMessagePackPrimitive)
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(serializationInfo.Definition)));
                 processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(serializationInfo.Definition.FieldType)));
             }
@@ -545,7 +554,7 @@ namespace MSPack.Processor.Core.Formatter
                 var getFormatterWithVerifyGeneric = provider.FormatterResolverExtensionHelper.GetFormatterWithVerifyGeneric(serializationInfo.Definition.FieldType);
                 processor.Append(Instruction.Create(OpCodes.Call, getFormatterWithVerifyGeneric));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-                processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
+                processor.Append(Instruction.Create(OpCodes.Ldarg_2));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(serializationInfo.Definition)));
                 processor.Append(Instruction.Create(OpCodes.Ldarg_3));
                 var serializeGeneric = provider.InterfaceMessagePackFormatterHelper.SerializeGeneric(provider.InterfaceMessagePackFormatterHelper.IMessagePackFormatterGeneric(serializationInfo.Definition.FieldType));
@@ -569,9 +578,9 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteRaw));
         }
 
-        private void WriteMapHeader(ILProcessor processor, in StructSerializationInfo info)
+        private void WriteMapHeader(ILProcessor processor, in ClassSerializationInfo info, Instruction notNullWriteMapHeader)
         {
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(notNullWriteMapHeader);
             processor.Append(InstructionUtility.LdcI4(info.KeyCount));
             processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMapHeaderInt));
         }

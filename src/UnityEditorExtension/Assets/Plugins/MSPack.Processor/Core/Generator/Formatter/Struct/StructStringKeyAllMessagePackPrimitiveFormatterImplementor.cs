@@ -11,13 +11,13 @@ using System;
 
 namespace MSPack.Processor.Core.Formatter
 {
-    public sealed class StructStringKeyAllMessagePackPrimitiveImplementor
+    public sealed class StructStringKeyAllMessagePackPrimitiveFormatterImplementor
     {
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
 
-        public StructStringKeyAllMessagePackPrimitiveImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public StructStringKeyAllMessagePackPrimitiveFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
         {
             this.module = module;
             this.provider = provider;
@@ -106,13 +106,14 @@ namespace MSPack.Processor.Core.Formatter
             foreach (var serializationInfo in info.FieldInfos)
             {
                 WriteHead(processor, readOnlySpanCtor, serializationInfo);
-                WriteElement(processor, in serializationInfo, valueParam, ref intPtrVariable);
+                var fieldReference = provider.Importer.Import(serializationInfo.Definition);
+                SerializeField(processor, in serializationInfo, fieldReference, valueParam, ref intPtrVariable);
             }
 
             foreach (var serializationInfo in info.PropertyInfos)
             {
                 WriteHead(processor, readOnlySpanCtor, serializationInfo);
-                WriteElement(processor, in serializationInfo, valueParam);
+                SerializeProperty(processor, in serializationInfo, valueParam);
             }
 
             processor.Append(Instruction.Create(OpCodes.Ret));
@@ -130,7 +131,7 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Callvirt, provider.Importer.Import(callback)));
         }
 
-        private void WriteElement(ILProcessor processor, in PropertySerializationInfo serializationInfo, ParameterDefinition valueParam)
+        private void SerializeProperty(ILProcessor processor, in PropertySerializationInfo serializationInfo, ParameterDefinition valueParam)
         {
             var backingField = serializationInfo.BackingFieldReference;
             if (!(backingField is null))
@@ -155,9 +156,9 @@ namespace MSPack.Processor.Core.Formatter
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref VariableDefinition? intPtrVariable)
+        private void SerializeField(ILProcessor processor, in FieldSerializationInfo serializationInfo, FieldReference fieldReference, ParameterDefinition valueParam, ref VariableDefinition? intPtrVariable)
 #else
-        private void WriteElement(ILProcessor processor, in FieldSerializationInfo serializationInfo, ParameterDefinition valueParam, ref VariableDefinition intPtrVariable)
+        private void SerializeField(ILProcessor processor, in FieldSerializationInfo serializationInfo, FieldReference fieldReference, ParameterDefinition valueParam, ref VariableDefinition intPtrVariable)
 #endif
         {
             if (serializationInfo.IsFixedSizeBuffer)
@@ -165,10 +166,9 @@ namespace MSPack.Processor.Core.Formatter
                 FixedSizeBufferUtility.SerializeFixedSizeBuffer(
                     processor,
                     valueParam,
-                    serializationInfo.Definition,
+                    fieldReference,
                     module,
                     provider.MessagePackWriterHelper,
-                    provider.Importer,
                     serializationInfo.ElementType,
                     serializationInfo.FixedSizeBufferCount,
                     ref intPtrVariable);
@@ -177,8 +177,8 @@ namespace MSPack.Processor.Core.Formatter
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
-                processor.Append(Instruction.Create(OpCodes.Ldfld, provider.Importer.Import(serializationInfo.Definition)));
-                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(serializationInfo.Definition.FieldType)));
+                processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));
+                processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteMessagePackPrimitive(fieldReference.FieldType)));
             }
         }
 

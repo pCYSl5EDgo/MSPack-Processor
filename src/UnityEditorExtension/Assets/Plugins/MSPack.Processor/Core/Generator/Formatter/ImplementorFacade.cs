@@ -10,17 +10,17 @@ namespace MSPack.Processor.Core.Formatter
 {
     public sealed class ImplementorFacade : IFormatterImplementor
     {
-        private readonly ClassIntKeyFormatterImplementor classIntKeyImplementor;
+        private readonly ClassIntKeyFormatterImplementor classIntKeyFormatterImplementor;
         private readonly ClassIntKeyAllMessagePackPrimitiveFormatterImplementor classIntKeyAllMessagePackPrimitiveFormatterImplementor;
-        private readonly ClassStringKeyImplementor classStringKeyImplementor;
+        private readonly ClassStringKeyFormatterImplementor classStringKeyFormatterImplementor;
         private readonly ClassStringKeyAllMessagePackPrimitiveImplementor classStringKeyAllMessagePackPrimitiveImplementor;
 
         private readonly StructIntKeyFormatterImplementor structIntKeyFormatterImplementor;
         private readonly StructIntKeyFormatterImplementorWithConstructor structIntKeyFormatterImplementorWithConstructor;
         private readonly StructIntKeyAllMessagePackPrimitiveFormatterImplementor structIntKeyAllMessagePackPrimitiveFormatterImplementor;
         private readonly StructIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor;
-        private readonly StructStringKeyImplementor structStringKeyImplementor;
-        private readonly StructStringKeyAllMessagePackPrimitiveImplementor structStringKeyAllMessagePackPrimitiveImplementor;
+        private readonly StructStringKeyFormatterImplementor structStringKeyFormatterImplementor;
+        private readonly StructStringKeyAllMessagePackPrimitiveFormatterImplementor structStringKeyAllMessagePackPrimitiveFormatterImplementor;
 
         private readonly UnionInterfaceFormatterAllConsequentImplementor unionInterfaceFormatterAllConsequentImplementor;
         private readonly UnionInterfaceFormatterImplementor unionInterfaceFormatterImplementor;
@@ -28,32 +28,43 @@ namespace MSPack.Processor.Core.Formatter
         private readonly UnionClassFormatterAllConsequentImplementor unionClassFormatterAllConsequentImplementor;
         private readonly UnionClassFormatterImplementor unionClassFormatterImplementor;
 
+        private readonly GenericClassIntKeyFormatterImplementor genericClassIntKeyFormatterImplementor;
+        private readonly GenericClassStringKeyFormatterImplementor genericClassStringKeyFormatterImplementor;
+        private readonly GenericStructIntKeyFormatterImplementor genericStructIntKeyFormatterImplementor;
+        private readonly GenericStructStringKeyFormatterImplementor genericStructStringKeyFormatterImplementor;
+
         public ImplementorFacade(TypeProvider provider, double loadFactor)
         {
             var module = provider.Module;
             var dataHelper = new DataHelper(module, provider.SystemValueTypeHelper.ValueType);
+            var importer = provider.Importer;
 
-            classIntKeyImplementor = new ClassIntKeyFormatterImplementor(module, provider);
+            classIntKeyFormatterImplementor = new ClassIntKeyFormatterImplementor(module, provider);
             classIntKeyAllMessagePackPrimitiveFormatterImplementor = new ClassIntKeyAllMessagePackPrimitiveFormatterImplementor(module, provider);
             structIntKeyFormatterImplementor = new StructIntKeyFormatterImplementor(module, provider);
             structIntKeyAllMessagePackPrimitiveFormatterImplementor = new StructIntKeyAllMessagePackPrimitiveFormatterImplementor(module, provider);
             structIntKeyFormatterImplementorWithConstructor = new StructIntKeyFormatterImplementorWithConstructor(module, provider);
             structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor = new StructIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor(module, provider);
 
-            classStringKeyImplementor = new ClassStringKeyImplementor(module, provider, dataHelper);
+            classStringKeyFormatterImplementor = new ClassStringKeyFormatterImplementor(module, provider, dataHelper);
             classStringKeyAllMessagePackPrimitiveImplementor = new ClassStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
-            structStringKeyImplementor = new StructStringKeyImplementor(module, provider, dataHelper);
-            structStringKeyAllMessagePackPrimitiveImplementor = new StructStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
+            structStringKeyFormatterImplementor = new StructStringKeyFormatterImplementor(module, provider, dataHelper);
+            structStringKeyAllMessagePackPrimitiveFormatterImplementor = new StructStringKeyAllMessagePackPrimitiveFormatterImplementor(module, provider, dataHelper);
 
             var typeKeyUInt64ValuePairGenerator = new TypeKeyUInt64ValuePairGenerator(module, provider.SystemValueTypeHelper, provider.SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper, provider.SystemTypeHelper);
-            var fixedTypeKeyUInt64ValueHashtableGenerator = new FixedTypeKeyUInt64ValueHashtableGenerator(module, typeKeyUInt64ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
-            unionInterfaceFormatterImplementor = new UnionInterfaceFormatterImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyUInt64ValueHashtableGenerator);
-            unionClassFormatterImplementor = new UnionClassFormatterImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyUInt64ValueHashtableGenerator);
+            var fixedTypeKeyUInt64ValueHashtableGenerator = new FixedTypeKeyUInt64ValueHashtableGenerator(module, typeKeyUInt64ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, importer, provider.SystemArrayHelper, loadFactor);
+            unionInterfaceFormatterImplementor = new UnionInterfaceFormatterImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyUInt64ValueHashtableGenerator);
+            unionClassFormatterImplementor = new UnionClassFormatterImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyUInt64ValueHashtableGenerator);
 
             var typeKeyInt32ValuePairGenerator = new TypeKeyInt32ValuePairGenerator(module, provider.SystemValueTypeHelper, provider.SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper, provider.SystemTypeHelper);
-            var fixedTypeKeyInt32Generator = new FixedTypeKeyInt32ValueHashtableGenerator(module, typeKeyInt32ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
-            unionInterfaceFormatterAllConsequentImplementor = new UnionInterfaceFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
-            unionClassFormatterAllConsequentImplementor = new UnionClassFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, provider.Importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
+            var fixedTypeKeyInt32Generator = new FixedTypeKeyInt32ValueHashtableGenerator(module, typeKeyInt32ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, importer, provider.SystemArrayHelper, loadFactor);
+            unionInterfaceFormatterAllConsequentImplementor = new UnionInterfaceFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
+            unionClassFormatterAllConsequentImplementor = new UnionClassFormatterAllConsequentImplementor(module, provider.SystemObjectHelper, provider.InterfaceMessagePackFormatterHelper, provider.SystemInvalidOperationExceptionHelper, importer, provider.MessagePackSecurityHelper, provider.MessagePackSerializerOptionsHelper, provider.MessagePackWriterHelper, provider.MessagePackReaderHelper, provider.FormatterResolverExtensionHelper, fixedTypeKeyInt32Generator);
+
+            genericClassIntKeyFormatterImplementor = new GenericClassIntKeyFormatterImplementor(module, provider, importer);
+            genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, importer);
+            genericStructIntKeyFormatterImplementor = new GenericStructIntKeyFormatterImplementor(module, provider, importer);
+            genericStructStringKeyFormatterImplementor = new GenericStructStringKeyFormatterImplementor(module, provider, dataHelper, importer);
         }
 
         public void Implement(in ClassSerializationInfo info, TypeDefinition formatter)
@@ -76,7 +87,7 @@ namespace MSPack.Processor.Core.Formatter
                 return;
             }
 
-            classStringKeyImplementor.Implement(info, formatter);
+            classStringKeyFormatterImplementor.Implement(info, formatter);
         }
 
         private void ImplementIntKey(in ClassSerializationInfo info, TypeDefinition formatter)
@@ -103,7 +114,7 @@ namespace MSPack.Processor.Core.Formatter
                 }
             }*/
 
-            classIntKeyImplementor.Implement(info, formatter);
+            classIntKeyFormatterImplementor.Implement(info, formatter);
         }
 
         public void Implement(in StructSerializationInfo info, TypeDefinition formatter)
@@ -122,11 +133,11 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (info.AreAllMessagePackPrimitive)
             {
-                structStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
+                structStringKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
                 return;
             }
 
-            structStringKeyImplementor.Implement(info, formatter);
+            structStringKeyFormatterImplementor.Implement(info, formatter);
         }
 
         private void ImplementIntKey(in StructSerializationInfo info, TypeDefinition formatter)
@@ -185,6 +196,30 @@ namespace MSPack.Processor.Core.Formatter
             else
             {
                 unionClassFormatterImplementor.Implement(in info, formatter);
+            }
+        }
+
+        public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.IsIntKey)
+            {
+                genericClassIntKeyFormatterImplementor.Implement(in info, formatter);
+            }
+            else
+            {
+                genericClassStringKeyFormatterImplementor.Implement(in info, formatter);
+            }
+        }
+
+        public void Implement(in GenericStructSerializationInfo info, TypeDefinition formatter)
+        {
+            if (info.IsIntKey)
+            {
+                genericStructIntKeyFormatterImplementor.Implement(in info, formatter);
+            }
+            else
+            {
+                genericStructStringKeyFormatterImplementor.Implement(in info, formatter);
             }
         }
     }

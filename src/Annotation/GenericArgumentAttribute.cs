@@ -5,10 +5,10 @@ using System;
 
 namespace MSPack.Processor.Annotation
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Module, Inherited = false, AllowMultiple = true)]
     public sealed class GenericArgumentAttribute : Attribute
     {
-        public GenericArgumentAttribute(params Type[] genericArgumentTypes)
+        public GenericArgumentAttribute(Type serializeTargetType)
         {
         }
     }

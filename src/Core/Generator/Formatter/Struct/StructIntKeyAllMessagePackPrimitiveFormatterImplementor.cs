@@ -89,7 +89,8 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackWriterHelper.WriteNil));
                     break;
                 case IndexerAccessResult.Field:
-                    SerializeField(field, processor, valueParam, ref intPtrVariable);
+                    var fieldReference = provider.Importer.Import(field.Definition);
+                    SerializeField(field, processor, fieldReference, valueParam, ref intPtrVariable);
                     break;
                 case IndexerAccessResult.Property:
                     SerializeProperty(property, processor, valueParam);
@@ -100,28 +101,26 @@ namespace MSPack.Processor.Core.Formatter
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, ref VariableDefinition? intPtrVariable)
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, FieldReference fieldReference, ParameterDefinition valueParam, ref VariableDefinition? intPtrVariable)
 #else
-        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, ParameterDefinition valueParam, ref VariableDefinition intPtrVariable)
+        private void SerializeField(in FieldSerializationInfo serializationInfo, ILProcessor processor, FieldReference fieldReference, ParameterDefinition valueParam, ref VariableDefinition intPtrVariable)
 #endif
         {
+            var fieldTypeReference = fieldReference.FieldType;
             if (serializationInfo.IsFixedSizeBuffer)
             {
                 FixedSizeBufferUtility.SerializeFixedSizeBuffer(
                     processor,
                     valueParam,
-                    serializationInfo.Definition,
+                    fieldReference,
                     module,
                     provider.MessagePackWriterHelper,
-                    provider.Importer,
                     serializationInfo.ElementType,
                     serializationInfo.FixedSizeBufferCount,
                     ref intPtrVariable);
             }
             else
             {
-                var fieldReference = provider.Importer.Import(serializationInfo.Definition);
-                var fieldTypeReference = provider.Importer.Import(fieldReference.FieldType);
                 processor.Append(Instruction.Create(OpCodes.Ldarg_1));
                 processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam));
                 processor.Append(Instruction.Create(OpCodes.Ldfld, fieldReference));

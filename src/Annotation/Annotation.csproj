@@ -14,8 +14,10 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.0.0</Version>
-    <PackageReleaseNotes>0.0.0 : Initial Commit</PackageReleaseNotes>
+    <Version>0.1.0</Version>
+    <PackageReleaseNotes>0.1.0 : GenericArgumentAssemblyAttribute.
+0.0.0 : Initial Commit
+    </PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>

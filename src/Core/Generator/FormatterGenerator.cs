@@ -15,11 +15,8 @@ namespace MSPack.Processor.Core
         private readonly TypeDefinition resolver;
         private readonly IFormatterImplementor implementor;
 
-        private readonly Action<string> logger;
-
-        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor, Action<string> logger)
+        public FormatterGenerator(TypeDefinition resolver, TypeProvider provider, double loadFactor)
         {
-            this.logger = logger;
             this.resolver = resolver;
             implementor = new ImplementorFacade(provider, loadFactor);
         }
@@ -32,37 +29,24 @@ namespace MSPack.Processor.Core
             for (var index = 0; index < infos.Length; index++)
             {
                 ref readonly var collectedInfo = ref infos[index];
-                logger(collectedInfo.ToString());
-                answer += Count(collectedInfo);
+                answer += collectedInfo.Count;
             }
 
             return answer;
-        }
-
-        public static int Count(in CollectedInfo info)
-        {
-            return info.ClassSerializationInfos.Length
-                   + info.StructSerializationInfos.Length
-                   + info.InterfaceSerializationInfos.Length
-                   + info.UnionClassSerializationInfos.Length;
         }
 
         public FormatterInfo[] Generate(CollectedInfo[] collectedReadOnlySpan)
         {
             if (collectedReadOnlySpan.Length == 0)
             {
-                logger(nameof(FormatterGenerator) + " -> 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
 
             var count = Count(collectedReadOnlySpan);
             if (count == 0)
             {
-                logger(nameof(FormatterGenerator) + " -> total 0 length of " + nameof(collectedReadOnlySpan));
                 return Array.Empty<FormatterInfo>();
             }
-
-            logger(nameof(FormatterGenerator) + " -> answer length : " + count);
 
             var answer = new FormatterInfo[count];
             var index = 0;
@@ -113,6 +97,22 @@ namespace MSPack.Processor.Core
                 formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
                 index++;
             }
+
+            var collectedInfoGenericClassSerializationInfos = collectedInfo.GenericClassSerializationInfos;
+            for (var i = 0; i < collectedInfoGenericClassSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoGenericClassSerializationInfos[i];
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
+
+            var collectedInfoGenericStructSerializationInfos = collectedInfo.GenericStructSerializationInfos;
+            for (var i = 0; i < collectedInfoGenericStructSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoGenericStructSerializationInfos[i];
+                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
         }
 
         private TypeDefinition GetOrAdd(in UnionClassSerializationInfo info, int index)
@@ -139,6 +139,32 @@ namespace MSPack.Processor.Core
             }
 
             var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            implementor.Implement(info, formatter);
+            resolver.NestedTypes.Add(formatter);
+            return formatter;
+        }
+
+        private TypeReference GetOrAdd(in GenericClassSerializationInfo info, int index)
+        {
+            if (!(info.FormatterType is null))
+            {
+                return info.FormatterType;
+            }
+
+            var formatter = new TypeDefinition(string.Empty, "GCFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            implementor.Implement(info, formatter);
+            resolver.NestedTypes.Add(formatter);
+            return formatter;
+        }
+
+        private TypeReference GetOrAdd(in GenericStructSerializationInfo info, int index)
+        {
+            if (!(info.FormatterType is null))
+            {
+                return info.FormatterType;
+            }
+
+            var formatter = new TypeDefinition(string.Empty, "GSFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
