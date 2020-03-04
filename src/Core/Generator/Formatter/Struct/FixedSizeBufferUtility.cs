@@ -32,6 +32,7 @@ namespace MSPack.Processor.Core.Formatter
                 case FixedSizeBufferElementType.UInt64:
                 case FixedSizeBufferElementType.Double:
                     return 8;
+                // ReSharper disable once RedundantCaseLabel
                 case FixedSizeBufferElementType.None:
                 default:
                     throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
@@ -66,6 +67,7 @@ namespace MSPack.Processor.Core.Formatter
                     return module.TypeSystem.Single;
                 case FixedSizeBufferElementType.Double:
                     return module.TypeSystem.Double;
+                // ReSharper disable once RedundantCaseLabel
                 case FixedSizeBufferElementType.None:
                 default:
                     throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
@@ -97,6 +99,7 @@ namespace MSPack.Processor.Core.Formatter
                     return OpCodes.Ldind_R4;
                 case FixedSizeBufferElementType.Double:
                     return OpCodes.Ldind_R8;
+                // ReSharper disable once RedundantCaseLabel
                 case FixedSizeBufferElementType.None:
                 default:
                     throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
@@ -125,6 +128,7 @@ namespace MSPack.Processor.Core.Formatter
                     return OpCodes.Stind_R4;
                 case FixedSizeBufferElementType.Double:
                     return OpCodes.Stind_R8;
+                // ReSharper disable once RedundantCaseLabel
                 case FixedSizeBufferElementType.None:
                 default:
                     throw new ArgumentOutOfRangeException(nameof(elementType), elementType, null);
@@ -132,9 +136,9 @@ namespace MSPack.Processor.Core.Formatter
         }
 
 #if CSHARP_8_0_OR_NEWER
-        public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldDefinition fixedField, ModuleDefinition module, MessagePackWriterHelper writer, ModuleImporter importer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition? notPinnedVariable)
+        public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldReference fixedFieldImportedReference, ModuleDefinition module, MessagePackWriterHelper writer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition? notPinnedVariable)
 #else
-        public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldDefinition fixedField, ModuleDefinition module, MessagePackWriterHelper writer, ModuleImporter importer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition notPinnedVariable)
+        public static void SerializeFixedSizeBuffer(ILProcessor processor, ParameterDefinition valueParam, FieldReference fixedFieldImportedReference, ModuleDefinition module, MessagePackWriterHelper writer, FixedSizeBufferElementType elementType, int count, ref VariableDefinition notPinnedVariable)
 #endif
         {
             var writingElement = writer.WriteMessagePackPrimitive(GetType(module, elementType));
@@ -146,7 +150,7 @@ namespace MSPack.Processor.Core.Formatter
 
             processor.Append(Instruction.Create(OpCodes.Ldarg_1)); // { writer }
             processor.Append(Instruction.Create(OpCodes.Ldarga_S, valueParam)); // { writer, value& }
-            processor.Append(Instruction.Create(OpCodes.Ldflda, importer.Import(fixedField))); // { writer, field& }
+            processor.Append(Instruction.Create(OpCodes.Ldflda, fixedFieldImportedReference)); // { writer, field& }
             processor.Append(Instruction.Create(OpCodes.Conv_U)); // { writer, native uint }
 
             if (count == 1)
