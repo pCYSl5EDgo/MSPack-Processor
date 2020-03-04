@@ -2,3 +2,4 @@ bin/*
 obj/*
 .vs/*
 node_modules/*
+*.sln.DotSettings.user
