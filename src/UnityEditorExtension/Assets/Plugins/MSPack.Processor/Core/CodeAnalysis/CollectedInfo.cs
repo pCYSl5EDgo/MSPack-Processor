@@ -15,9 +15,10 @@ namespace MSPack.Processor.Core.Definitions
         public readonly UnionClassSerializationInfo[] UnionClassSerializationInfos;
         public readonly UnionInterfaceSerializationInfo[] InterfaceSerializationInfos;
         public readonly GenericClassSerializationInfo[] GenericClassSerializationInfos;
+        public readonly GenericStructSerializationInfo[] GenericStructSerializationInfos;
         public readonly bool PublicAccessible;
 
-        public CollectedInfo(ModuleDefinition module, ClassSerializationInfo[] classSerializationInfos, StructSerializationInfo[] structSerializationInfos, UnionClassSerializationInfo[] unionClassSerializationInfos, UnionInterfaceSerializationInfo[] interfaceSerializationInfos, GenericClassSerializationInfo[] genericClassSerializationInfos)
+        public CollectedInfo(ModuleDefinition module, ClassSerializationInfo[] classSerializationInfos, StructSerializationInfo[] structSerializationInfos, UnionClassSerializationInfo[] unionClassSerializationInfos, UnionInterfaceSerializationInfo[] interfaceSerializationInfos, GenericClassSerializationInfo[] genericClassSerializationInfos, GenericStructSerializationInfo[] genericStructSerializationInfos)
         {
             this.Module = module;
             this.ClassSerializationInfos = classSerializationInfos;
@@ -25,10 +26,12 @@ namespace MSPack.Processor.Core.Definitions
             this.UnionClassSerializationInfos = unionClassSerializationInfos;
             this.InterfaceSerializationInfos = interfaceSerializationInfos;
             this.GenericClassSerializationInfos = genericClassSerializationInfos;
+            this.GenericStructSerializationInfos = genericStructSerializationInfos;
 
             PublicAccessible = ClassSerializationInfos.All(x => x.PublicAccessible)
-                && StructSerializationInfos.All(x => x.PublicAccessible)
-                && GenericClassSerializationInfos.All(x => x.PublicAccessible);
+                               && StructSerializationInfos.All(x => x.PublicAccessible)
+                               && GenericClassSerializationInfos.All(x => x.PublicAccessible)
+                               && GenericStructSerializationInfos.All(x => x.PublicAccessible);
         }
 
         public override string ToString()
@@ -50,5 +53,13 @@ namespace MSPack.Processor.Core.Definitions
 
             return builder.ToString();
         }
+
+        public int Count =>
+            ClassSerializationInfos.Length
+            + StructSerializationInfos.Length
+            + InterfaceSerializationInfos.Length
+            + UnionClassSerializationInfos.Length
+            + GenericClassSerializationInfos.Length
+            + GenericStructSerializationInfos.Length;
     }
 }

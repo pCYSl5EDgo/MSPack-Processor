@@ -28,7 +28,7 @@ namespace MSPack.Processor.Core.Formatter
         /// </summary>
         /// <param name="info">information.</param>
         /// <param name="formatter">formatter type. Must be empty.</param>
-        public void Implement(in GenericClassSerializationInfo info, TypeDefinition formatter)
+        public void Implement(in GenericStructSerializationInfo info, TypeDefinition formatter)
         {
             GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out _, out var targetGenericInstanceType);
 
@@ -49,7 +49,7 @@ namespace MSPack.Processor.Core.Formatter
         }
 
         #region Serialize
-        private MethodDefinition GenerateSerialize(in GenericClassSerializationInfo info, bool shouldCallback, GenericInstanceType targetGenericInstanceType)
+        private MethodDefinition GenerateSerialize(in GenericStructSerializationInfo info, bool shouldCallback, GenericInstanceType targetGenericInstanceType)
         {
             var valueParam = new ParameterDefinition("value", ParameterAttributes.None, targetGenericInstanceType);
             var serialize = new MethodDefinition("Serialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, module.TypeSystem.Void)
@@ -112,7 +112,7 @@ namespace MSPack.Processor.Core.Formatter
             return serialize;
         }
 
-        private void SerializeWriteArrayHeader(in GenericClassSerializationInfo info, ILProcessor processor)
+        private void SerializeWriteArrayHeader(in GenericStructSerializationInfo info, ILProcessor processor)
         {
             processor.Append(Instruction.Create(OpCodes.Ldarg_1));
             processor.Append(InstructionUtility.LdcI4(info.MaxIntKey + 1));
@@ -263,7 +263,7 @@ namespace MSPack.Processor.Core.Formatter
         #endregion
 
         #region Deserialize
-        private MethodDefinition GenerateDeserialize(in GenericClassSerializationInfo info, bool shouldCallback, GenericInstanceType target)
+        private MethodDefinition GenerateDeserialize(in GenericStructSerializationInfo info, bool shouldCallback, GenericInstanceType target)
         {
             var targetVariable = new VariableDefinition(target);
             var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, target)
@@ -310,7 +310,7 @@ namespace MSPack.Processor.Core.Formatter
             return deserialize;
         }
 
-        private void Assignment(ILProcessor processor, in GenericClassSerializationInfo info, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
+        private void Assignment(ILProcessor processor, in GenericStructSerializationInfo info, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
         {
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
@@ -378,7 +378,7 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
-        private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in GenericClassSerializationInfo info, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
+        private (Instruction[][] switchInstructions, Instruction[] defaultInstructions, Instruction[] switchTable) GenerateSwitchStatements(in GenericStructSerializationInfo info, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
         {
             var answers = new Instruction[info.MaxIntKey - info.MinIntKey + 1][];
             var @default = new[]
