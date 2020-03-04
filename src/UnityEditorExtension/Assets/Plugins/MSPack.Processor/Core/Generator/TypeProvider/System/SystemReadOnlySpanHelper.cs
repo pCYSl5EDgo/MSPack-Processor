@@ -64,26 +64,6 @@ namespace MSPack.Processor.Core.Provider
             return answer;
         }
 
-        private readonly List<(GenericInstanceType genericInstanceType, MethodReference method)> memoGetLength = new List<(GenericInstanceType genericInstanceType, MethodReference method)>();
-
-        public MethodReference get_Length(GenericInstanceType type)
-        {
-            foreach (var (genericInstanceType, answerMethod) in memoGetLength)
-            {
-                if (ReferenceEquals(genericInstanceType, type))
-                {
-                    return answerMethod;
-                }
-            }
-
-            var method = new MethodReference("get_Length", module.TypeSystem.Int32, importer.Import(type).Reference)
-            {
-                HasThis = true,
-            };
-            memoGetLength.Add((type, method));
-            return method;
-        }
-
         private readonly List<(GenericInstanceType genericInstanceType, MethodReference ctorMethod)> memoCtorPointer = new List<(GenericInstanceType genericInstanceType, MethodReference ctorMethod)>();
 
         public MethodReference CtorPointer(GenericInstanceType type)
