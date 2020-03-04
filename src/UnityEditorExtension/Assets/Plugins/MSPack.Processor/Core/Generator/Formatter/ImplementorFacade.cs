@@ -19,8 +19,8 @@ namespace MSPack.Processor.Core.Formatter
         private readonly StructIntKeyFormatterImplementorWithConstructor structIntKeyFormatterImplementorWithConstructor;
         private readonly StructIntKeyAllMessagePackPrimitiveFormatterImplementor structIntKeyAllMessagePackPrimitiveFormatterImplementor;
         private readonly StructIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor structIntKeyAllMessagePackPrimitiveFormatterImplementorWithConstructor;
-        private readonly StructStringKeyImplementor structStringKeyImplementor;
-        private readonly StructStringKeyAllMessagePackPrimitiveImplementor structStringKeyAllMessagePackPrimitiveImplementor;
+        private readonly StructStringKeyFormatterImplementor structStringKeyFormatterImplementor;
+        private readonly StructStringKeyAllMessagePackPrimitiveFormatterImplementor structStringKeyAllMessagePackPrimitiveFormatterImplementor;
 
         private readonly UnionInterfaceFormatterAllConsequentImplementor unionInterfaceFormatterAllConsequentImplementor;
         private readonly UnionInterfaceFormatterImplementor unionInterfaceFormatterImplementor;
@@ -46,8 +46,8 @@ namespace MSPack.Processor.Core.Formatter
 
             classStringKeyFormatterImplementor = new ClassStringKeyFormatterImplementor(module, provider, dataHelper);
             classStringKeyAllMessagePackPrimitiveImplementor = new ClassStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
-            structStringKeyImplementor = new StructStringKeyImplementor(module, provider, dataHelper);
-            structStringKeyAllMessagePackPrimitiveImplementor = new StructStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
+            structStringKeyFormatterImplementor = new StructStringKeyFormatterImplementor(module, provider, dataHelper);
+            structStringKeyAllMessagePackPrimitiveFormatterImplementor = new StructStringKeyAllMessagePackPrimitiveFormatterImplementor(module, provider, dataHelper);
 
             var typeKeyUInt64ValuePairGenerator = new TypeKeyUInt64ValuePairGenerator(module, provider.SystemValueTypeHelper, provider.SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper, provider.SystemTypeHelper);
             var fixedTypeKeyUInt64ValueHashtableGenerator = new FixedTypeKeyUInt64ValueHashtableGenerator(module, typeKeyUInt64ValuePairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, importer, provider.SystemArrayHelper, loadFactor);
@@ -129,11 +129,11 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (info.AreAllMessagePackPrimitive)
             {
-                structStringKeyAllMessagePackPrimitiveImplementor.Implement(info, formatter);
+                structStringKeyAllMessagePackPrimitiveFormatterImplementor.Implement(info, formatter);
                 return;
             }
 
-            structStringKeyImplementor.Implement(info, formatter);
+            structStringKeyFormatterImplementor.Implement(info, formatter);
         }
 
         private void ImplementIntKey(in StructSerializationInfo info, TypeDefinition formatter)

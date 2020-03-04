@@ -45,6 +45,7 @@ namespace MSPack.Processor.Core
             {
                 return;
             }
+
             var customAttributes = type.CustomAttributes;
             if (type.IsInterface)
             {

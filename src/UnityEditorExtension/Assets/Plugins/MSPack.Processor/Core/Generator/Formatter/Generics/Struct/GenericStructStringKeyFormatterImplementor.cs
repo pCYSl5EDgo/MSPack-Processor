@@ -11,14 +11,14 @@ using System;
 
 namespace MSPack.Processor.Core.Formatter
 {
-    public sealed class GenericClassStringKeyFormatterImplementor
+    public sealed class GenericStructStringKeyFormatterImplementor
     {
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
         private readonly ModuleImporter importer;
 
-        public GenericClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer)
+        public GenericStructStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer)
         {
             this.module = module;
             this.provider = provider;
