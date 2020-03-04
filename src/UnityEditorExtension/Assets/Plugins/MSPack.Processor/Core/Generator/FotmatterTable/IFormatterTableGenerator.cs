@@ -7,6 +7,6 @@ namespace MSPack.Processor.Core
 {
     public interface IFormatterTableGenerator
     {
-        (TypeDefinition tableType, MethodDefinition getFormatter) Generate(FormatterInfo[] infos);
+        (TypeDefinition tableType, MethodDefinition getFormatter) Generate(FormatterTableItemInfo[] infos);
     }
 }

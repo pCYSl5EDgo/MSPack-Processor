@@ -18,13 +18,13 @@ namespace MSPack.Processor.Core
             this.importer = importer;
         }
 
-        public MethodReference Import(in FormatterInfo formatterInfo)
+        public MethodReference Import(in FormatterTableItemInfo formatterTableItemInfo)
         {
-            var formatterType = formatterInfo.FormatterType;
+            var formatterType = formatterTableItemInfo.FormatterType;
 
             if (formatterType is TypeDefinition definition)
             {
-                return importer.Import(FindConstructor(definition, formatterInfo.FormatterConstructorArguments));
+                return importer.Import(FindConstructor(definition, formatterTableItemInfo.FormatterConstructorArguments));
             }
 
             var answer = new MethodReference(".ctor", voidTypeReference, importer.Import(formatterType).Reference)
@@ -32,9 +32,9 @@ namespace MSPack.Processor.Core
                 HasThis = true,
             };
 
-            for (var index = 0; index < formatterInfo.FormatterConstructorArguments.Length; index++)
+            for (var index = 0; index < formatterTableItemInfo.FormatterConstructorArguments.Length; index++)
             {
-                ref var argument = ref formatterInfo.FormatterConstructorArguments[index];
+                ref var argument = ref formatterTableItemInfo.FormatterConstructorArguments[index];
                 answer.Parameters.Add(new ParameterDefinition(argument.Type));
             }
 

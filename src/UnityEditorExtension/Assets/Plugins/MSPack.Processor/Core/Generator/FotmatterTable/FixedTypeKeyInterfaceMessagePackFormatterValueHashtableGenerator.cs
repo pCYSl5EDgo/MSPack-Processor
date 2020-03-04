@@ -10,7 +10,7 @@ namespace MSPack.Processor.Core
     public sealed class FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator : IFormatterTableGenerator
     {
         private const string TypeName = "FixedTypeKeyInterfaceMessagePackFormatterValueHashtable";
-        private readonly FixedTypeKeyGenerator<FormatterInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator> generator;
+        private readonly FixedTypeKeyGenerator<FormatterTableItemInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator> generator;
         private readonly ModuleImporter importer;
         private readonly SystemTypeHelper typeHelper;
         private readonly CustomFormatterConstructorImporter customFormatterConstructorImporter;
@@ -20,7 +20,7 @@ namespace MSPack.Processor.Core
             this.importer = importer;
             this.typeHelper = typeHelper;
             customFormatterConstructorImporter = new CustomFormatterConstructorImporter(module.TypeSystem.Void, importer);
-            generator = new FixedTypeKeyGenerator<FormatterInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator>(
+            generator = new FixedTypeKeyGenerator<FormatterTableItemInfo, TypeKeyInterfaceMessagePackFormatterValuePairGenerator>(
                 TypeName,
                 module,
                 pairGenerator,
@@ -34,14 +34,14 @@ namespace MSPack.Processor.Core
                 new[] { Instruction.Create(OpCodes.Ldnull), });
         }
 
-        public (TypeDefinition tableType, MethodDefinition getFormatter) Generate(FormatterInfo[] infos)
+        public (TypeDefinition tableType, MethodDefinition getFormatter) Generate(FormatterTableItemInfo[] infos)
         {
             return generator.Generate(infos);
         }
 
-        private void LoadAppropriateValueFromFormatterInfo(ILProcessor processor, FormatterInfo formatterInfo)
+        private void LoadAppropriateValueFromFormatterInfo(ILProcessor processor, FormatterTableItemInfo formatterTableItemInfo)
         {
-            foreach (var constructorArgument in formatterInfo.FormatterConstructorArguments)
+            foreach (var constructorArgument in formatterTableItemInfo.FormatterConstructorArguments)
             {
                 void Load(CustomAttributeArgument argument)
                 {
@@ -137,7 +137,7 @@ namespace MSPack.Processor.Core
                 Load(constructorArgument);
             }
 
-            processor.Append(Instruction.Create(OpCodes.Newobj, customFormatterConstructorImporter.Import(formatterInfo))); // { Pair&, formatter }
+            processor.Append(Instruction.Create(OpCodes.Newobj, customFormatterConstructorImporter.Import(formatterTableItemInfo))); // { Pair&, formatter }
         }
     }
 }

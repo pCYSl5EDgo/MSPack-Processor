@@ -120,20 +120,20 @@ namespace MSPack.Processor.Core
             return answer;
         }
 
-        public FormatterInfo[] Generate(CollectedInfo[] collectedReadOnlySpan)
+        public FormatterTableItemInfo[] Generate(CollectedInfo[] collectedReadOnlySpan)
         {
             if (collectedReadOnlySpan.Length == 0)
             {
-                return Array.Empty<FormatterInfo>();
+                return Array.Empty<FormatterTableItemInfo>();
             }
 
             var count = Count(collectedReadOnlySpan);
             if (count == 0)
             {
-                return Array.Empty<FormatterInfo>();
+                return Array.Empty<FormatterTableItemInfo>();
             }
 
-            var answer = new FormatterInfo[count];
+            var answer = new FormatterTableItemInfo[count];
             var index = 0;
 
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -145,71 +145,97 @@ namespace MSPack.Processor.Core
             return answer;
         }
 
-        private void Generate(FormatterInfo[] formatterInfos, in CollectedInfo collectedInfo, ref int index)
+        private void Generate(FormatterTableItemInfo[] formatterInfos, in CollectedInfo collectedInfo, ref int index)
         {
             var collectedInfoClassSerializationInfos = collectedInfo.ClassSerializationInfos;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var i = 0; i < collectedInfoClassSerializationInfos.Length; i++)
-            {
-                ref readonly var info = ref collectedInfoClassSerializationInfos[i];
-                if (info.CustomFormatter.FormatterType is null)
-                {
-                    formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
-                }
-                else
-                {
-                    formatterInfos[index] = new FormatterInfo(info.Definition, info.CustomFormatter.FormatterType, info.CustomFormatter.FormatterConstructorArguments);
-                }
-                index++;
-            }
+            Generate(formatterInfos, ref index, collectedInfoClassSerializationInfos);
 
             var collectedInfoStructSerializationInfos = collectedInfo.StructSerializationInfos;
-            // ReSharper disable once ForCanBeConvertedToForeach
+            Generate(formatterInfos, ref index, collectedInfoStructSerializationInfos);
+
+            var collectedInfoInterfaceSerializationInfos = collectedInfo.InterfaceSerializationInfos;
+            Generate(formatterInfos, ref index, collectedInfoInterfaceSerializationInfos);
+
+            var collectedInfoUnionClassSerializationInfos = collectedInfo.UnionClassSerializationInfos;
+            Generate(formatterInfos, ref index, collectedInfoUnionClassSerializationInfos);
+
+            var collectedInfoGenericClassSerializationInfos = collectedInfo.GenericClassSerializationInfos;
+            Generate(formatterInfos, ref index, collectedInfoGenericClassSerializationInfos);
+
+            var collectedInfoGenericStructSerializationInfos = collectedInfo.GenericStructSerializationInfos;
+            Generate(formatterInfos, ref index, collectedInfoGenericStructSerializationInfos);
+        }
+
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, GenericStructSerializationInfo[] collectedInfoGenericStructSerializationInfos)
+        {
+            for (var i = 0; i < collectedInfoGenericStructSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoGenericStructSerializationInfos[i];
+                formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
+        }
+
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, GenericClassSerializationInfo[] collectedInfoGenericClassSerializationInfos)
+        {
+            for (var i = 0; i < collectedInfoGenericClassSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoGenericClassSerializationInfos[i];
+                formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
+        }
+
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, UnionClassSerializationInfo[] collectedInfoUnionClassSerializationInfos)
+        {
+            for (var i = 0; i < collectedInfoUnionClassSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoUnionClassSerializationInfos[i];
+                formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
+        }
+
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, UnionInterfaceSerializationInfo[] collectedInfoInterfaceSerializationInfos)
+        {
+            for (var i = 0; i < collectedInfoInterfaceSerializationInfos.Length; i++)
+            {
+                ref readonly var info = ref collectedInfoInterfaceSerializationInfos[i];
+                formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                index++;
+            }
+        }
+
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, StructSerializationInfo[] collectedInfoStructSerializationInfos)
+        {
             for (var i = 0; i < collectedInfoStructSerializationInfos.Length; i++)
             {
                 ref readonly var info = ref collectedInfoStructSerializationInfos[i];
                 if (info.CustomFormatter.FormatterType is null)
                 {
-                    formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                    formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
                 }
                 else
                 {
-                    formatterInfos[index] = new FormatterInfo(info.Definition, info.CustomFormatter.FormatterType, info.CustomFormatter.FormatterConstructorArguments);
+                    formatterInfos[index] = new FormatterTableItemInfo(info.Definition, info.CustomFormatter.FormatterType, info.CustomFormatter.FormatterConstructorArguments);
                 }
                 index++;
             }
+        }
 
-            var collectedInfoInterfaceSerializationInfos = collectedInfo.InterfaceSerializationInfos;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var i = 0; i < collectedInfoInterfaceSerializationInfos.Length; i++)
+        private void Generate(FormatterTableItemInfo[] formatterInfos, ref int index, ClassSerializationInfo[] collectedInfoClassSerializationInfos)
+        {
+            for (var i = 0; i < collectedInfoClassSerializationInfos.Length; i++)
             {
-                ref readonly var info = ref collectedInfoInterfaceSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
-                index++;
-            }
-
-            var collectedInfoUnionClassSerializationInfos = collectedInfo.UnionClassSerializationInfos;
-            // ReSharper disable once ForCanBeConvertedToForeach
-            for (var i = 0; i < collectedInfoUnionClassSerializationInfos.Length; i++)
-            {
-                ref readonly var info = ref collectedInfoUnionClassSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
-                index++;
-            }
-
-            var collectedInfoGenericClassSerializationInfos = collectedInfo.GenericClassSerializationInfos;
-            for (var i = 0; i < collectedInfoGenericClassSerializationInfos.Length; i++)
-            {
-                ref readonly var info = ref collectedInfoGenericClassSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
-                index++;
-            }
-
-            var collectedInfoGenericStructSerializationInfos = collectedInfo.GenericStructSerializationInfos;
-            for (var i = 0; i < collectedInfoGenericStructSerializationInfos.Length; i++)
-            {
-                ref readonly var info = ref collectedInfoGenericStructSerializationInfos[i];
-                formatterInfos[index] = new FormatterInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                ref readonly var info = ref collectedInfoClassSerializationInfos[i];
+                if (info.CustomFormatter.FormatterType is null)
+                {
+                    formatterInfos[index] = new FormatterTableItemInfo(info.Definition, GetOrAdd(info, index), Array.Empty<CustomAttributeArgument>());
+                }
+                else
+                {
+                    formatterInfos[index] = new FormatterTableItemInfo(info.Definition, info.CustomFormatter.FormatterType, info.CustomFormatter.FormatterConstructorArguments);
+                }
                 index++;
             }
         }

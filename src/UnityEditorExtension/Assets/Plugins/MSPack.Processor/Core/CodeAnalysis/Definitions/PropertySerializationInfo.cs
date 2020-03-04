@@ -65,7 +65,7 @@ namespace MSPack.Processor.Core.Definitions
                 return false;
             }
         }
-        
+
         public uint FixedArrayLength
         {
             get

@@ -21,13 +21,13 @@ namespace MSPack.Processor.Core
             this.implementor = new EnumFormatterImplementor(provider);
         }
 
-        public FormatterInfo[] Generate(EnumSerializationInfo[] serializationInfos)
+        public FormatterTableItemInfo[] Generate(EnumSerializationInfo[] serializationInfos)
         {
-            var answer = new FormatterInfo[serializationInfos.Length];
+            var answer = new FormatterTableItemInfo[serializationInfos.Length];
             for (var index = 0; index < answer.Length; index++)
             {
                 ref readonly var info = ref serializationInfos[index];
-                answer[index] = new FormatterInfo(info.Type, GetOrAdd(in info, index), Array.Empty<CustomAttributeArgument>());
+                answer[index] = new FormatterTableItemInfo(info.Type, GetOrAdd(in info, index), Array.Empty<CustomAttributeArgument>());
             }
 
             return answer;

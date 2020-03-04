@@ -107,7 +107,7 @@ namespace MSPack.Processor.Core
                 EnsureInternalAccessibility(inputModule, collectedInfos, provider.SystemObjectHelper);
             }
 
-            FormatterInfo[] formatterInfos;
+            FormatterTableItemInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
                 formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions);
@@ -134,9 +134,9 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private static FormatterInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules)
+        private static FormatterTableItemInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules)
         {
-            var answer = new List<FormatterInfo>();
+            var answer = new List<FormatterTableItemInfo>();
             var generator = new FormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, loadFactor);
             var formatterInfos = generator.Generate(collectedInfos);
 
@@ -166,16 +166,16 @@ namespace MSPack.Processor.Core
             return answer.ToArray();
         }
 
-        private static List<FormatterInfo> CalculateGenericInstanceVariation(in FormatterInfo formatterInfo, ModuleDefinition[] modules, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition)
+        private static List<FormatterTableItemInfo> CalculateGenericInstanceVariation(in FormatterTableItemInfo formatterTableItemInfo, ModuleDefinition[] modules, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition)
         {
-            var list = new List<FormatterInfo>();
+            var list = new List<FormatterTableItemInfo>();
 
             foreach (var module in modules)
             {
                 foreach (var attribute in module.CustomAttributes)
                 {
                     var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
-                    if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
+                    if (TryCalculateGenericFormatterInfo(formatterTableItemInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
                     {
                         list.Add(genericFormatterInfo);
                     }
@@ -185,7 +185,7 @@ namespace MSPack.Processor.Core
             foreach (var attribute in serializeTypeDefinition.CustomAttributes)
             {
                 var attributeName = "MSPack.Processor.Annotation.GenericArgumentAttribute";
-                if (TryCalculateGenericFormatterInfo(formatterInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
+                if (TryCalculateGenericFormatterInfo(formatterTableItemInfo, formatterTypeDefinition, serializeTypeDefinition, attribute, attributeName, out var genericFormatterInfo))
                 {
                     list.Add(genericFormatterInfo);
                 }
@@ -194,9 +194,9 @@ namespace MSPack.Processor.Core
             return list;
         }
 
-        private static bool TryCalculateGenericFormatterInfo(FormatterInfo formatterInfo, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, CustomAttribute attribute, string attributeName, out FormatterInfo genericFormatterInfo)
+        private static bool TryCalculateGenericFormatterInfo(FormatterTableItemInfo formatterTableItemInfo, TypeDefinition formatterTypeDefinition, TypeDefinition serializeTypeDefinition, CustomAttribute attribute, string attributeName, out FormatterTableItemInfo genericFormatterTableItemInfo)
         {
-            genericFormatterInfo = default;
+            genericFormatterTableItemInfo = default;
             if (attribute.AttributeType.FullName != attributeName)
             {
                 return false;
@@ -224,7 +224,7 @@ namespace MSPack.Processor.Core
                 genericFormatter.GenericArguments.Add(genericArgument);
             }
 
-            genericFormatterInfo = new FormatterInfo(serializeTarget, genericFormatter, formatterInfo.FormatterConstructorArguments);
+            genericFormatterTableItemInfo = new FormatterTableItemInfo(serializeTarget, genericFormatter, formatterTableItemInfo.FormatterConstructorArguments);
             return true;
         }
 

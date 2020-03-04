@@ -10,7 +10,7 @@ namespace MSPack.Processor.Core
     /// <summary>
     /// Formatter Info is registered to type-key hash table.
     /// </summary>
-    public readonly struct FormatterInfo : IEquatable<FormatterInfo>
+    public readonly struct FormatterTableItemInfo : IEquatable<FormatterTableItemInfo>
     {
         /// <summary>
         /// Concrete serializable type.
@@ -25,21 +25,21 @@ namespace MSPack.Processor.Core
         /// </summary>
         public readonly CustomAttributeArgument[] FormatterConstructorArguments;
 
-        public FormatterInfo(TypeReference serializeTypeReference, TypeReference formatterType, CustomAttributeArgument[] formatterConstructorArguments)
+        public FormatterTableItemInfo(TypeReference serializeTypeReference, TypeReference formatterType, CustomAttributeArgument[] formatterConstructorArguments)
         {
             SerializeTypeReference = serializeTypeReference;
             FormatterType = formatterType;
             FormatterConstructorArguments = formatterConstructorArguments;
         }
 
-        public bool Equals(FormatterInfo other)
+        public bool Equals(FormatterTableItemInfo other)
         {
             return ReferenceEquals(SerializeTypeReference, other.SerializeTypeReference) && ReferenceEquals(FormatterType, other.FormatterType) && FormatterConstructorArguments.SequenceEqual(other.FormatterConstructorArguments);
         }
 
         public override bool Equals(object obj)
         {
-            return obj is FormatterInfo other && Equals(other);
+            return obj is FormatterTableItemInfo other && Equals(other);
         }
 
         public override int GetHashCode()
