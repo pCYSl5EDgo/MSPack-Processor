@@ -35,8 +35,11 @@ namespace MSPack.Processor.Core.Definitions
         {
             return Equals(FormatterType, other.FormatterType) && FormatterConstructorArguments.SequenceEqual(other.FormatterConstructorArguments);
         }
-
+#if CSHARP_8_0_OR_NEWER
         public override bool Equals(object? obj)
+#else
+        public override bool Equals(object obj)
+#endif
         {
             return obj is CustomFormatterTypeInfo other && Equals(other);
         }
