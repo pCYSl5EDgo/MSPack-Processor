@@ -33,9 +33,15 @@ namespace MSPack.Processor.Core
             return answer;
         }
 
+        private static string CalcName(int index, TypeReference type) => "EFormatter" + index.ToString(CultureInfo.InvariantCulture) + "_" + type.Name;
+
         private TypeDefinition Add(in EnumSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "EFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName(index, info.Type),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;

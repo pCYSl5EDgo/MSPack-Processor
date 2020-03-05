@@ -178,9 +178,15 @@ namespace MSPack.Processor.Core
             }
         }
 
+        private static string CalcName(string namePrefix, int index, string baseName) => namePrefix + index.ToString(CultureInfo.InvariantCulture) + "_" + baseName;
+
         private TypeDefinition Add(in UnionClassSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "UFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("UFormatter", index, info.Definition.Name),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             UnionImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
@@ -188,7 +194,11 @@ namespace MSPack.Processor.Core
 
         private TypeDefinition Add(in UnionInterfaceSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "UFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("UFormatter", index, info.Definition.Name),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             UnionImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
@@ -196,7 +206,11 @@ namespace MSPack.Processor.Core
 
         private TypeReference Add(in ClassSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "CFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("CFormatter", index, info.Definition.Name),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             ClassImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
@@ -204,7 +218,11 @@ namespace MSPack.Processor.Core
 
         private TypeReference Add(in StructSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "SFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("SFormatter", index, info.Definition.Name),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             StructImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;

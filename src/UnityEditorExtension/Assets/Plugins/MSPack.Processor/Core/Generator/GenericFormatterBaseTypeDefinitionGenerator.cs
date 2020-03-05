@@ -6,7 +6,7 @@ using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Formatter;
 using MSPack.Processor.Core.Provider;
 using System;
-using System.Globalization;
+using System.Text;
 
 namespace MSPack.Processor.Core
 {
@@ -154,9 +154,20 @@ namespace MSPack.Processor.Core
             }
         }
 
+        private static string CalcName(string namePrefix, int index, TypeReference type)
+        {
+            var builder = new StringBuilder();
+            builder.Append(namePrefix).Append(index).Append('_').Append(type.Name);
+            return builder.ToString();
+        }
+
         private TypeReference Add(in GenericClassSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "GCFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("GCFormatter", index, info.Definition),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             GenericClassImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
@@ -164,7 +175,11 @@ namespace MSPack.Processor.Core
 
         private TypeReference Add(in GenericStructSerializationInfo info, int index)
         {
-            var formatter = new TypeDefinition(string.Empty, "GSFormatter" + index.ToString(CultureInfo.InvariantCulture) + "`" + info.Definition.GenericParameters.Count.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
+            var formatter = new TypeDefinition(
+                string.Empty,
+                CalcName("GCFormatter", index, info.Definition),
+                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
+                resolver.Module.TypeSystem.Object);
             GenericStructImplementor.Implement(info, formatter);
             resolver.NestedTypes.Add(formatter);
             return formatter;
