@@ -19,7 +19,7 @@ namespace MSPack.Processor.Core.Definitions
             var list = new List<GenericInstanceType>();
             foreach (var attribute in definition.CustomAttributes)
             {
-                if (attribute.AttributeType.FullName != "MSPack.Processor.Annotation.GenericArgumentAttribute")
+                if (attribute.AttributeType.FullName != "MSPack.Processor.Annotation.MessagePackObjectGenericVariationAttribute")
                 {
                     continue;
                 }

@@ -8,8 +8,8 @@ using System;
 namespace CompoundTestClasses
 {
     [MessagePackObject(true)]
-    [GenericArgument(typeof(Generics0<int, int>))]
-    [GenericArgument(typeof(Generics0<long, long>))]
+    [MessagePackObjectGenericVariation(typeof(Generics0<int, int>))]
+    [MessagePackObjectGenericVariation(typeof(Generics0<long, long>))]
     public class Generics0<T0, T1> : IEquatable<Generics0<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
@@ -64,7 +64,7 @@ namespace CompoundTestClasses
     }
 
     [MessagePackObject(true)]
-    [GenericArgument(typeof(Generics1<IntValue, IntValue>))]
+    [MessagePackObjectGenericVariation(typeof(Generics1<IntValue, IntValue>))]
     public class Generics1<T0, T1> : IEquatable<Generics1<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>, IDouble<T0>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>, IDouble<T1>
@@ -98,8 +98,8 @@ namespace CompoundTestClasses
     }
 
     [MessagePackObject(true)]
-    [GenericArgument(typeof(Generics2<int, int>))]
-    [GenericArgument(typeof(Generics2<long, long>))]
+    [MessagePackObjectGenericVariation(typeof(Generics2<int, int>))]
+    [MessagePackObjectGenericVariation(typeof(Generics2<long, long>))]
     public struct Generics2<T0, T1> : IEquatable<Generics2<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
@@ -126,7 +126,7 @@ namespace CompoundTestClasses
     }
 
     [MessagePackObject(true)]
-    [GenericArgument(typeof(Generics3<IntValue, IntValue>))]
+    [MessagePackObjectGenericVariation(typeof(Generics3<IntValue, IntValue>))]
     public struct Generics3<T0, T1> : IEquatable<Generics3<T0, T1>>
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>, IDouble<T0>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>, IDouble<T1>
