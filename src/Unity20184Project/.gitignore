@@ -2,3 +2,5 @@ Temp/
 Logs/
 Library/
 Builds/
+.vs/
+obj/
