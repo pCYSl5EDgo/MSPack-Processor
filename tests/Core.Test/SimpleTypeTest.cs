@@ -1,7 +1,7 @@
-﻿using MessagePack;
+﻿using System;
 using NUnit.Framework;
 using SimpleTestClasses;
-using System;
+using MessagePack;
 
 namespace Core.Test
 {
@@ -33,6 +33,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeByte>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((SByte)(0)))]
         [TestCase(unchecked((SByte)(1)))]
@@ -59,6 +60,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeSByte>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Int16)(0)))]
         [TestCase(unchecked((Int16)(1)))]
@@ -85,6 +87,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeInt16>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Int32)(0)))]
         [TestCase(unchecked((Int32)(1)))]
@@ -111,6 +114,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeInt32>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Int64)(0)))]
         [TestCase(unchecked((Int64)(1)))]
@@ -137,6 +141,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeInt64>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((UInt16)(0)))]
         [TestCase(unchecked((UInt16)(1)))]
@@ -163,6 +168,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeUInt16>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((UInt32)(0)))]
         [TestCase(unchecked((UInt32)(1)))]
@@ -189,6 +195,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeUInt32>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((UInt64)(0)))]
         [TestCase(unchecked((UInt64)(1)))]
@@ -215,6 +222,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeUInt64>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Single)(0)))]
         [TestCase(unchecked((Single)(1)))]
@@ -241,6 +249,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeSingle>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Double)(0)))]
         [TestCase(unchecked((Double)(1)))]
@@ -267,6 +276,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeDouble>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(unchecked((Char)(0)))]
         [TestCase(unchecked((Char)(1)))]
@@ -293,6 +303,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeChar>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
         [TestCase(true)]
         [TestCase(false)]
@@ -302,6 +313,7 @@ namespace Core.Test
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<SimpleTypeBoolean>(bytes);
             Assert.True(value.Equals(other));
+            Assert.AreEqual(other.Value, a);
         }
     }
 }
