@@ -9,9 +9,9 @@ using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
-    public readonly struct GenericClassSerializationInfo : ITypeSerializationInfo
+    public readonly struct GenericClassSerializationInfo : IGenericTypeSerializationInfo
     {
-        public GenericClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey)
+        public GenericClassSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, GenericInstanceType[] definitionVariations)
         {
             Definition = definition;
             CustomFormatter = CustomFormatterTypeInfo.Default;
@@ -20,12 +20,13 @@ namespace MSPack.Processor.Core.Definitions
             MinIntKey = minIntKey;
             MaxIntKey = maxIntKey;
             SerializationConstructor = default;
+            DefinitionGenericInstanceVariations = definitionVariations;
 
             AreAllMessagePackPrimitive = this.FieldInfos.All(x => x.IsMessagePackPrimitive) && this.PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
 
-        public GenericClassSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter)
+        public GenericClassSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter, GenericInstanceType[] definitionVariations)
         {
             Definition = definition;
             CustomFormatter = customFormatter;
@@ -34,6 +35,7 @@ namespace MSPack.Processor.Core.Definitions
             MinIntKey = 0;
             MaxIntKey = 0;
             SerializationConstructor = default;
+            DefinitionGenericInstanceVariations = definitionVariations;
 
             AreAllMessagePackPrimitive = FieldInfos.All(x => x.IsMessagePackPrimitive) && PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && FieldInfos.All(x => x.PublicAccessible) && PropertyInfos.All(x => x.PublicAccessible);
@@ -69,6 +71,8 @@ namespace MSPack.Processor.Core.Definitions
 
         public bool PublicAccessible { get; }
 
+        public GenericInstanceType[] DefinitionGenericInstanceVariations { get; }
+
         public FieldOrPropertyInfo this[int key]
         {
             get
@@ -101,34 +105,6 @@ namespace MSPack.Processor.Core.Definitions
         public IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs()
             => FieldInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x)))
                 .Concat(PropertyInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x))));
-
-        public static bool TryParse(TypeDefinition type, bool useMapMode, out GenericClassSerializationInfo info)
-        {
-            var messagePackAttribute = type.CustomAttributes.SingleOrDefault(CustomAttributeHelper.IsMessagePackObjectAttribute);
-
-            if (messagePackAttribute is null)
-            {
-                info = default;
-                return false;
-            }
-
-            var customFormatter = type.CustomAttributes.SingleOrDefault(CustomAttributeHelper.IsMessagePackFormatterAttribute);
-            if (customFormatter is null)
-            {
-                CustomAttributeHelper.IsMessagePackObjectAttribute(messagePackAttribute, out var isKeyAsPropertyName);
-                var fieldInfos = MessagePackObjectHelper.CollectFieldInfos(type, useMapMode);
-                var propertyInfos = MessagePackObjectHelper.CollectPropertyInfos(type, isKeyAsPropertyName | useMapMode);
-                var (minIntKey, maxIntKey) = MessagePackObjectHelper.FindMinMaxIntKey(fieldInfos, propertyInfos);
-
-                info = new GenericClassSerializationInfo(type, fieldInfos, propertyInfos, minIntKey, maxIntKey);
-            }
-            else
-            {
-                info = new GenericClassSerializationInfo(type, CustomFormatterDetector.Detect(type, customFormatter));
-            }
-
-            return true;
-        }
 
         public override string ToString()
         {

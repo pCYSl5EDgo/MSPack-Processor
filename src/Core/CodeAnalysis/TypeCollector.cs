@@ -13,7 +13,6 @@ namespace MSPack.Processor.Core
     public class TypeCollector
     {
         private readonly ModuleDefinition module;
-        private readonly bool useMapMode;
         private readonly List<TypeDefinition> unionInterfaceDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> unionClassDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> classDefinitions = new List<TypeDefinition>();
@@ -22,11 +21,25 @@ namespace MSPack.Processor.Core
         private readonly List<TypeDefinition> genericUnionClassDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> genericClassDefinitions = new List<TypeDefinition>();
         private readonly List<TypeDefinition> genericStructDefinitions = new List<TypeDefinition>();
+        private readonly ISerializationFactory<ClassSerializationInfo> classFactory;
+        private readonly ISerializationFactory<StructSerializationInfo> structFactory;
+        private readonly ISerializationFactory<GenericClassSerializationInfo> genericClassFactory;
+        private readonly ISerializationFactory<GenericStructSerializationInfo> genericStructFactory;
+        private readonly ISerializationFactory<UnionInterfaceSerializationInfo> unionInterfaceFactory;
+        private readonly ISerializationFactory<UnionClassSerializationInfo> unionClassFactory;
 
         public TypeCollector(ModuleDefinition module, bool useMapMode)
         {
             this.module = module;
-            this.useMapMode = useMapMode;
+
+            classFactory = useMapMode ? (ISerializationFactory<ClassSerializationInfo>)new ClassSerializationInfoFactoryMapMode() : new ClassSerializationInfoFactory();
+            structFactory = useMapMode ? (ISerializationFactory<StructSerializationInfo>)new StructSerializationInfoFactoryMapMode() : new StructSerializationInfoFactory();
+            var genericVariationFinder = new GenericInstanceVariationFinder();
+            genericClassFactory = useMapMode ? (ISerializationFactory<GenericClassSerializationInfo>)new GenericClassSerializationInfoFactoryMapMode(genericVariationFinder) : new GenericClassSerializationInfoFactory(genericVariationFinder);
+            genericStructFactory = useMapMode ? (ISerializationFactory<GenericStructSerializationInfo>)new GenericStructSerializationInfoFactoryMapMode(genericVariationFinder) : new GenericStructSerializationInfoFactory(genericVariationFinder);
+            unionInterfaceFactory = new UnionInterfaceSerializationInfoFactory();
+            unionClassFactory = new UnionClassSerializationInfoFactory();
+
             foreach (var typeDefinition in module.Types)
             {
                 Visit(typeDefinition);
@@ -190,10 +203,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < genericClassDefinitions.Count; i++)
             {
-                if (!GenericClassSerializationInfo.TryParse(genericClassDefinitions[i], useMapMode, out infos[i]))
-                {
-                    throw new InvalidOperationException(genericClassDefinitions[i].FullName);
-                }
+                infos[i] = genericClassFactory.Create(genericClassDefinitions[i]);
             }
 
             return infos;
@@ -205,10 +215,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < genericStructDefinitions.Count; i++)
             {
-                if (!GenericStructSerializationInfo.TryParse(genericStructDefinitions[i], useMapMode, out infos[i]))
-                {
-                    throw new InvalidOperationException(genericStructDefinitions[i].FullName);
-                }
+                infos[i] = genericStructFactory.Create(genericStructDefinitions[i]);
             }
 
             return infos;
@@ -220,10 +227,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < unionClassDefinitions.Count; i++)
             {
-                if (!UnionClassSerializationInfo.TryParse(unionClassDefinitions[i], out infos[i]))
-                {
-                    throw new InvalidOperationException(unionClassDefinitions[i].FullName);
-                }
+                infos[i] = unionClassFactory.Create(unionClassDefinitions[i]);
             }
 
             return infos;
@@ -235,10 +239,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < unionInterfaceDefinitions.Count; i++)
             {
-                if (!UnionInterfaceSerializationInfo.TryParse(unionInterfaceDefinitions[i], out infos[i]))
-                {
-                    throw new InvalidOperationException(unionInterfaceDefinitions[i].FullName);
-                }
+                infos[i] = unionInterfaceFactory.Create(unionInterfaceDefinitions[i]);
             }
 
             return infos;
@@ -250,10 +251,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < classDefinitions.Count; i++)
             {
-                if (!ClassSerializationInfo.TryParse(classDefinitions[i], useMapMode, out infos[i]))
-                {
-                    throw new InvalidOperationException(classDefinitions[i].FullName);
-                }
+                infos[i] = classFactory.Create(classDefinitions[i]);
             }
 
             return infos;
@@ -265,10 +263,7 @@ namespace MSPack.Processor.Core
 
             for (var i = 0; i < structDefinitions.Count; i++)
             {
-                if (!StructSerializationInfo.TryParse(structDefinitions[i], useMapMode, out infos[i]))
-                {
-                    throw new InvalidOperationException(structDefinitions[i].FullName);
-                }
+                infos[i] = structFactory.Create(structDefinitions[i]);
             }
 
             return infos;

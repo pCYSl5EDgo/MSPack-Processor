@@ -9,12 +9,12 @@ using System.Text;
 
 namespace MSPack.Processor.Core.Definitions
 {
-    public readonly struct GenericStructSerializationInfo : ITypeSerializationInfo
+    public readonly struct GenericStructSerializationInfo : IGenericTypeSerializationInfo
     {
 #if CSHARP_8_0_OR_NEWER
-        public GenericStructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition)
+        public GenericStructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition? serializationConstructorDefinition, GenericInstanceType[] definitionVariations)
 #else
-        public GenericStructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition)
+        public GenericStructSerializationInfo(TypeDefinition definition, FieldSerializationInfo[] fieldInfos, PropertySerializationInfo[] propertyInfos, int minIntKey, int maxIntKey, MethodDefinition serializationConstructorDefinition, GenericInstanceType[] definitionVariations)
 #endif
         {
             Definition = definition;
@@ -24,15 +24,16 @@ namespace MSPack.Processor.Core.Definitions
             MinIntKey = minIntKey;
             MaxIntKey = maxIntKey;
             SerializationConstructor = serializationConstructorDefinition;
+            DefinitionGenericInstanceVariations = definitionVariations;
 
             AreAllMessagePackPrimitive = this.FieldInfos.All(x => x.IsMessagePackPrimitive) && this.PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && this.FieldInfos.All(x => x.PublicAccessible) && this.PropertyInfos.All(x => x.PublicAccessible);
         }
 
 #if CSHARP_8_0_OR_NEWER
-        public GenericStructSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter, MethodDefinition? serializationConstructorDefinition)
+        public GenericStructSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter, MethodDefinition? serializationConstructorDefinition, GenericInstanceType[] definitionVariations)
 #else
-        public GenericStructSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter, MethodDefinition serializationConstructorDefinition)
+        public GenericStructSerializationInfo(TypeDefinition definition, CustomFormatterTypeInfo customFormatter, MethodDefinition serializationConstructorDefinition, GenericInstanceType[] definitionVariations)
 #endif
         {
             Definition = definition;
@@ -42,6 +43,7 @@ namespace MSPack.Processor.Core.Definitions
             MinIntKey = 0;
             MaxIntKey = 0;
             SerializationConstructor = serializationConstructorDefinition;
+            DefinitionGenericInstanceVariations = definitionVariations;
 
             AreAllMessagePackPrimitive = FieldInfos.All(x => x.IsMessagePackPrimitive) && PropertyInfos.All(x => x.IsMessagePackPrimitive);
             PublicAccessible = PublicTypeTestUtility.IsPublicType(definition) && FieldInfos.All(x => x.PublicAccessible) && PropertyInfos.All(x => x.PublicAccessible);
@@ -110,35 +112,7 @@ namespace MSPack.Processor.Core.Definitions
             => FieldInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x)))
                 .Concat(PropertyInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x))));
 
-        public static bool TryParse(TypeDefinition type, bool useMapMode, out GenericStructSerializationInfo info)
-        {
-            var messagePackAttribute = type.CustomAttributes.SingleOrDefault(CustomAttributeHelper.IsMessagePackObjectAttribute);
-
-            if (messagePackAttribute is null)
-            {
-                info = default;
-                return false;
-            }
-
-            var serializationConstructor = SerializationConstructorUtility.Find(type);
-
-            var customFormatter = type.CustomAttributes.SingleOrDefault(CustomAttributeHelper.IsMessagePackFormatterAttribute);
-            if (customFormatter is null)
-            {
-                CustomAttributeHelper.IsMessagePackObjectAttribute(messagePackAttribute, out var isKeyAsPropertyName);
-                var fieldInfos = MessagePackObjectHelper.CollectFieldInfos(type, useMapMode);
-                var propertyInfos = MessagePackObjectHelper.CollectPropertyInfos(type, isKeyAsPropertyName | useMapMode);
-                var (minIntKey, maxIntKey) = MessagePackObjectHelper.FindMinMaxIntKey(fieldInfos, propertyInfos);
-
-                info = new GenericStructSerializationInfo(type, fieldInfos, propertyInfos, minIntKey, maxIntKey, serializationConstructor);
-            }
-            else
-            {
-                info = new GenericStructSerializationInfo(type, CustomFormatterDetector.Detect(type, customFormatter), serializationConstructor);
-            }
-
-            return true;
-        }
+        public GenericInstanceType[] DefinitionGenericInstanceVariations { get; }
 
         public override string ToString()
         {

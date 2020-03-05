@@ -10,12 +10,12 @@ using System.Globalization;
 
 namespace MSPack.Processor.Core
 {
-    public sealed class EnumFormatterGenerator
+    public sealed class EnumFormatterBaseTypeDefinitionGenerator
     {
         private readonly TypeDefinition resolver;
         private readonly EnumFormatterImplementor implementor;
 
-        public EnumFormatterGenerator(TypeDefinition resolver, TypeProvider provider)
+        public EnumFormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider)
         {
             this.resolver = resolver;
             this.implementor = new EnumFormatterImplementor(provider);
@@ -27,13 +27,13 @@ namespace MSPack.Processor.Core
             for (var index = 0; index < answer.Length; index++)
             {
                 ref readonly var info = ref serializationInfos[index];
-                answer[index] = new FormatterTableItemInfo(info.Type, GetOrAdd(in info, index), Array.Empty<CustomAttributeArgument>());
+                answer[index] = new FormatterTableItemInfo(info.Type, Add(in info, index), Array.Empty<CustomAttributeArgument>());
             }
 
             return answer;
         }
 
-        private TypeDefinition GetOrAdd(in EnumSerializationInfo info, int index)
+        private TypeDefinition Add(in EnumSerializationInfo info, int index)
         {
             var formatter = new TypeDefinition(string.Empty, "EFormatter" + index.ToString(CultureInfo.InvariantCulture), TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, resolver.Module.TypeSystem.Object);
             implementor.Implement(info, formatter);
