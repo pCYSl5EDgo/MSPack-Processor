@@ -15,7 +15,7 @@
     <PackageId>MSPack.Processor.CLI</PackageId>
     <PackAsTool Condition="Exists('/bin')">true</PackAsTool>
     <ToolCommandName>mspc</ToolCommandName>
-    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' and Exists('/bin')">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
     <Version>0.4.2</Version>
     <PackageReleaseNotes>0.4.2 : Fix =&gt; Union now correctly deserialize struct type.
