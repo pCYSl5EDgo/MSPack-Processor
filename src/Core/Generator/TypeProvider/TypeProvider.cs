@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Linq;
 using Mono.Cecil;
 using MSPack.Processor.Core.Report;
 
@@ -66,6 +67,22 @@ namespace MSPack.Processor.Core.Provider
         {
             if (spanScope is null)
             {
+                try
+                {
+                    var resolvedWriterType = MessagePackWriterHelper.Writer.Resolve();
+                    var messagepackModuleNameReferences = resolvedWriterType.Module.AssemblyReferences;
+                    spanScope =
+                        (messagepackModuleNameReferences.FirstOrDefault(x => x.Name == "System.Memory")
+                         ?? messagepackModuleNameReferences.FirstOrDefault(x => x.Name == "System.Runtime"))
+                        ?? messagepackModuleNameReferences.First(x => x.Name == "netstandard");
+
+                    return spanScope;
+                }
+                catch
+                {
+                    // ignored
+                }
+
                 var spanFinder = new ScopeFinder(
                     "System.Span`1",
                     "System.ReadOnlySpan`1",
@@ -74,7 +91,7 @@ namespace MSPack.Processor.Core.Provider
 
                 if (!spanFinder.TryFind(Module, out spanScope))
                 {
-                    throw new MessagePackGeneratorResolveFailedException("module should contain Span<T>, ReadOnlySpan<T>, Memory<T>, or ReadOnlyMemory<T>.");
+                    throw new MessagePackGeneratorResolveFailedException("Module should contain Span<T>, ReadOnlySpan<T>, Memory<T>, or ReadOnlyMemory<T> as return type of method or property, parameter type of method, or field type.");
                 }
             }
 
