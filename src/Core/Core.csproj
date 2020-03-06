@@ -17,8 +17,9 @@
     <PackageId>MSPack.Processor.Core</PackageId>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release'">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.4.1</Version>
-    <PackageReleaseNotes>0.4.1 : Fix IntKey Generic Struct behaviour.
+    <Version>0.4.2</Version>
+    <PackageReleaseNotes>0.4.2 : Fix =&gt; Union now correctly deserialize struct type.
+0.4.1 : Fix =&gt; IntKey Generic Struct behaviour.
 0.4.0 : Supports Generic Class/Struct Formatter.
 0.3.2 : Fix =&gt; When MessagePackFormatterAttribute constructor has values, it throwed exception.
 0.3.1 : See Release Notes of MSPack.Processor.CLI
