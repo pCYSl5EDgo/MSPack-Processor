@@ -324,7 +324,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Call, formatterWithVerifyGeneric),
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Ldarg_2),
-                    Instruction.Create(OpCodes.Castclass, importer.Import(unionSerializationInfo.Type).Reference),
+                    Instruction.Create(OpCodes.Unbox_Any, importer.Import(unionSerializationInfo.Type).Reference),
                     Instruction.Create(OpCodes.Ldarg_3),
                     Instruction.Create(OpCodes.Callvirt, serializeGeneric),
                 };

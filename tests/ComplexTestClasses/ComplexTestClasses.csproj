@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Annotation\Annotation.csproj" />
     <ProjectReference Include="..\IrrelevantTestClasses\IrrelevantTestClasses.csproj" />
   </ItemGroup>
 
