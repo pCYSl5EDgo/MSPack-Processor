@@ -48,7 +48,7 @@ namespace MSPack.Processor.Core.Provider
             {
                 if (readStringSpan == null)
                 {
-                    readStringSpan = new MethodReference(nameof(ReadStringSpan), readOnlySpanHelper.Invoke().ReadOnlySpanGeneric(module.TypeSystem.Byte), CodeGenHelpers)
+                    readStringSpan = new MethodReference(nameof(ReadStringSpan), readOnlySpanHelper.Invoke().ReadOnlySpanByte(), CodeGenHelpers)
                     {
                         HasThis = false,
                         Parameters =

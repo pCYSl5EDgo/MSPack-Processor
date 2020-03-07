@@ -75,21 +75,11 @@ namespace MSPack.Processor.Core
                             break;
                         case "System.Int64":
                             {
-                                var (instruction, instructions) = InstructionUtility.LdcI8((long)value);
-                                if (instructions is null)
+                                var (instruction0, instruction1) = InstructionUtility.LdcI8((long)value);
+                                processor.Append(instruction0);
+                                if (!(instruction1 is null))
                                 {
-#if CSHARP_8_0_OR_NEWER
-                                    processor.Append(instruction!);
-#else
-                                    processor.Append(instruction);
-#endif
-                                }
-                                else
-                                {
-                                    foreach (var instruction1 in instructions)
-                                    {
-                                        processor.Append(instruction1);
-                                    }
+                                    processor.Append(instruction1);
                                 }
                             }
 
@@ -102,21 +92,11 @@ namespace MSPack.Processor.Core
                             break;
                         case "System.UInt64":
                             {
-                                var (instruction, instructions) = InstructionUtility.LdcU8((ulong)value);
-                                if (instructions is null)
+                                var (instruction0, instruction1) = InstructionUtility.LdcU8((ulong)value);
+                                processor.Append(instruction0);
+                                if (!(instruction1 is null))
                                 {
-#if CSHARP_8_0_OR_NEWER
-                                    processor.Append(instruction!);
-#else
-                                    processor.Append(instruction);
-#endif
-                                }
-                                else
-                                {
-                                    foreach (var instruction1 in instructions)
-                                    {
-                                        processor.Append(instruction1);
-                                    }
+                                    processor.Append(instruction1);
                                 }
                             }
 

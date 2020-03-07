@@ -407,8 +407,7 @@ namespace MSPack.Processor.Core.Formatter
             }
 
             var resolverCalled = false;
-            var readOnlySpanByte = provider.SystemReadOnlySpanHelper.ReadOnlySpanGeneric(module.TypeSystem.Byte);
-            var readOnlySpanCtor = provider.SystemReadOnlySpanHelper.CtorPointer(readOnlySpanByte);
+            var readOnlySpanCtor = provider.SystemReadOnlySpanHelper.CtorPointerByte();
             var intPtrVariable = default(VariableDefinition);
 
             foreach (var serializationInfo in info.FieldInfos)

@@ -7,7 +7,7 @@ namespace MSPack.Processor.Core.Embed
 {
     public static class EmbeddedStringHelper
     {
-        private static int CalcPlusCount(int length)
+        public static int CalcHeaderCount(int length)
         {
             if (length < 32)
             {
@@ -26,7 +26,7 @@ namespace MSPack.Processor.Core.Embed
         {
             var length = NoBomUtf8Encoder.Encoding.GetByteCount(value);
 
-            var plus = CalcPlusCount(length);
+            var plus = CalcHeaderCount(length);
             var answer = new byte[length + plus];
             NoBomUtf8Encoder.Encoding.GetBytes(value, 0, value.Length, answer, plus);
 

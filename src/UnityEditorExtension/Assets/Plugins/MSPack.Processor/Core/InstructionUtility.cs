@@ -7,6 +7,14 @@ namespace MSPack.Processor.Core
 {
     public static class InstructionUtility
     {
+        public static Instruction Clone(this Instruction instruction)
+        {
+            var answer = Instruction.Create(OpCodes.Nop);
+            answer.OpCode = instruction.OpCode;
+            answer.Operand = instruction.Operand;
+            return answer;
+        }
+
         public static Instruction LdcI4(int value)
         {
             switch (value)
@@ -33,76 +41,76 @@ namespace MSPack.Processor.Core
             }
         }
 #if CSHARP_8_0_OR_NEWER
-        public static (Instruction?, Instruction[]?) LdcI8(long value)
+        public static (Instruction, Instruction?) LdcI8(long value)
 #else
-        public static (Instruction, Instruction[]) LdcI8(long value)
+        public static (Instruction, Instruction) LdcI8(long value)
 #endif
         {
             switch (value)
             {
-                case -1: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_M1), Instruction.Create(OpCodes.Conv_I8), });
-                case 0: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_0), Instruction.Create(OpCodes.Conv_I8), });
-                case 1: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_1), Instruction.Create(OpCodes.Conv_I8), });
-                case 2: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_2), Instruction.Create(OpCodes.Conv_I8), });
-                case 3: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_3), Instruction.Create(OpCodes.Conv_I8), });
-                case 4: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_4), Instruction.Create(OpCodes.Conv_I8), });
-                case 5: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_5), Instruction.Create(OpCodes.Conv_I8), });
-                case 6: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_6), Instruction.Create(OpCodes.Conv_I8), });
-                case 7: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_7), Instruction.Create(OpCodes.Conv_I8), });
-                case 8: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_8), Instruction.Create(OpCodes.Conv_I8), });
+                case -1: return (Instruction.Create(OpCodes.Ldc_I4_M1), Instruction.Create(OpCodes.Conv_I8));
+                case 0: return (Instruction.Create(OpCodes.Ldc_I4_0), Instruction.Create(OpCodes.Conv_I8));
+                case 1: return (Instruction.Create(OpCodes.Ldc_I4_1), Instruction.Create(OpCodes.Conv_I8));
+                case 2: return (Instruction.Create(OpCodes.Ldc_I4_2), Instruction.Create(OpCodes.Conv_I8));
+                case 3: return (Instruction.Create(OpCodes.Ldc_I4_3), Instruction.Create(OpCodes.Conv_I8));
+                case 4: return (Instruction.Create(OpCodes.Ldc_I4_4), Instruction.Create(OpCodes.Conv_I8));
+                case 5: return (Instruction.Create(OpCodes.Ldc_I4_5), Instruction.Create(OpCodes.Conv_I8));
+                case 6: return (Instruction.Create(OpCodes.Ldc_I4_6), Instruction.Create(OpCodes.Conv_I8));
+                case 7: return (Instruction.Create(OpCodes.Ldc_I4_7), Instruction.Create(OpCodes.Conv_I8));
+                case 8: return (Instruction.Create(OpCodes.Ldc_I4_8), Instruction.Create(OpCodes.Conv_I8));
             }
 
             if (value >= sbyte.MinValue && value <= sbyte.MaxValue)
             {
-                return (default, new[] {
+                return (
                     Instruction.Create(OpCodes.Ldc_I4_S, (sbyte)value),
-                    Instruction.Create(OpCodes.Conv_I8),
-                });
+                    Instruction.Create(OpCodes.Conv_I8)
+                );
             }
 
             if (value >= int.MinValue && value <= int.MaxValue)
             {
-                return (default, new[] {
+                return (
                     Instruction.Create(OpCodes.Ldc_I4, (int)value),
-                    Instruction.Create(OpCodes.Conv_I8),
-                });
+                    Instruction.Create(OpCodes.Conv_I8)
+                );
             }
 
             return (Instruction.Create(OpCodes.Ldc_I8, value), default);
         }
 #if CSHARP_8_0_OR_NEWER
-        public static (Instruction?, Instruction[]?) LdcU8(ulong value)
+        public static (Instruction, Instruction?) LdcU8(ulong value)
 #else
-        public static (Instruction, Instruction[]) LdcU8(ulong value)
+        public static (Instruction, Instruction) LdcU8(ulong value)
 #endif
         {
             switch (value)
             {
-                case 0: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_0), Instruction.Create(OpCodes.Conv_U8), });
-                case 1: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_1), Instruction.Create(OpCodes.Conv_U8), });
-                case 2: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_2), Instruction.Create(OpCodes.Conv_U8), });
-                case 3: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_3), Instruction.Create(OpCodes.Conv_U8), });
-                case 4: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_4), Instruction.Create(OpCodes.Conv_U8), });
-                case 5: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_5), Instruction.Create(OpCodes.Conv_U8), });
-                case 6: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_6), Instruction.Create(OpCodes.Conv_U8), });
-                case 7: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_7), Instruction.Create(OpCodes.Conv_U8), });
-                case 8: return (default, new[] { Instruction.Create(OpCodes.Ldc_I4_8), Instruction.Create(OpCodes.Conv_U8), });
+                case 0: return (Instruction.Create(OpCodes.Ldc_I4_0), Instruction.Create(OpCodes.Conv_U8));
+                case 1: return (Instruction.Create(OpCodes.Ldc_I4_1), Instruction.Create(OpCodes.Conv_U8));
+                case 2: return (Instruction.Create(OpCodes.Ldc_I4_2), Instruction.Create(OpCodes.Conv_U8));
+                case 3: return (Instruction.Create(OpCodes.Ldc_I4_3), Instruction.Create(OpCodes.Conv_U8));
+                case 4: return (Instruction.Create(OpCodes.Ldc_I4_4), Instruction.Create(OpCodes.Conv_U8));
+                case 5: return (Instruction.Create(OpCodes.Ldc_I4_5), Instruction.Create(OpCodes.Conv_U8));
+                case 6: return (Instruction.Create(OpCodes.Ldc_I4_6), Instruction.Create(OpCodes.Conv_U8));
+                case 7: return (Instruction.Create(OpCodes.Ldc_I4_7), Instruction.Create(OpCodes.Conv_U8));
+                case 8: return (Instruction.Create(OpCodes.Ldc_I4_8), Instruction.Create(OpCodes.Conv_U8));
             }
 
             if (value <= (ulong)sbyte.MaxValue)
             {
-                return (default, new[] {
+                return (
                     Instruction.Create(OpCodes.Ldc_I4_S, (sbyte)value),
-                    Instruction.Create(OpCodes.Conv_U8),
-                });
+                    Instruction.Create(OpCodes.Conv_U8)
+                );
             }
 
             if (value <= (ulong)int.MaxValue)
             {
-                return (default, new[] {
+                return (
                     Instruction.Create(OpCodes.Ldc_I4, (int)value),
-                    Instruction.Create(OpCodes.Conv_U8),
-                });
+                    Instruction.Create(OpCodes.Conv_U8)
+                );
             }
 
             return (Instruction.Create(OpCodes.Ldc_I8, (long)value), default);
@@ -129,6 +137,16 @@ namespace MSPack.Processor.Core
         }
 
         public static Instruction LdNull() => Instruction.Create(OpCodes.Ldnull);
+
+        public static Instruction LoadVariableAddress(VariableDefinition variableDefinition)
+        {
+            if (variableDefinition.Index < 256)
+            {
+                return Instruction.Create(OpCodes.Ldloca_S, variableDefinition);
+            }
+
+            return Instruction.Create(OpCodes.Ldloca, variableDefinition);
+        }
 
         public static Instruction LoadVariable(VariableDefinition variableDefinition)
         {

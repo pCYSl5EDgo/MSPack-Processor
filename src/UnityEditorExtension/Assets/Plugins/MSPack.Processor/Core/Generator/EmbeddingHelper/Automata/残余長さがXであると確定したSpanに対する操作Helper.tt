@@ -1,0 +1,251 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#string[] instructions = new[]{
+    @"Instruction.Create(OpCodes.Ldind_I8),",
+    @"Instruction.Create(OpCodes.Ldind_U4),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    InstructionUtility.LdcI4(4),
+                    Instruction.Create(OpCodes.Add),
+                    Instruction.Create(OpCodes.Ldind_U2),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LdcI4(32),
+                    Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),
+
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    InstructionUtility.LdcI4(6),
+                    Instruction.Create(OpCodes.Add),
+                    Instruction.Create(OpCodes.Ldind_U1),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LdcI4(48),
+                    Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),",
+    @"Instruction.Create(OpCodes.Ldind_U4),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    InstructionUtility.LdcI4(4),
+                    Instruction.Create(OpCodes.Add),
+                    Instruction.Create(OpCodes.Ldind_U2),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LdcI4(32),
+                    Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),",
+    @"Instruction.Create(OpCodes.Ldind_U4),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    InstructionUtility.LdcI4(4),
+                    Instruction.Create(OpCodes.Add),
+                    Instruction.Create(OpCodes.Ldind_U1),
+                    Instruction.Create(OpCodes.Conv_U8),
+
+                    InstructionUtility.LdcI4(32),
+                    Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),",
+    @"Instruction.Create(OpCodes.Ldind_U4),",
+    @"Instruction.Create(OpCodes.Ldind_U2),
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    InstructionUtility.LdcI4(2),
+                    Instruction.Create(OpCodes.Add),
+                    Instruction.Create(OpCodes.Ldind_U1),
+                    InstructionUtility.LdcI4(16),
+                    Instruction.Create(OpCodes.Shl),",
+    @"Instruction.Create(OpCodes.Ldind_U2),",
+};#>
+// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Mono.Cecil.Cil;
+using System;
+using System.Collections.Generic;
+
+namespace MSPack.Processor.Core.Embed
+{
+<#for(var length = 8; length > 1; length--){#>
+    public static class 残余長さが<#=length#>であると確定したSpanに対する操作Helper
+    {
+        public static (Instruction[], Instruction[]) Embed<TSorter>(BinaryFieldDestinationTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
+            where TSorter : ILengthSorter, IComparer<BinaryFieldDestinationTuple>
+        {
+            switch (tuplesCount)
+            {
+                case 1:
+                    var embed1 = Embed1(in tuples[tuplesOffset], in options, sorter);
+                    return (embed1, Array.Empty<Instruction>());
+                case 2:
+                    var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
+                    return (embed2, Array.Empty<Instruction>());
+            }
+            
+            Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
+            var number = options.UInt<#=(length > 4 ? 64 : 32)#>VariableDefinition();
+            var 探索結果 = BinarySearchHelper.BinarySearchEnd<#=(length > 4 ? "Long" : "Int")#>(options, tuples, tuplesOffset, tuplesCount, sorter, number);
+            return (
+                new[]
+                {
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    <#=instructions[8 - length]#>
+                    InstructionUtility.StoreVariable(number),
+                },
+                探索結果
+            );
+        }
+
+        private static Instruction[] Embed1<TSorter>(in BinaryFieldDestinationTuple tuple0, in AutomataOption options, TSorter sorter)
+            where TSorter : ILengthSorter
+        {
+<#if(length > 4){#>
+            var (value0Item1, value0Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple0));
+            if (value0Item2 is null)
+            {
+                return new[]
+                {
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    <#=instructions[8 - length]#>
+                    value0Item1,
+                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                };
+            }
+
+            return new[]
+            {
+                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                <#=instructions[8 - length]#>
+                value0Item1,
+                value0Item2,
+                Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                Instruction.Create(OpCodes.Br, options.FailInstruction),
+            };
+<#}else{#>
+            return new[]
+            {
+                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                <#=instructions[8 - length]#>
+                InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
+                Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                Instruction.Create(OpCodes.Br, options.FailInstruction),
+            };
+<#}#>
+        }
+
+        private static Instruction[] Embed2<TSorter>(in BinaryFieldDestinationTuple tuple0, in BinaryFieldDestinationTuple tuple1, in AutomataOption options, TSorter sorter)
+            where TSorter : ILengthSorter
+        {
+<#if(length > 4){#>
+            var (value0Item1, value0Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple0));
+            var (value1Item1, value1Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple1));
+            var number = options.UInt64VariableDefinition();
+
+            if (value0Item2 is null)
+            {
+                if (value1Item2 is null)
+                {
+                    return new[]
+                    {
+                        InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                        Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                        <#=instructions[8 - length]#>
+                        Instruction.Create(OpCodes.Dup),
+                        InstructionUtility.StoreVariable(number),
+                        value0Item1,
+                        Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                        InstructionUtility.LoadVariable(number),
+                        value1Item1,
+                        Instruction.Create(OpCodes.Beq, tuple1.Destination),
+                        Instruction.Create(OpCodes.Br, options.FailInstruction),
+                    };
+                }
+
+                return new[]
+                {
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    <#=instructions[8 - length]#>
+                    Instruction.Create(OpCodes.Dup),
+                    InstructionUtility.StoreVariable(number),
+                    value0Item1,
+                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                    InstructionUtility.LoadVariable(number),
+                    value1Item1,
+                    value1Item2,
+                    Instruction.Create(OpCodes.Beq, tuple1.Destination),
+                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                };
+            }
+
+            if (value1Item2 is null)
+            {
+                return new[]
+                {
+                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                    <#=instructions[8 - length]#>
+                    Instruction.Create(OpCodes.Dup),
+                    InstructionUtility.StoreVariable(number),
+                    value0Item1,
+                    value0Item2,
+                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                    InstructionUtility.LoadVariable(number),
+                    value1Item1,
+                    Instruction.Create(OpCodes.Beq, tuple1.Destination),
+                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                };
+            }
+
+            return new[]
+            {
+                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                <#=instructions[8 - length]#>
+                Instruction.Create(OpCodes.Dup),
+                InstructionUtility.StoreVariable(number),
+                value0Item1,
+                value0Item2,
+                Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                InstructionUtility.LoadVariable(number),
+                value1Item1,
+                value1Item2,
+                Instruction.Create(OpCodes.Beq, tuple1.Destination),
+                Instruction.Create(OpCodes.Br, options.FailInstruction),
+            };
+<#}else{#>
+            var number = options.UInt32VariableDefinition();
+            return new[]
+            {
+                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
+                <#=instructions[8 - length]#>
+                Instruction.Create(OpCodes.Dup),
+                InstructionUtility.StoreVariable(number),
+                InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
+                Instruction.Create(OpCodes.Beq, tuple0.Destination),
+                InstructionUtility.LoadVariable(number),
+                InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple1)),
+                Instruction.Create(OpCodes.Beq, tuple1.Destination),
+                Instruction.Create(OpCodes.Br, options.FailInstruction),
+            };
+<#}#>
+        }
+    }
+<#}#>
+}

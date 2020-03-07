@@ -77,7 +77,7 @@ namespace MSPack.Processor.Core.Provider
                         HasThis = true,
                         Parameters =
                         {
-                            new ParameterDefinition("bytes", ParameterAttributes.None, readOnlySpanHelper.ReadOnlySpanGeneric(module.TypeSystem.Byte)),
+                            new ParameterDefinition("bytes", ParameterAttributes.None, readOnlySpanHelper.ReadOnlySpanByte()),
                             new ParameterDefinition("value", ParameterAttributes.Out, new ByReferenceType(module.TypeSystem.Int32)),
                         },
                     };

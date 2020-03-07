@@ -35,7 +35,57 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Generator\EmbeddingHelper\Automata\InstructionConcatHelper.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InstructionConcatHelper.tt</DependentUpon>
+    </None>
+    <None Include="Generator\EmbeddingHelper\Automata\LengthSorter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LengthSorter.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Generator\EmbeddingHelper\Automata\InstructionConcatHelper.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>InstructionConcatHelper.cs</LastGenOutput>
+    </None>
+    <None Update="Generator\EmbeddingHelper\Automata\LengthSorter.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LengthSorter.cs</LastGenOutput>
+    </None>
+    <None Update="Generator\EmbeddingHelper\Automata\ForSpanLengthXHelper.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ForSpanLengthXHelper.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Generator\EmbeddingHelper\Automata\InstructionConcatHelper.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>InstructionConcatHelper.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Generator\EmbeddingHelper\Automata\LengthSorter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LengthSorter.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Generator\EmbeddingHelper\Automata\ForSpanLengthXHelper.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ForSpanLengthXHelper.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="!Exists('/bin') and '$(Configuration)' == 'Release'">

@@ -24,22 +24,21 @@ namespace MSPack.Processor.Core
                 importer,
                 arrayHelper,
                 loadFactor,
-                (ILProcessor processor, UnionSerializationInfo unionInfo) =>
+                (processor, unionInfo) =>
                 {
-                    var (instruction, instructions) = InstructionUtility.LdcU8(unionInfo.Value);
-
-                    if (instructions is null)
+                    var (instruction0, instruction1) = InstructionUtility.LdcU8(unionInfo.Value);
+                    processor.Append(instruction0);
+                    if (!(instruction1 is null))
                     {
-                        processor.Append(instruction);
+                        processor.Append(instruction1);
                     }
-                    else
-                    {
-                        foreach (var inst in instructions)
-                        {
-                            processor.Append(inst);
-                        }
-                    }
-                }, (UnionSerializationInfo unionInfo) => unionInfo.Type, new[] { Instruction.Create(OpCodes.Ldc_I4_M1), Instruction.Create(OpCodes.Conv_I8), });
+                },
+                unionInfo => unionInfo.Type,
+                new[]
+                {
+                    Instruction.Create(OpCodes.Ldc_I4_M1),
+                    Instruction.Create(OpCodes.Conv_I8),
+                });
         }
 
         public (TypeDefinition tableType, MethodDefinition getPairULongValue) Generate(UnionSerializationInfo[] unionInfos) => generator.Generate(unionInfos);

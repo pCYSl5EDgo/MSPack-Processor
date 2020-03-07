@@ -1,9 +1,9 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Linq;
 using Mono.Cecil;
 using MSPack.Processor.Core.Report;
+using System.Linq;
 
 namespace MSPack.Processor.Core.Provider
 {
@@ -30,6 +30,7 @@ namespace MSPack.Processor.Core.Provider
         private SystemTypeHelper? systemTypeHelper;
         private SystemInvalidOperationExceptionHelper? systemInvalidOperationExceptionHelper;
         private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper? systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
+        private SystemRuntimeInteropServicesInAttributeHelper? systemRuntimeInteropServicesInAttributeHelper;
         private SystemArrayHelper? systemArrayHelper;
 #else
         private IMetadataScope spanScope;
@@ -50,6 +51,7 @@ namespace MSPack.Processor.Core.Provider
         private SystemTypeHelper systemTypeHelper;
         private SystemInvalidOperationExceptionHelper systemInvalidOperationExceptionHelper;
         private SystemRuntimeCompilerServicesIsReadOnlyAttributeHelper systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
+        private SystemRuntimeInteropServicesInAttributeHelper systemRuntimeInteropServicesInAttributeHelper;
         private SystemArrayHelper systemArrayHelper;
 #endif
 
@@ -74,11 +76,9 @@ namespace MSPack.Processor.Core.Provider
                     spanScope =
                         (messagepackModuleNameReferences.FirstOrDefault(x => x.Name == "System.Memory")
                          ?? messagepackModuleNameReferences.FirstOrDefault(x => x.Name == "System.Runtime"))
-                        ?? messagepackModuleNameReferences.FirstOrDefault(x => x.Name == "netstandard");
-                    if (!(spanScope is null))
-                    {
-                        return spanScope;
-                    }
+                        ?? messagepackModuleNameReferences.First(x => x.Name == "netstandard");
+
+                    return spanScope;
                 }
                 catch
                 {
@@ -150,7 +150,7 @@ namespace MSPack.Processor.Core.Provider
             {
                 if (systemReadOnlySpanHelper == null)
                 {
-                    systemReadOnlySpanHelper = new SystemReadOnlySpanHelper(Module, Importer, SpanScope);
+                    systemReadOnlySpanHelper = new SystemReadOnlySpanHelper(Module, Importer, SpanScope, SystemRuntimeInteropServicesInAttributeHelper);
                 }
 
                 return systemReadOnlySpanHelper;
@@ -324,6 +324,16 @@ namespace MSPack.Processor.Core.Provider
 
                 return systemRuntimeCompilerServicesIsReadOnlyAttributeHelper;
             }
+        }
+
+        public SystemRuntimeInteropServicesInAttributeHelper SystemRuntimeInteropServicesInAttributeHelper()
+        {
+            if (systemRuntimeInteropServicesInAttributeHelper is null)
+            {
+                systemRuntimeInteropServicesInAttributeHelper = new SystemRuntimeInteropServicesInAttributeHelper(Module);
+            }
+
+            return systemRuntimeInteropServicesInAttributeHelper;
         }
 
         public SystemArrayHelper SystemArrayHelper

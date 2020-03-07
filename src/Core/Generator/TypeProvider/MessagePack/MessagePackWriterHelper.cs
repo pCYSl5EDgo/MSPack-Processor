@@ -63,7 +63,7 @@ namespace MSPack.Processor.Core.Provider
             {
                 if (writeRaw is null)
                 {
-                    var readOnlySpanByte = readOnlySpanHelperFunc.Invoke().ReadOnlySpanGeneric(typeSystem.Byte);
+                    var readOnlySpanByte = readOnlySpanHelperFunc.Invoke().ReadOnlySpanByte();
                     writeRaw = new MethodReference(nameof(WriteRaw), typeSystem.Void, Writer)
                     {
                         HasThis = true,

@@ -1,0 +1,103 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
+using System.Collections.Generic;
+
+namespace MSPack.Processor.Core.Embed
+{
+    public interface ILengthSorter
+    {
+        ulong GetValue(in IndexBinaryFieldTuple tuple);
+    }
+
+<#for(var length = 1; length < 9; length++){#>
+    public sealed class Length<#=length#>Sorter : IComparer<IndexBinaryFieldTuple>, ILengthSorter
+    {
+        private readonly int start;
+
+        public Length<#=length#>Sorter(int start)
+        {
+            this.start = start;
+        }
+
+        public ulong GetValue(in IndexBinaryFieldTuple tuple)
+        {
+            var binary = tuple.Binary;
+            ulong answer = binary[start];
+<#for(var i = 1; i < length; i++){#>
+            answer |= (ulong)binary[start + <#=i#>] << <#=(i << 3)#>;
+<#}#>
+            return answer;
+        }
+
+        public int Compare(IndexBinaryFieldTuple x, IndexBinaryFieldTuple y)
+        {
+            byte xVal, yVal;
+<#for(var i = length - 1; i >= 1; --i){#>
+            xVal = x.Binary[start + <#=i#>];
+            yVal = y.Binary[start + <#=i#>];
+            if(xVal > yVal)
+            {
+                return 1;
+            }
+
+            if(xVal < yVal)
+            {
+                return -1;
+            }
+
+<#}#>
+            xVal = x.Binary[start];
+            yVal = y.Binary[start];
+            if(xVal > yVal)
+            {
+                return 1;
+            }
+
+            if(xVal < yVal)
+            {
+                return -1;
+            }
+
+            return 0;
+        }
+
+        public ArraySegment<IndexBinaryFieldTuple> Where(ArraySegment<IndexBinaryFieldTuple> sortedArray, ulong value)
+        {
+            var startIndex = sortedArray.Offset;
+            var array = sortedArray.Array;
+            if(array is null)
+            {
+                throw new NullReferenceException();
+            }
+
+            for(; startIndex < array.Length; startIndex++)
+            {
+                if(GetValue(array[startIndex]) == value) 
+                {
+                    break;
+                }
+            }
+
+            var endExclude = startIndex + 1;
+            for(; endExclude < array.Length; endExclude++)
+            {
+                if(GetValue(array[endExclude]) != value) 
+                {
+                    break;
+                }
+            }
+
+            return new ArraySegment<IndexBinaryFieldTuple>(array, startIndex, endExclude - start);
+        }
+    }
+
+<#}#>
+}
