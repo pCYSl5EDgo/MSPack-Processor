@@ -39,7 +39,7 @@ namespace MSPack.Processor.Core
             {
                 if (genericClassFormatterImplementor is null)
                 {
-                    genericClassFormatterImplementor = new GenericClassImplementorFacade(module, provider, dataHelper);
+                    genericClassFormatterImplementor = new GenericClassImplementorFacade(resolver, provider, dataHelper);
                 }
 
                 return genericClassFormatterImplementor;
@@ -52,7 +52,7 @@ namespace MSPack.Processor.Core
             {
                 if (genericStructFormatterImplementor is null)
                 {
-                    genericStructFormatterImplementor = new GenericStructImplementorFacade(module, provider, dataHelper);
+                    genericStructFormatterImplementor = new GenericStructImplementorFacade(resolver, provider, dataHelper);
                 }
 
                 return genericStructFormatterImplementor;

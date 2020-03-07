@@ -24,6 +24,7 @@ namespace MSPack.Processor.Core.Provider
         private MethodReference? getPinnableReferenceByte;
         private MethodReference? getItemByte;
         private MethodReference? getLengthByte;
+        private GenericInstanceType? readOnlySpanGenericBase;
 #else
         private TypeReference readOnlySpan;
         private MethodReference op_Equality_Byte;
@@ -34,6 +35,7 @@ namespace MSPack.Processor.Core.Provider
         private MethodReference getPinnableReferenceByte;
         private MethodReference getItemByte;
         private MethodReference getLengthByte;
+        private GenericInstanceType readOnlySpanGenericBase;
 #endif
 
         public SystemReadOnlySpanHelper(ModuleDefinition module, ModuleImporter importer, Func<IMetadataScope> spanScope, Func<SystemRuntimeInteropServicesInAttributeHelper> inAttributeHelperFunc)
@@ -74,6 +76,16 @@ namespace MSPack.Processor.Core.Provider
             }
 
             return readOnlySpanByte;
+        }
+
+        private GenericInstanceType ReadOnlySpanGenericBase()
+        {
+            if (readOnlySpanGenericBase is null)
+            {
+                readOnlySpanGenericBase = ReadOnlySpanGeneric(ReadOnlySpanBase.GenericParameters[0]);
+            }
+
+            return readOnlySpanGenericBase;
         }
 
         private GenericInstanceType ReadOnlySpanGeneric(TypeReference type)
@@ -130,8 +142,8 @@ namespace MSPack.Processor.Core.Provider
                     HasThis = false,
                     Parameters =
                     {
-                        new ParameterDefinition("left", ParameterAttributes.None, ReadOnlySpanGeneric(ReadOnlySpanBase.GenericParameters[0])),
-                        new ParameterDefinition("right", ParameterAttributes.None, ReadOnlySpanGeneric(ReadOnlySpanBase.GenericParameters[0])),
+                        new ParameterDefinition("left", ParameterAttributes.None, ReadOnlySpanGenericBase()),
+                        new ParameterDefinition("right", ParameterAttributes.None, ReadOnlySpanGenericBase()),
                     },
                 };
             }
@@ -188,7 +200,7 @@ namespace MSPack.Processor.Core.Provider
         {
             if (sliceStartByte is null)
             {
-                sliceStartByte = new MethodReference("Slice", ReadOnlySpanByte(), ReadOnlySpanByte())
+                sliceStartByte = new MethodReference("Slice", ReadOnlySpanGenericBase(), ReadOnlySpanByte())
                 {
                     HasThis = true,
                     Parameters =
@@ -205,7 +217,7 @@ namespace MSPack.Processor.Core.Provider
         {
             if (sliceStartLengthByte is null)
             {
-                sliceStartLengthByte = new MethodReference("Slice", ReadOnlySpanByte(), ReadOnlySpanByte())
+                sliceStartLengthByte = new MethodReference("Slice", ReadOnlySpanGenericBase(), ReadOnlySpanByte())
                 {
                     HasThis = true,
                     Parameters =

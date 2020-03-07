@@ -17,13 +17,15 @@ namespace MSPack.Processor.Core.Formatter
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
         private readonly ModuleImporter importer;
+        private readonly TypeDefinition resolverDefinition;
 
-        public GenericStructStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer)
+        public GenericStructStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer, TypeDefinition resolverDefinition)
         {
             this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
             this.importer = importer;
+            this.resolverDefinition = resolverDefinition;
         }
 
         /// <summary>
@@ -33,18 +35,16 @@ namespace MSPack.Processor.Core.Formatter
         /// <param name="formatter">formatter type. Must be empty.</param>
         public void Implement(in GenericStructSerializationInfo info, TypeDefinition formatter)
         {
-            GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out var genericInstanceFormatter, out var targetGenericInstanceType);
+            GenericsUtility.TransplantGenericParameters(formatter, info.Definition, importer, out var _, out var targetGenericInstanceType);
 
             var iMessagePackFormatterGeneric = provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterGeneric(targetGenericInstanceType);
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
             formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
-            FieldDefinition keyMapping = new FieldDefinition(nameof(keyMapping), FieldAttributes.Private | FieldAttributes.InitOnly, provider.AutomataDictionaryHelper.AutomataDictionary);
-            formatter.Fields.Add(keyMapping);
+            var (keyMappingType, getIndex) = DefineDeserializeHelperType(in info);
+            resolverDefinition.NestedTypes.Add(keyMappingType);
 
-            var keyMappingGeneric = new FieldReference(keyMapping.Name, keyMapping.FieldType, genericInstanceFormatter);
-
-            var constructor = GenerateConstructor(in info, keyMappingGeneric);
+            var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
             formatter.Methods.Add(constructor);
 
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
@@ -53,44 +53,132 @@ namespace MSPack.Processor.Core.Formatter
             serialize.Body.Optimize();
             formatter.Methods.Add(serialize);
 
-            var deserialize = GenerateDeserialize(in info, shouldCallback, keyMappingGeneric, targetGenericInstanceType);
+            var deserialize = GenerateDeserialize(in info, shouldCallback, getIndex, targetGenericInstanceType);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
         }
 
-        private MethodDefinition GenerateConstructor(in GenericStructSerializationInfo info, FieldReference keyMappingGeneric)
+        private (TypeDefinition staticDeserializeHelperType, MethodDefinition getIndexStaticMethod) DefineDeserializeHelperType(in GenericStructSerializationInfo info)
         {
-            var constructor = new MethodDefinition(
-                ".ctor",
-                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                module.TypeSystem.Void)
+            var answerType = new TypeDefinition(
+                string.Empty,
+                "Automata_" + info.Definition.Name,
+                TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.NestedPublic | TypeAttributes.BeforeFieldInit,
+                module.TypeSystem.Object
+                );
+
+            var spanVariable = new VariableDefinition(provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
+            var answerMethod = new MethodDefinition(
+                "GetIndex",
+                MethodAttributes.Static | MethodAttributes.Public | MethodAttributes.HideBySig,
+                module.TypeSystem.Int32)
             {
-                HasThis = true,
+                HasThis = false,
+                Parameters =
+                {
+                    new ParameterDefinition("span", ParameterAttributes.None, provider.SystemReadOnlySpanHelper.ReadOnlySpanByte()),
+                },
+                Body =
+                {
+                    InitLocals = true,
+                    Variables =
+                    {
+                        spanVariable,
+                    },
+                }
             };
-            var processor = constructor.Body.GetILProcessor();
+            answerType.Methods.Add(answerMethod);
 
+            var processor = answerMethod.Body.GetILProcessor();
             processor.Append(Instruction.Create(OpCodes.Ldarg_0));
-            processor.Append(Instruction.Create(OpCodes.Dup));
-            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemObjectHelper.Ctor));
-            processor.Append(Instruction.Create(OpCodes.Newobj, provider.AutomataDictionaryHelper.Ctor));
+            processor.Append(InstructionUtility.StoreVariable(spanVariable));
 
-            var index = 0;
-            foreach (var (key, _) in info.EnumerateStringKeyValuePairs())
+            var failInstruction = InstructionUtility.LdcI4(-1);
+            var uint32 = default(VariableDefinition);
+            var uint64 = default(VariableDefinition);
+            var int32 = default(VariableDefinition);
+
+            VariableDefinition UInt32VariableDefinitionGenerator()
             {
-                processor.Append(Instruction.Create(OpCodes.Dup));
-                processor.Append(Instruction.Create(OpCodes.Ldstr, string.Intern(key)));
-                processor.Append(InstructionUtility.LdcI4(index++));
-                processor.Append(Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.Add));
+                if (uint32 is null)
+                {
+                    uint32 = new VariableDefinition(module.TypeSystem.UInt32);
+                    answerMethod.Body.Variables.Add(uint32);
+                }
+
+                return uint32;
             }
 
-            processor.Append(Instruction.Create(OpCodes.Stfld, keyMappingGeneric));
+            VariableDefinition UInt64VariableDefinitionGenerator()
+            {
+                if (uint64 is null)
+                {
+                    uint64 = new VariableDefinition(module.TypeSystem.UInt64);
+                    answerMethod.Body.Variables.Add(uint64);
+                }
+
+                return uint64;
+            }
+
+            VariableDefinition Int32VariableDefinitionGenerator()
+            {
+                if (int32 is null)
+                {
+                    int32 = new VariableDefinition(module.TypeSystem.Int32);
+                    answerMethod.Body.Variables.Add(int32);
+                }
+
+                return int32;
+            }
+
+            var option = new AutomataOption(spanVariable, failInstruction, provider.SystemReadOnlySpanHelper, UInt32VariableDefinitionGenerator, UInt64VariableDefinitionGenerator, Int32VariableDefinitionGenerator);
+            var tuples = new BinaryFieldDestinationTuple[info.Count];
+            var index = 0;
+            for (var i = 0; i < info.FieldInfos.Length; i++, index++)
+            {
+                ref readonly var serializationInfo = ref info.FieldInfos[i];
+                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
+                if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
+                {
+                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
+                }
+
+                tuples[index] = new BinaryFieldDestinationTuple(embedBytes, field, InstructionUtility.LdcI4(index));
+            }
+
+            for (var i = 0; i < info.PropertyInfos.Length; i++, index++)
+            {
+                ref readonly var serializationInfo = ref info.PropertyInfos[i];
+                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
+                if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
+                {
+                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
+                }
+
+                tuples[index] = new BinaryFieldDestinationTuple(embedBytes, field, InstructionUtility.LdcI4(index));
+            }
+
+            var embeddedInstructions = EmbeddedAutomata.Embed(tuples, option);
+            foreach (var embeddedInstruction in embeddedInstructions)
+            {
+                processor.Append(embeddedInstruction);
+            }
+
+            processor.Append(failInstruction);
             processor.Append(Instruction.Create(OpCodes.Ret));
 
-            return constructor;
+            for (var i = 0; i < tuples.Length; i++)
+            {
+                processor.Append(tuples[i].Destination);
+                processor.Append(Instruction.Create(OpCodes.Ret));
+            }
+
+            answerMethod.Body.Optimize();
+            return (answerType, answerMethod);
         }
 
         #region Deserialize
-        private MethodDefinition GenerateDeserialize(in GenericStructSerializationInfo info, in bool shouldCallback, FieldReference keyMappingGeneric, GenericInstanceType targetGenericInstanceType)
+        private MethodDefinition GenerateDeserialize(in GenericStructSerializationInfo info, in bool shouldCallback, MethodReference getIndexStaticMethod, GenericInstanceType targetGenericInstanceType)
         {
             var targetVariable = new VariableDefinition(targetGenericInstanceType);
             var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, targetGenericInstanceType)
@@ -110,7 +198,6 @@ namespace MSPack.Processor.Core.Formatter
                         new VariableDefinition(module.TypeSystem.Int32), // map index
                         targetVariable, // target
                         new VariableDefinition(provider.InterfaceFormatterResolverHelper.IFormatterResolver), // resolver
-                        new VariableDefinition(module.TypeSystem.Int32), // TryGetValue destination value
                     },
                 },
             };
@@ -130,35 +217,22 @@ namespace MSPack.Processor.Core.Formatter
             ReadMapHeader(processor);
             LoadResolver(processor);
 
-            Assignment(processor, in info, keyMappingGeneric, targetGenericInstanceType, targetVariable);
+            Assignment(processor, in info, getIndexStaticMethod, targetGenericInstanceType, targetVariable);
 
             PostProcess(processor, shouldCallback, targetGenericInstanceType, targetVariable);
 
             return deserialize;
         }
 
-        private void Assignment(ILProcessor processor, in GenericStructSerializationInfo info, FieldReference keyMappingGeneric, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
+        private void Assignment(ILProcessor processor, in GenericStructSerializationInfo info, MethodReference getIndexStaticMethod, GenericInstanceType targetGenericInstanceType, VariableDefinition targetVariable)
         {
+            var (switchInstructions, defaultInstructions, switchTable) = GenerateSwitchStatements(info, targetGenericInstanceType, targetVariable);
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
-            var loopStart = Instruction.Create(OpCodes.Ldarg_0);
+            var loopStart = Instruction.Create(OpCodes.Ldarg_1);
             processor.Append(loopStart);
-            processor.Append(Instruction.Create(OpCodes.Ldfld, keyMappingGeneric));
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
-            processor.Append(Instruction.Create(OpCodes.Ldloca_S, processor.Body.Variables[4]));
-            processor.Append(Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.TryGetValue));
-            var foundInstruction = Instruction.Create(OpCodes.Ldloc_S, processor.Body.Variables[4]);
-            processor.Append(Instruction.Create(OpCodes.Brtrue_S, foundInstruction));
-
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.Skip));
-            var nextInstruction = Instruction.Create(OpCodes.Ldloc_1);
-            processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
-
-            var (switchInstructions, defaultInstructions, switchTable) = GenerateSwitchStatements(info, targetGenericInstanceType, targetVariable);
-
-            processor.Append(foundInstruction);
+            processor.Append(Instruction.Create(OpCodes.Call, getIndexStaticMethod));
             processor.Append(Instruction.Create(OpCodes.Switch, switchTable));
 
             foreach (var instruction in defaultInstructions)
@@ -166,6 +240,7 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(instruction);
             }
 
+            var nextInstruction = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
 
             var @default = defaultInstructions[0];

@@ -9,13 +9,15 @@ namespace MSPack.Processor.Core.Formatter
 {
     public class GenericClassImplementorFacade : IGenericClassFormatterImplementor
     {
+        private readonly TypeDefinition resolverTypeDefinition;
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
 
-        public GenericClassImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public GenericClassImplementorFacade(TypeDefinition resolverTypeDefinition, TypeProvider provider, DataHelper dataHelper)
         {
-            this.module = module;
+            this.resolverTypeDefinition = resolverTypeDefinition;
+            this.module = resolverTypeDefinition.Module;
             this.provider = provider;
             this.dataHelper = dataHelper;
         }
@@ -42,7 +44,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (genericClassStringKeyFormatterImplementor is null)
             {
-                genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer);
+                genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer, resolverTypeDefinition);
             }
 
             return genericClassStringKeyFormatterImplementor;

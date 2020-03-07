@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using CompoundTestClasses;
 using MessagePack;
 using NUnit.Framework;
@@ -23,6 +24,8 @@ namespace Core.Test
             Assert.AreEqual(value.B, b);
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<Generics0<int, int>>(bytes);
+            Console.WriteLine(value.A + " , " + value.B);
+            Console.WriteLine(other.A + " , " + other.B);
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.A, a);
             Assert.AreEqual(other.B, b);

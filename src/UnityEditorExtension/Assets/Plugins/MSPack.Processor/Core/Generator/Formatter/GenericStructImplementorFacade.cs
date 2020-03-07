@@ -9,13 +9,15 @@ namespace MSPack.Processor.Core.Formatter
 {
     public class GenericStructImplementorFacade : IGenericStructFormatterImplementor
     {
+        private readonly TypeDefinition resolverTypeDefinition;
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
 
-        public GenericStructImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public GenericStructImplementorFacade(TypeDefinition resolverTypeDefinition, TypeProvider provider, DataHelper dataHelper)
         {
-            this.module = module;
+            this.resolverTypeDefinition = resolverTypeDefinition;
+            this.module = resolverTypeDefinition.Module;
             this.provider = provider;
             this.dataHelper = dataHelper;
         }
@@ -42,7 +44,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (genericStructStringKeyFormatterImplementor is null)
             {
-                genericStructStringKeyFormatterImplementor = new GenericStructStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer);
+                genericStructStringKeyFormatterImplementor = new GenericStructStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer, resolverTypeDefinition);
             }
 
             return genericStructStringKeyFormatterImplementor;
