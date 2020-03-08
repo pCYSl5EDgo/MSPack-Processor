@@ -17,15 +17,15 @@ namespace MSPack.Processor.Core.Formatter
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
         private readonly ModuleImporter importer;
-        private readonly TypeDefinition resolverDefinition;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public GenericClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer, TypeDefinition resolverDefinition)
+        public GenericClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, ModuleImporter importer, AutomataEmbeddingHelper automataHelper)
         {
             this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
             this.importer = importer;
-            this.resolverDefinition = resolverDefinition;
+            this.automataHelper = automataHelper;
         }
 
         /// <summary>
@@ -41,9 +41,6 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
             formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
-            var (keyMappingType, getIndex) = DefineDeserializeHelperType(in info);
-            resolverDefinition.NestedTypes.Add(keyMappingType);
-
             var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
             formatter.Methods.Add(constructor);
 
@@ -53,118 +50,10 @@ namespace MSPack.Processor.Core.Formatter
             serialize.Body.Optimize();
             formatter.Methods.Add(serialize);
 
+            var getIndex = automataHelper.GetIndex(info.FieldInfos, info.PropertyInfos);
             var deserialize = GenerateDeserialize(in info, shouldCallback, getIndex, targetGenericInstanceType);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
-        }
-
-        private (TypeDefinition staticDeserializeHelperType, MethodDefinition getIndexStaticMethod) DefineDeserializeHelperType(in GenericClassSerializationInfo info)
-        {
-            var answerType = new TypeDefinition(
-                string.Empty,
-                "Automata_" + info.Definition.Name,
-                TypeAttributes.Abstract | TypeAttributes.Sealed | TypeAttributes.NestedPublic | TypeAttributes.BeforeFieldInit,
-                module.TypeSystem.Object
-                );
-
-            var spanVariable = new VariableDefinition(provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
-            var spanParam = new ParameterDefinition("span", ParameterAttributes.None, provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
-            var answerMethod = new MethodDefinition(
-                "GetIndex",
-                MethodAttributes.Static | MethodAttributes.Public | MethodAttributes.HideBySig,
-                module.TypeSystem.Int32)
-            {
-                HasThis = false,
-                Parameters =
-                {
-                    spanParam,
-                },
-                Body =
-                {
-                    InitLocals = true,
-                    Variables =
-                    {
-                        spanVariable,
-                    },
-                }
-            };
-            answerType.Methods.Add(answerMethod);
-
-            var processor = answerMethod.Body.GetILProcessor();
-            processor.Append(Instruction.Create(OpCodes.Ldarg_0));
-            processor.Append(InstructionUtility.Store(spanVariable));
-
-            var uint32 = default(VariableDefinition);
-            VariableDefinition UInt32VariableDefinitionGenerator()
-            {
-                if (uint32 is null)
-                {
-                    uint32 = new VariableDefinition(module.TypeSystem.UInt32);
-                    answerMethod.Body.Variables.Add(uint32);
-                }
-
-                return uint32;
-            }
-
-            var uint64 = default(VariableDefinition);
-            VariableDefinition UInt64VariableDefinitionGenerator()
-            {
-                if (uint64 is null)
-                {
-                    uint64 = new VariableDefinition(module.TypeSystem.UInt64);
-                    answerMethod.Body.Variables.Add(uint64);
-                }
-
-                return uint64;
-            }
-
-            var int32 = default(VariableDefinition);
-            VariableDefinition Int32VariableDefinitionGenerator()
-            {
-                if (int32 is null)
-                {
-                    int32 = new VariableDefinition(module.TypeSystem.Int32);
-                    answerMethod.Body.Variables.Add(int32);
-                }
-
-                return int32;
-            }
-
-            var option = new AutomataOption(spanVariable, provider.SystemReadOnlySpanHelper, UInt32VariableDefinitionGenerator, UInt64VariableDefinitionGenerator, Int32VariableDefinitionGenerator, spanParam);
-            var tuples = new AutomataTuple[info.Count];
-            var index = 0;
-            for (var i = 0; i < info.FieldInfos.Length; i++, index++)
-            {
-                ref readonly var serializationInfo = ref info.FieldInfos[i];
-                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
-                if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
-                {
-                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
-                }
-
-                tuples[index] = new AutomataTuple(index, embedBytes, field);
-            }
-
-            for (var i = 0; i < info.PropertyInfos.Length; i++, index++)
-            {
-                ref readonly var serializationInfo = ref info.PropertyInfos[i];
-                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
-                if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
-                {
-                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
-                }
-
-                tuples[index] = new AutomataTuple(index, embedBytes, field);
-            }
-
-            var embeddedInstructions = AutomataEmbeddingHelper.Embed(tuples, option);
-            foreach (var embeddedInstruction in embeddedInstructions)
-            {
-                processor.Append(embeddedInstruction);
-            }
-
-            answerMethod.Body.Optimize();
-            return (answerType, answerMethod);
         }
 
         #region Deserialize

@@ -3,6 +3,7 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Formatter;
 using MSPack.Processor.Core.Provider;
 using System;
@@ -12,17 +13,19 @@ namespace MSPack.Processor.Core
 {
     public sealed class GenericFormatterBaseTypeDefinitionGenerator
     {
-        private readonly TypeDefinition resolver;
         private readonly ModuleDefinition module;
+        private readonly TypeDefinition resolver;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public GenericFormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider, DataHelper dataHelper)
+        public GenericFormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper)
         {
             this.resolver = resolver;
             this.provider = provider;
             this.dataHelper = dataHelper;
-            module = resolver.Module;
+            this.automataHelper = automataHelper;
+            this.module = resolver.Module;
         }
 
 #if CSHARP_8_0_OR_NEWER
@@ -39,7 +42,7 @@ namespace MSPack.Processor.Core
             {
                 if (genericClassFormatterImplementor is null)
                 {
-                    genericClassFormatterImplementor = new GenericClassImplementorFacade(resolver, provider, dataHelper);
+                    genericClassFormatterImplementor = new GenericClassImplementorFacade(module, provider, dataHelper, automataHelper);
                 }
 
                 return genericClassFormatterImplementor;
@@ -52,7 +55,7 @@ namespace MSPack.Processor.Core
             {
                 if (genericStructFormatterImplementor is null)
                 {
-                    genericStructFormatterImplementor = new GenericStructImplementorFacade(resolver, provider, dataHelper);
+                    genericStructFormatterImplementor = new GenericStructImplementorFacade(module, provider, dataHelper, automataHelper);
                 }
 
                 return genericStructFormatterImplementor;

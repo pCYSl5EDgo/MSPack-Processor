@@ -3,23 +3,24 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Provider;
 
 namespace MSPack.Processor.Core.Formatter
 {
     public class GenericClassImplementorFacade : IGenericClassFormatterImplementor
     {
-        private readonly TypeDefinition resolverTypeDefinition;
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public GenericClassImplementorFacade(TypeDefinition resolverTypeDefinition, TypeProvider provider, DataHelper dataHelper)
+        public GenericClassImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper)
         {
-            this.resolverTypeDefinition = resolverTypeDefinition;
-            this.module = resolverTypeDefinition.Module;
+            this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
+            this.automataHelper = automataHelper;
         }
 
 #if CSHARP_8_0_OR_NEWER
@@ -44,7 +45,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (genericClassStringKeyFormatterImplementor is null)
             {
-                genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer, resolverTypeDefinition);
+                genericClassStringKeyFormatterImplementor = new GenericClassStringKeyFormatterImplementor(module, provider, dataHelper, provider.Importer, automataHelper);
             }
 
             return genericClassStringKeyFormatterImplementor;

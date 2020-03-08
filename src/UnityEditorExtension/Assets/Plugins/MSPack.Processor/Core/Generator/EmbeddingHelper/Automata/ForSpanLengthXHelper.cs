@@ -21,7 +21,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt64VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndLong(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -51,7 +51,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Ldind_I8),
                     value0Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -68,7 +68,7 @@ namespace MSPack.Processor.Core.Embed
                 value0Item1,
                 value0Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -106,7 +106,7 @@ namespace MSPack.Processor.Core.Embed
                         whenNotEqualsToTuple0,
                         value1Item1,
                         Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                         InstructionUtility.LdcI4(-1),
                         Instruction.Create(OpCodes.Ret),
 
@@ -132,7 +132,7 @@ namespace MSPack.Processor.Core.Embed
                     value1Item1,
                     value1Item2,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -160,7 +160,7 @@ namespace MSPack.Processor.Core.Embed
                     whenNotEqualsToTuple0,
                     value1Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -187,7 +187,7 @@ namespace MSPack.Processor.Core.Embed
                 value1Item1,
                 value1Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -210,7 +210,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt64VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndLong(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -286,7 +286,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Add),
                     value0Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -326,7 +326,7 @@ namespace MSPack.Processor.Core.Embed
                 value0Item1,
                 value0Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -387,7 +387,7 @@ namespace MSPack.Processor.Core.Embed
                         whenNotEqualsToTuple0,
                         value1Item1,
                         Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                         InstructionUtility.LdcI4(-1),
                         Instruction.Create(OpCodes.Ret),
 
@@ -436,7 +436,7 @@ namespace MSPack.Processor.Core.Embed
                     value1Item1,
                     value1Item2,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -487,7 +487,7 @@ namespace MSPack.Processor.Core.Embed
                     whenNotEqualsToTuple0,
                     value1Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -537,7 +537,7 @@ namespace MSPack.Processor.Core.Embed
                 value1Item1,
                 value1Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -560,7 +560,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt64VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndLong(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -614,7 +614,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Add),
                     value0Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -643,7 +643,7 @@ namespace MSPack.Processor.Core.Embed
                 value0Item1,
                 value0Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -693,7 +693,7 @@ namespace MSPack.Processor.Core.Embed
                         whenNotEqualsToTuple0,
                         value1Item1,
                         Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                         InstructionUtility.LdcI4(-1),
                         Instruction.Create(OpCodes.Ret),
 
@@ -731,7 +731,7 @@ namespace MSPack.Processor.Core.Embed
                     value1Item1,
                     value1Item2,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -771,7 +771,7 @@ namespace MSPack.Processor.Core.Embed
                     whenNotEqualsToTuple0,
                     value1Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -810,7 +810,7 @@ namespace MSPack.Processor.Core.Embed
                 value1Item1,
                 value1Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -833,7 +833,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt64VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndLong(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -887,7 +887,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Add),
                     value0Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -916,7 +916,7 @@ namespace MSPack.Processor.Core.Embed
                 value0Item1,
                 value0Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -966,7 +966,7 @@ namespace MSPack.Processor.Core.Embed
                         whenNotEqualsToTuple0,
                         value1Item1,
                         Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                         InstructionUtility.LdcI4(-1),
                         Instruction.Create(OpCodes.Ret),
 
@@ -1004,7 +1004,7 @@ namespace MSPack.Processor.Core.Embed
                     value1Item1,
                     value1Item2,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -1044,7 +1044,7 @@ namespace MSPack.Processor.Core.Embed
                     whenNotEqualsToTuple0,
                     value1Item1,
                     Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                     InstructionUtility.LdcI4(-1),
                     Instruction.Create(OpCodes.Ret),
 
@@ -1083,7 +1083,7 @@ namespace MSPack.Processor.Core.Embed
                 value1Item1,
                 value1Item2,
                 Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
-                        
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1106,7 +1106,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt32VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndInt(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -1134,7 +1134,7 @@ namespace MSPack.Processor.Core.Embed
                 Instruction.Create(OpCodes.Ldind_U4),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1166,7 +1166,7 @@ namespace MSPack.Processor.Core.Embed
                 whenNotEquals,
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple1)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1189,7 +1189,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt32VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndInt(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -1231,7 +1231,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Shl),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1270,7 +1270,7 @@ namespace MSPack.Processor.Core.Embed
                 whenNotEquals,
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple1)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1293,7 +1293,7 @@ namespace MSPack.Processor.Core.Embed
                     var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
                     return (embed2, Array.Empty<Instruction>());
             }
-            
+
             Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var number = options.UInt32VariableDefinition();
             var 探索結果 = BinarySearchHelper.BinarySearchEndInt(options, tuples, tuplesOffset, tuplesCount, sorter, number);
@@ -1321,7 +1321,7 @@ namespace MSPack.Processor.Core.Embed
                 Instruction.Create(OpCodes.Ldind_U2),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                    
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 
@@ -1353,7 +1353,7 @@ namespace MSPack.Processor.Core.Embed
                 whenNotEquals,
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple1)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
-                
+
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
 

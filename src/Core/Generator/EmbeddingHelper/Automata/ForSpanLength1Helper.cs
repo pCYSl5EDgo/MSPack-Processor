@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 
@@ -8,16 +9,17 @@ namespace MSPack.Processor.Core.Embed
 {
     public static class ForSpanLength1Helper
     {
-        public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
+        public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption option, TSorter sorter)
             where TSorter : ILengthSorter
         {
+            var getPinnableItemReference = option.ReadOnlySpanHelper.GetPinnableReferenceByte();
             switch (tuplesCount)
             {
                 case 1:
-                    var embed1 = Embed1(in tuples[tuplesOffset], in options, sorter);
+                    var embed1 = Embed1(in tuples[tuplesOffset], in option, sorter, getPinnableItemReference);
                     return (embed1, Array.Empty<Instruction>());
                 case 2:
-                    var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, sorter);
+                    var embed2 = Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in option, sorter, getPinnableItemReference);
                     return (embed2, Array.Empty<Instruction>());
             }
 
@@ -40,11 +42,9 @@ namespace MSPack.Processor.Core.Embed
                 loadingInstructions[i * 2 + 1] = Instruction.Create(OpCodes.Ret);
             }
 
-            var getPinnableItemReference = options.ReadOnlySpanHelper.GetPinnableReferenceByte();
-
             return (new[]
             {
-                InstructionUtility.LoadAddress(options.Span),
+                InstructionUtility.LoadAddress(option.Span),
                 Instruction.Create(OpCodes.Call, getPinnableItemReference),
                 Instruction.Create(OpCodes.Ldind_U1),
                 InstructionUtility.LdcI4(smallestByte),
@@ -56,11 +56,10 @@ namespace MSPack.Processor.Core.Embed
             }, loadingInstructions);
         }
 
-        private static Instruction[] Embed2<TSorter>(in AutomataTuple tuple0, in AutomataTuple tuple1, in AutomataOption options, TSorter sorter)
+        private static Instruction[] Embed2<TSorter>(in AutomataTuple tuple0, in AutomataTuple tuple1, in AutomataOption option, TSorter sorter, MethodReference getPinnableItemReference)
             where TSorter : ILengthSorter
         {
-            var getPinnableItemReference = options.ReadOnlySpanHelper.GetPinnableReferenceByte();
-            var number = options.UInt32VariableDefinition();
+            var number = option.UInt32VariableDefinition();
             var value0 = (int)(byte)sorter.GetValue(tuple0);
             var value1 = (int)(byte)sorter.GetValue(tuple1);
             var whenNotEqualsToTuple0 = InstructionUtility.Load(number);
@@ -68,7 +67,7 @@ namespace MSPack.Processor.Core.Embed
 
             return new[]
             {
-                InstructionUtility.LoadAddress(options.Span),
+                InstructionUtility.LoadAddress(option.Span),
                 Instruction.Create(OpCodes.Call, getPinnableItemReference),
                 Instruction.Create(OpCodes.Ldind_U1),
                 Instruction.Create(OpCodes.Dup),
@@ -91,16 +90,15 @@ namespace MSPack.Processor.Core.Embed
             };
         }
 
-        private static Instruction[] Embed1<TSorter>(in AutomataTuple tuple0, in AutomataOption options, TSorter sorter)
+        private static Instruction[] Embed1<TSorter>(in AutomataTuple tuple0, in AutomataOption option, TSorter sorter, MethodReference getPinnableItemReference)
             where TSorter : ILengthSorter
         {
-            var getPinnableItemReference = options.ReadOnlySpanHelper.GetPinnableReferenceByte();
             var value0 = (int)(byte)sorter.GetValue(tuple0);
             var whenEquals = InstructionUtility.LdcI4(tuple0.Index);
 
             return new[]
             {
-                InstructionUtility.LoadAddress(options.Span),
+                InstructionUtility.LoadAddress(option.Span),
                 Instruction.Create(OpCodes.Call, getPinnableItemReference),
                 Instruction.Create(OpCodes.Ldind_U1),
                 InstructionUtility.LdcI4(value0),

@@ -3,6 +3,7 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Provider;
 using MSPack.Processor.Core.Report;
 using System;
@@ -110,18 +111,23 @@ namespace MSPack.Processor.Core
             FormatterTableItemInfo[] formatterInfos;
             using (new Watcher(sw, logger, "Formatter Generation"))
             {
-                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions);
+                var dataHelper = new DataHelper(resolverTypeDefinition.Module, provider.SystemValueTypeHelper.ValueType);
+                var automataHelper = new AutomataEmbeddingHelper(resolverTypeDefinition, provider.SystemReadOnlySpanHelper, dataHelper);
+                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions, automataHelper, dataHelper);
             }
 
-            var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
-            var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(inputModule, pairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
-            var (tableType, getFormatterMethodInfo) = tableGenerator.Generate(formatterInfos);
-            resolverTypeDefinition.NestedTypes.Add(tableType);
+            using (new Watcher(sw, logger, "Formatter Table Generation"))
+            {
+                var pairGenerator = new TypeKeyInterfaceMessagePackFormatterValuePairGenerator(provider);
+                var tableGenerator = new FixedTypeKeyInterfaceMessagePackFormatterValueHashtableGenerator(inputModule, pairGenerator, provider.SystemObjectHelper, provider.SystemTypeHelper, provider.Importer, provider.SystemArrayHelper, loadFactor);
+                var (tableType, getFormatterMethodInfo) = tableGenerator.Generate(formatterInfos);
+                resolverTypeDefinition.NestedTypes.Add(tableType);
 
-            var resolverInjector = new ResolverInjector(inputModule, resolverTypeDefinition, provider);
-            resolverInjector.Implement(getFormatterMethodInfo);
+                var resolverInjector = new ResolverInjector(inputModule, resolverTypeDefinition, provider);
+                resolverInjector.Implement(getFormatterMethodInfo);
 
-            PrivateAccessEnabler.EnablePrivateAccess(inputModule, provider.SystemRuntimeExtensionsScope);
+                PrivateAccessEnabler.EnablePrivateAccess(inputModule, provider.SystemRuntimeExtensionsScope);
+            }
 
             try
             {
@@ -134,16 +140,15 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private static FormatterTableItemInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules)
+        private static FormatterTableItemInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules, AutomataEmbeddingHelper automataHelper, DataHelper dataHelper)
         {
             var answer = new List<FormatterTableItemInfo>();
 
-            var dataHelper = new DataHelper(resolverTypeDefinition.Module, provider.SystemValueTypeHelper.ValueType);
             var generator = new FormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, dataHelper, loadFactor);
             var baseFormatterInfos = generator.Generate(collectedInfos);
             answer.AddRange(baseFormatterInfos);
 
-            var genericGenerator = new GenericFormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, dataHelper);
+            var genericGenerator = new GenericFormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, dataHelper, automataHelper);
             var genericFormatterInfos = genericGenerator.Generate(collectedInfos);
             answer.AddRange(genericFormatterInfos);
 
