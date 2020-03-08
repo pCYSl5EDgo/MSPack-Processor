@@ -38,6 +38,9 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
             formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
+            var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
+            formatter.Methods.Add(constructor);
+
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
 
             var serialize = GenerateSerialize(in info, shouldCallback);

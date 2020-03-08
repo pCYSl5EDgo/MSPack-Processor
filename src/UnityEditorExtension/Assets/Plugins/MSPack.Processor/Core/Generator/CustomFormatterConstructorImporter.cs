@@ -69,7 +69,8 @@ namespace MSPack.Processor.Core
                 .Append("Formatter type : ")
                 .Append(typeDefinition.FullName)
                 .Append(" does not have corresponding constructor. It requires ")
-                .Append(arguments.Length.ToString(CultureInfo.InvariantCulture));
+                .Append(arguments.Length.ToString(CultureInfo.InvariantCulture))
+                .Append(" parameter(s) constructor.");
 
             for (var index = 0; index < arguments.Length; index++)
             {
