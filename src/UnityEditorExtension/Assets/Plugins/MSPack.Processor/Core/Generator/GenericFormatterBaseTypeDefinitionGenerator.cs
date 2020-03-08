@@ -157,10 +157,10 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private static string CalcName(string namePrefix, int index, TypeReference type)
+        private static string CalcName(string namePrefix, int index, TypeReference type, bool isIntKey)
         {
             var builder = new StringBuilder();
-            builder.Append(namePrefix).Append(index).Append('_').Append(type.Name);
+            builder.Append(isIntKey ? 'I' : 'S').Append(namePrefix).Append(index).Append('_').Append(type.Name);
             return builder.ToString();
         }
 
@@ -168,7 +168,7 @@ namespace MSPack.Processor.Core
         {
             var formatter = new TypeDefinition(
                 string.Empty,
-                CalcName("GCFormatter", index, info.Definition),
+                CalcName("GCFormatter", index, info.Definition, info.IsIntKey),
                 TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 resolver.Module.TypeSystem.Object);
             GenericClassImplementor.Implement(info, formatter);
@@ -180,7 +180,7 @@ namespace MSPack.Processor.Core
         {
             var formatter = new TypeDefinition(
                 string.Empty,
-                CalcName("GCFormatter", index, info.Definition),
+                CalcName("GSFormatter", index, info.Definition, info.IsIntKey),
                 TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 resolver.Module.TypeSystem.Object);
             GenericStructImplementor.Implement(info, formatter);

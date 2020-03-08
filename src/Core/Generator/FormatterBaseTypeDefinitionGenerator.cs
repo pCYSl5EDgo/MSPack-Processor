@@ -7,6 +7,7 @@ using MSPack.Processor.Core.Formatter;
 using MSPack.Processor.Core.Provider;
 using System;
 using System.Globalization;
+using System.Text;
 using MSPack.Processor.Core.Embed;
 
 namespace MSPack.Processor.Core
@@ -181,7 +182,17 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private static string CalcName(string namePrefix, int index, string baseName) => namePrefix + index.ToString(CultureInfo.InvariantCulture) + "_" + baseName;
+        private static string CalcName(string namePrefix, int index, string baseName)
+        {
+            return namePrefix + index.ToString(CultureInfo.InvariantCulture) + "_" + baseName;
+        }
+
+        private static string CalcName(string namePrefix, int index, string baseName, bool isIntKey)
+        {
+            var buffer = new StringBuilder();
+            buffer.Append(isIntKey ? 'I' : 'S').Append(namePrefix).Append(index).Append('_').Append(baseName);
+            return buffer.ToString();
+        }
 
         private TypeDefinition Add(in UnionClassSerializationInfo info, int index)
         {
@@ -211,7 +222,7 @@ namespace MSPack.Processor.Core
         {
             var formatter = new TypeDefinition(
                 string.Empty,
-                CalcName("CFormatter", index, info.Definition.Name),
+                CalcName("CFormatter", index, info.Definition.Name, info.IsIntKey),
                 TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 resolver.Module.TypeSystem.Object);
             ClassImplementor.Implement(info, formatter);
@@ -223,7 +234,7 @@ namespace MSPack.Processor.Core
         {
             var formatter = new TypeDefinition(
                 string.Empty,
-                CalcName("SFormatter", index, info.Definition.Name),
+                CalcName("SFormatter", index, info.Definition.Name, info.IsIntKey),
                 TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
                 resolver.Module.TypeSystem.Object);
             StructImplementor.Implement(info, formatter);

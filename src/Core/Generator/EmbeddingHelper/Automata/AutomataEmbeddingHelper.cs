@@ -57,10 +57,10 @@ namespace MSPack.Processor.Core.Embed
         private string DefineGetIndexName(string[] array)
         {
             var buffer = new StringBuilder()
-                .Append("GetIndex_A")
-                .Append(array.Length.ToString("D4"))
+                .Append("GetIndex_")
+                .Append(GetDeserializeHelperType().Methods.Count.ToString("D4"))
                 .Append("_")
-                .Append(GetDeserializeHelperType().Methods.Count.ToString("D4"));
+                .Append(array.Length.ToString("D4"));
             return buffer.ToString();
         }
 
