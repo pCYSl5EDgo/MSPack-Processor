@@ -378,7 +378,7 @@ namespace MSPack.Processor.Core.Formatter
 
             DecrementDepth(processor);
 
-            processor.Append(InstructionUtility.LoadVariable(targetVariable));
+            processor.Append(InstructionUtility.Load(targetVariable));
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 

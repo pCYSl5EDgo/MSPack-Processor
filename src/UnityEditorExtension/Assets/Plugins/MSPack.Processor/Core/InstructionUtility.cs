@@ -1,6 +1,7 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace MSPack.Processor.Core
@@ -138,47 +139,54 @@ namespace MSPack.Processor.Core
 
         public static Instruction LdNull() => Instruction.Create(OpCodes.Ldnull);
 
-        public static Instruction LoadVariableAddress(VariableDefinition variableDefinition)
+        public static Instruction LoadAddress(ParameterDefinition definition)
         {
-            if (variableDefinition.Index < 256)
-            {
-                return Instruction.Create(OpCodes.Ldloca_S, variableDefinition);
-            }
-
-            return Instruction.Create(OpCodes.Ldloca, variableDefinition);
+            return Instruction.Create(definition.Index < 256 ? OpCodes.Ldarga_S : OpCodes.Ldarga, definition);
         }
 
-        public static Instruction LoadVariable(VariableDefinition variableDefinition)
+        public static Instruction LoadAddress(VariableDefinition definition)
         {
-            switch (variableDefinition.Index)
+            return Instruction.Create(definition.Index < 256 ? OpCodes.Ldloca_S : OpCodes.Ldloca, definition);
+        }
+
+        public static Instruction Load(ParameterDefinition definition)
+        {
+            switch (definition.Index)
             {
-                case 0:
-                    return Instruction.Create(OpCodes.Ldloc_0);
-                case 1:
-                    return Instruction.Create(OpCodes.Ldloc_1);
-                case 2:
-                    return Instruction.Create(OpCodes.Ldloc_2);
-                case 3:
-                    return Instruction.Create(OpCodes.Ldloc_3);
-                default:
-                    return Instruction.Create(variableDefinition.Index < 256 ? OpCodes.Ldloc_S : OpCodes.Ldloc, variableDefinition);
+                case 0: return Instruction.Create(OpCodes.Ldarg_0);
+                case 1: return Instruction.Create(OpCodes.Ldarg_1);
+                case 2: return Instruction.Create(OpCodes.Ldarg_2);
+                case 3: return Instruction.Create(OpCodes.Ldarg_3);
+                default: return Instruction.Create(definition.Index < 256 ? OpCodes.Ldarg_S : OpCodes.Ldarg, definition);
             }
         }
 
-        public static Instruction StoreVariable(VariableDefinition variableDefinition)
+        public static Instruction Load(VariableDefinition definition)
         {
-            switch (variableDefinition.Index)
+            switch (definition.Index)
             {
-                case 0:
-                    return Instruction.Create(OpCodes.Stloc_0);
-                case 1:
-                    return Instruction.Create(OpCodes.Stloc_1);
-                case 2:
-                    return Instruction.Create(OpCodes.Stloc_2);
-                case 3:
-                    return Instruction.Create(OpCodes.Stloc_3);
-                default:
-                    return Instruction.Create(variableDefinition.Index < 256 ? OpCodes.Stloc_S : OpCodes.Stloc, variableDefinition);
+                case 0: return Instruction.Create(OpCodes.Ldloc_0);
+                case 1: return Instruction.Create(OpCodes.Ldloc_1);
+                case 2: return Instruction.Create(OpCodes.Ldloc_2);
+                case 3: return Instruction.Create(OpCodes.Ldloc_3);
+                default: return Instruction.Create(definition.Index < 256 ? OpCodes.Ldloc_S : OpCodes.Ldloc, definition);
+            }
+        }
+
+        public static Instruction Store(ParameterDefinition definition)
+        {
+            return Instruction.Create(definition.Index < 256 ? OpCodes.Starg_S : OpCodes.Starg, definition);
+        }
+
+        public static Instruction Store(VariableDefinition definition)
+        {
+            switch (definition.Index)
+            {
+                case 0: return Instruction.Create(OpCodes.Stloc_0);
+                case 1: return Instruction.Create(OpCodes.Stloc_1);
+                case 2: return Instruction.Create(OpCodes.Stloc_2);
+                case 3: return Instruction.Create(OpCodes.Stloc_3);
+                default: return Instruction.Create(definition.Index < 256 ? OpCodes.Stloc_S : OpCodes.Stloc, definition);
             }
         }
     }

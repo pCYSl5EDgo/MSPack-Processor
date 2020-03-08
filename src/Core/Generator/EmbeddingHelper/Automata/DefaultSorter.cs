@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
-    public sealed class DefaultSorter : IComparer<BinaryFieldDestinationTuple>
+    public sealed class DefaultSorter : IComparer<AutomataTuple>
     {
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
             if (x.Length < y.Length)
             {
@@ -20,10 +20,12 @@ namespace MSPack.Processor.Core.Embed
                 return 1;
             }
 
-            for (var i = 0; i < x.Binary.Length; i++)
+            for (var i = 0; i < x.Length; i++)
             {
-                var xVal = x.Binary[i];
-                var yVal = y.Binary[i];
+                // ReSharper disable once PossibleNullReferenceException
+                var xVal = x[i];
+                // ReSharper disable once PossibleNullReferenceException
+                var yVal = y[i];
                 if (xVal < yVal)
                 {
                     return -1;

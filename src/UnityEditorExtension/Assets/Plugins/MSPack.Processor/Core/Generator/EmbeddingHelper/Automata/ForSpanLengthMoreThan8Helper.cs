@@ -9,15 +9,15 @@ namespace MSPack.Processor.Core.Embed
 {
     public static class ForSpanLengthMoreThan8Helper
     {
-        public static void Embed(BinaryFieldDestinationTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, int start, int length, List<Instruction> list)
+        public static void Embed(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption option, int start, List<Instruction> list)
         {
             switch (tuplesCount)
             {
                 case 1:
-                    Embed1(in tuples[tuplesOffset], in options, start, length, list);
+                    Embed1(in tuples[tuplesOffset], in option, start, list);
                     return;
                 case 2:
-                    Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in options, start, length, list);
+                    Embed2(in tuples[tuplesOffset], in tuples[tuplesOffset + 1], in option, start, list);
                     return;
                 default:
                     var sorter = new Length8Sorter(start);
@@ -34,45 +34,55 @@ namespace MSPack.Processor.Core.Embed
                     {
                         var (offset, count, value) = segments[index];
                         ref var pair = ref pairs[index];
-                        (pair.Item1, pair.Item2) = ForSpanLengthDefinedHelper.EmbedForSpanLengthDefined(tuples, offset, count, options, start + 8);
+                        (pair.Item1, pair.Item2) = ForSpanLengthDefinedHelper.EmbedForSpanLengthDefined(tuples, offset, count, option, start + 8);
                         (pair.Item3, pair.Item4) = InstructionUtility.LdcU8(value);
                     }
 
                     switch (pairs.Length)
                     {
                         case 1:
-                            EmbedDefault1(list, options, ref pairs[0]);
-                            break;
+                            EmbedDefault1(list, option, ref pairs[0]);
+                            return;
                         case 2:
-                            EmbedDefault2(list, options, ref pairs[0], ref pairs[1], options.UInt64VariableDefinition());
+                            EmbedDefault2(list, option, ref pairs[0], ref pairs[1], option.UInt64VariableDefinition());
+                            return;
+                        default:
+                            EmbedDefaultDefault(option, list, pairs);
                             return;
                     }
-
-                    var number = options.UInt64VariableDefinition();
-                    list.Add(InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition));
-                    list.Add(Instruction.Create(OpCodes.Dup));
-                    list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()));
-                    list.Add(Instruction.Create(OpCodes.Ldind_I8));
-                    list.Add(InstructionUtility.StoreVariable(number));
-
-                    list.Add(InstructionUtility.LdcI4(8));
-                    list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.SliceStartByte()));
-                    list.Add(InstructionUtility.StoreVariable(options.SpanVariableDefinition));
-                    var embedded = EmbedDefault(in options, number, pairs, 0, pairs.Length);
-                    list.AddRange(embedded);
-                    for (var index = 0; index < pairs.Length; index++)
-                    {
-                        ref var pair = ref pairs[index];
-                        list.AddRange(pair.Item1);
-                        list.AddRange(pair.Item2);
-                    }
-                    return;
             }
         }
+
 #if CSHARP_8_0_OR_NEWER
-        private static Instruction[] EmbedDefault(in AutomataOption options, VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count)
+        private static void EmbedDefaultDefault(in AutomataOption option, List<Instruction> list, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs)
 #else
-        private static Instruction[] EmbedDefault(in AutomataOption options, VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count)
+        private static void EmbedDefaultDefault(in AutomataOption option, List<Instruction> list, (Instruction[], Instruction[], Instruction, Instruction)[] pairs)
+#endif
+        {
+            var number = option.UInt64VariableDefinition();
+            list.Add(InstructionUtility.LoadAddress(option.Span));
+            list.Add(Instruction.Create(OpCodes.Dup));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.GetPinnableReferenceByte()));
+            list.Add(Instruction.Create(OpCodes.Ldind_I8));
+            list.Add(InstructionUtility.Store(number));
+
+            list.Add(InstructionUtility.LdcI4(8));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.SliceStartByte()));
+            list.Add(InstructionUtility.Store(option.Span));
+            var embedded = EmbedDefaultDefaultDefault(number, pairs, 0, pairs.Length);
+            list.AddRange(embedded);
+            for (var index = 0; index < pairs.Length; index++)
+            {
+                ref var pair = ref pairs[index];
+                list.AddRange(pair.Item1);
+                list.AddRange(pair.Item2);
+            }
+        }
+
+#if CSHARP_8_0_OR_NEWER
+        private static Instruction[] EmbedDefaultDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count)
+#else
+        private static Instruction[] EmbedDefaultDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count)
 #endif
         {
             ref var middle = ref pairs[offset + (count >> 1)];
@@ -83,10 +93,11 @@ namespace MSPack.Processor.Core.Embed
                     case 1:
                         return new[]
                         {
-                            InstructionUtility.LoadVariable(number),
+                            InstructionUtility.Load(number),
                             middle.Item3,
                             Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                            Instruction.Create(OpCodes.Br, options.FailInstruction),
+                            InstructionUtility.LdcI4(-1),
+                            Instruction.Create(OpCodes.Ret),
                         };
                     case 2:
                         ref var other = ref pairs[offset];
@@ -94,40 +105,42 @@ namespace MSPack.Processor.Core.Embed
                         {
                             return new[]
                             {
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 middle.Item3,
                                 Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 other.Item3,
                                 Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                                InstructionUtility.LdcI4(-1),
+                                Instruction.Create(OpCodes.Ret),
                             };
                         }
                         else
                         {
                             return new[]
                             {
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 middle.Item3,
                                 Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 other.Item3,
                                 other.Item4,
                                 Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                                InstructionUtility.LdcI4(-1),
+                                Instruction.Create(OpCodes.Ret),
                             };
                         }
                 }
 
-                var lesserResult = EmbedDefault(options, number, pairs, offset, count >> 1);
-                var greaterResult = EmbedDefault(options, number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
+                var lesserResult = EmbedDefaultDefaultDefault(number, pairs, offset, count >> 1);
+                var greaterResult = EmbedDefaultDefaultDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
                 return InstructionConcatHelper.Concat(
                     new[]
                     {
-                        InstructionUtility.LoadVariable(number),
+                        InstructionUtility.Load(number),
                         middle.Item3,
                         Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                        InstructionUtility.LoadVariable(number),
+                        InstructionUtility.Load(number),
                         middle.Item3.Clone(),
                         Instruction.Create(OpCodes.Bgt, greaterResult[0]),
                     },
@@ -142,11 +155,12 @@ namespace MSPack.Processor.Core.Embed
                     case 1:
                         return new[]
                         {
-                            InstructionUtility.LoadVariable(number),
+                            InstructionUtility.Load(number),
                             middle.Item3,
                             middle.Item4,
                             Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                            Instruction.Create(OpCodes.Br, options.FailInstruction),
+                            InstructionUtility.LdcI4(-1),
+                            Instruction.Create(OpCodes.Ret),
                         };
                     case 2:
                         ref var other = ref pairs[offset];
@@ -154,43 +168,45 @@ namespace MSPack.Processor.Core.Embed
                         {
                             return new[]
                             {
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 middle.Item3,
                                 middle.Item4,
                                 Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 other.Item3,
                                 Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                                InstructionUtility.LdcI4(-1),
+                                Instruction.Create(OpCodes.Ret),
                             };
                         }
                         else
                         {
                             return new[]
                             {
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 middle.Item3,
                                 middle.Item4,
                                 Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.LoadVariable(number),
+                                InstructionUtility.Load(number),
                                 other.Item3,
                                 other.Item4,
                                 Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                                InstructionUtility.LdcI4(-1),
+                                Instruction.Create(OpCodes.Ret),
                             };
                         }
                 }
-                var lesserResult = EmbedDefault(options, number, pairs, offset, count >> 1);
-                var greaterResult = EmbedDefault(options, number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
+                var lesserResult = EmbedDefaultDefaultDefault(number, pairs, offset, count >> 1);
+                var greaterResult = EmbedDefaultDefaultDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
 
                 return InstructionConcatHelper.Concat(
                     new[]
                     {
-                        InstructionUtility.LoadVariable(number),
+                        InstructionUtility.Load(number),
                         middle.Item3,
                         middle.Item4,
                         Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                        InstructionUtility.LoadVariable(number),
+                        InstructionUtility.Load(number),
                         middle.Item3.Clone(),
                         middle.Item4.Clone(),
                         Instruction.Create(OpCodes.Bgt, greaterResult[0]),
@@ -202,22 +218,22 @@ namespace MSPack.Processor.Core.Embed
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private static void EmbedDefault2(List<Instruction> list, in AutomataOption options, ref (Instruction[], Instruction[], Instruction, Instruction?) pair0, ref (Instruction[], Instruction[], Instruction, Instruction?) pair1, VariableDefinition number)
+        private static void EmbedDefault2(List<Instruction> list, in AutomataOption option, ref (Instruction[], Instruction[], Instruction, Instruction?) pair0, ref (Instruction[], Instruction[], Instruction, Instruction?) pair1, VariableDefinition number)
 #else
-        private static void EmbedDefault2(List<Instruction> list, in AutomataOption options, ref (Instruction[], Instruction[], Instruction, Instruction) pair0, ref (Instruction[], Instruction[], Instruction, Instruction) pair1, VariableDefinition number)
+        private static void EmbedDefault2(List<Instruction> list, in AutomataOption option, ref (Instruction[], Instruction[], Instruction, Instruction) pair0, ref (Instruction[], Instruction[], Instruction, Instruction) pair1, VariableDefinition number)
 #endif
         {
-            list.Add(InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition));
+            list.Add(InstructionUtility.LoadAddress(option.Span));
             list.Add(Instruction.Create(OpCodes.Dup));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.GetPinnableReferenceByte()));
             list.Add(Instruction.Create(OpCodes.Ldind_I8));
-            list.Add(InstructionUtility.StoreVariable(number));
+            list.Add(InstructionUtility.Store(number));
 
             list.Add(InstructionUtility.LdcI4(8));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.SliceStartByte()));
-            list.Add(InstructionUtility.StoreVariable(options.SpanVariableDefinition));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.SliceStartByte()));
+            list.Add(InstructionUtility.Store(option.Span));
 
-            list.Add(InstructionUtility.LoadVariable(number));
+            list.Add(InstructionUtility.Load(number));
             list.Add(pair0.Item3);
             if (!(pair0.Item4 is null))
             {
@@ -226,14 +242,17 @@ namespace MSPack.Processor.Core.Embed
 
             list.Add(Instruction.Create(OpCodes.Beq, pair0.Item1[0]));
 
-            list.Add(InstructionUtility.LoadVariable(number));
+            list.Add(InstructionUtility.Load(number));
             list.Add(pair1.Item3);
             if (!(pair1.Item4 is null))
             {
                 list.Add(pair1.Item4);
             }
 
-            list.Add(Instruction.Create(OpCodes.Bne_Un, options.FailInstruction));
+            list.Add(Instruction.Create(OpCodes.Beq_S, pair1.Item1[0]));
+
+            list.Add(InstructionUtility.LdcI4(-1));
+            list.Add(Instruction.Create(OpCodes.Ret));
 
             list.AddRange(pair1.Item1);
             list.AddRange(pair1.Item2);
@@ -243,13 +262,13 @@ namespace MSPack.Processor.Core.Embed
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private static void EmbedDefault1(List<Instruction> list, in AutomataOption options, ref (Instruction[], Instruction[], Instruction, Instruction?) pair0)
+        private static void EmbedDefault1(List<Instruction> list, in AutomataOption option, ref (Instruction[], Instruction[], Instruction, Instruction?) pair0)
 #else
-        private static void EmbedDefault1(List<Instruction> list, in AutomataOption options, ref (Instruction[], Instruction[], Instruction, Instruction) pair0)
+        private static void EmbedDefault1(List<Instruction> list, in AutomataOption option, ref (Instruction[], Instruction[], Instruction, Instruction) pair0)
 #endif
         {
-            list.Add(InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()));
+            list.Add(InstructionUtility.LoadAddress(option.Span));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.GetPinnableReferenceByte()));
             list.Add(Instruction.Create(OpCodes.Ldind_I8));
             list.Add(pair0.Item3);
             if (!(pair0.Item4 is null))
@@ -257,18 +276,22 @@ namespace MSPack.Processor.Core.Embed
                 list.Add(pair0.Item4);
             }
 
-            list.Add(Instruction.Create(OpCodes.Bne_Un, options.FailInstruction));
+            var whenEqualsToPair0 = InstructionUtility.LoadAddress(option.Span);
+            list.Add(Instruction.Create(OpCodes.Beq_S, whenEqualsToPair0));
 
-            list.Add(InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition));
+            list.Add(InstructionUtility.LdcI4(-1));
+            list.Add(Instruction.Create(OpCodes.Ret));
+
+            list.Add(whenEqualsToPair0);
             list.Add(InstructionUtility.LdcI4(8));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.SliceStartByte()));
-            list.Add(InstructionUtility.StoreVariable(options.SpanVariableDefinition));
+            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.SliceStartByte()));
+            list.Add(InstructionUtility.Store(option.Span));
 
             list.AddRange(pair0.Item1);
             list.AddRange(pair0.Item2);
         }
 
-        private static (int offset, int count, ulong value)[] Divide(BinaryFieldDestinationTuple[] tuples, int tuplesOffset, int tuplesCount, Length8Sorter sorter)
+        private static (int offset, int count, ulong value)[] Divide(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, Length8Sorter sorter)
         {
             var currentValue = sorter.GetValue(tuples[tuplesOffset]);
             var segments = new (int offset, int count, ulong value)[]
@@ -293,124 +316,67 @@ namespace MSPack.Processor.Core.Embed
             return segments;
         }
 
-        private static void Embed1(in BinaryFieldDestinationTuple tuple0, in AutomataOption options, int start, int length, List<Instruction> list)
+        private static void Embed1(in AutomataTuple tuple0, in AutomataOption option, int start, List<Instruction> list)
         {
-            var ctorPointerByte = options.ReadOnlySpanHelper.CtorPointerByte();
+            var fail = InstructionUtility.LdcI4(-1);
+            var length = tuple0.Length - start;
+            var match = CompareSequenceEqualityHelper.CompareSequentialEquality(tuple0, option.Span, option.ReadOnlySpanHelper, start, length, fail, new[]
+            {
+                InstructionUtility.LdcI4(tuple0.Index),
+                Instruction.Create(OpCodes.Ret),
+            });
 
-            list.Add(InstructionUtility.LoadVariable(options.SpanVariableDefinition));
+            list.Add(InstructionUtility.Load(option.ParamSpan));
+            list.Add(InstructionUtility.Store(option.Span));
 
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple0.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + tuple0.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(length - start));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brtrue, tuple0.Destination));
-            list.Add(Instruction.Create(OpCodes.Br, options.FailInstruction));
+            list.AddRange(match);
+            list.Add(fail);
+            list.Add(Instruction.Create(OpCodes.Ret));
         }
 
-        private static void Embed2(in BinaryFieldDestinationTuple tuple0, in BinaryFieldDestinationTuple tuple1, in AutomataOption options, int start, int length, List<Instruction> list)
+        private static void Embed2(in AutomataTuple tuple0, in AutomataTuple tuple1, in AutomataOption option, int start, List<Instruction> list)
         {
-            var sameLength = SameLength(tuple0.Binary, tuple1.Binary, start);
-            if (sameLength == 0)
+            var sameLength = SameLength(tuple0, tuple1, start);
+            var fail = InstructionUtility.LdcI4(-1);
+            var span = option.Span;
+            var helper = option.ReadOnlySpanHelper;
+            var secondMatch = CompareSequenceEqualityHelper.CompareSequentialEquality(tuple1, span, helper, start + sameLength, tuple1.Length - start - sameLength, fail, new[]
             {
-                Embed2Different(tuple0, tuple1, options, start, length, list);
+                InstructionUtility.LdcI4(tuple1.Index),
+                Instruction.Create(OpCodes.Ret),
+            });
+            var firstMatch = CompareSequenceEqualityHelper.CompareSequentialEquality(tuple0, span, helper, start + sameLength, tuple0.Length - start - sameLength, secondMatch[0], new[]
+            {
+                InstructionUtility.LdcI4(tuple0.Index),
+                Instruction.Create(OpCodes.Ret),
+            });
+
+            list.Add(InstructionUtility.Load(option.ParamSpan));
+            list.Add(InstructionUtility.Store(option.Span));
+
+            if (sameLength != 0)
+            {
+                var sameMatch = CompareSequenceEqualityHelper.CompareSequentialEquality(tuple0, span, helper, start, sameLength, fail, Array.Empty<Instruction>());
+                list.AddRange(sameMatch);
             }
-            else
+
+            list.AddRange(firstMatch);
+            list.AddRange(secondMatch);
+            list.Add(fail);
+            list.Add(Instruction.Create(OpCodes.Ret));
+        }
+
+        private static int SameLength(in AutomataTuple tuple0, in AutomataTuple tuple1, int start)
+        {
+            for (var i = start; i < tuple0.Length; i++)
             {
-                Embed2Same(tuple0, tuple1, options, start, length, sameLength, list);
-            }
-        }
-
-        private static void Embed2Same(in BinaryFieldDestinationTuple tuple0, in BinaryFieldDestinationTuple tuple1, in AutomataOption options, int start, int length, int sameLength, List<Instruction> list)
-        {
-            var ctorPointerByte = options.ReadOnlySpanHelper.CtorPointerByte();
-
-            var spanVariableDefinition = options.SpanVariableDefinition;
-            list.Add(InstructionUtility.LoadVariableAddress(spanVariableDefinition));
-            list.Add(InstructionUtility.LdcI4(0));
-            list.Add(InstructionUtility.LdcI4(sameLength));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.SliceStartLengthByte()));
-
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple0.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + tuple0.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(sameLength));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brfalse, options.FailInstruction));
-
-            list.Add(InstructionUtility.LoadVariableAddress(spanVariableDefinition));
-            list.Add(InstructionUtility.LdcI4(sameLength));
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.SliceStartByte()));
-            list.Add(Instruction.Create(OpCodes.Dup));
-            list.Add(InstructionUtility.StoreVariable(spanVariableDefinition));
-
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple0.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + sameLength + tuple0.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(length - start - sameLength));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brtrue, tuple0.Destination));
-
-            list.Add(InstructionUtility.LoadVariable(options.SpanVariableDefinition));
-
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple1.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + sameLength + tuple1.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(length - start - sameLength));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brtrue, tuple1.Destination));
-
-            list.Add(Instruction.Create(OpCodes.Br, options.FailInstruction));
-        }
-
-        private static void Embed2Different(in BinaryFieldDestinationTuple tuple0, in BinaryFieldDestinationTuple tuple1, in AutomataOption options, int start, int length, List<Instruction> list)
-        {
-            var ctorPointerByte = options.ReadOnlySpanHelper.CtorPointerByte();
-
-            list.Add(InstructionUtility.LoadVariable(options.SpanVariableDefinition));
-
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple0.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + tuple0.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(length - start));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brtrue, tuple0.Destination));
-
-            list.Add(InstructionUtility.LoadVariable(options.SpanVariableDefinition));
-
-            list.Add(Instruction.Create(OpCodes.Ldsflda, tuple1.DataStaticFieldDefinition));
-            list.Add(InstructionUtility.LdcI4(start + tuple1.HeaderOffset));
-            list.Add(Instruction.Create(OpCodes.Add));
-            list.Add(InstructionUtility.LdcI4(length - start));
-            list.Add(Instruction.Create(OpCodes.Newobj, ctorPointerByte));
-
-            list.Add(Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()));
-            list.Add(Instruction.Create(OpCodes.Brtrue, tuple1.Destination));
-
-            list.Add(Instruction.Create(OpCodes.Br, options.FailInstruction));
-        }
-
-        private static int SameLength(byte[] array0, byte[] array1, int start)
-        {
-            for (var i = start; i < array0.Length; i++)
-            {
-                if (array0[i] != array1[i])
+                if (tuple0[i] != tuple1[i])
                 {
                     return i - start;
                 }
             }
 
-            return array0.Length - start;
+            return tuple0.Length - start;
         }
     }
 }

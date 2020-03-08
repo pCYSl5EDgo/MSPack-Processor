@@ -324,7 +324,7 @@ namespace MSPack.Processor.Core.Formatter
 
             for (var i = 0; i < infoSerializationConstructor.Parameters.Count; i++)
             {
-                processor.Append(InstructionUtility.LoadVariable(variables[argumentVariableStartIndex + i]));
+                processor.Append(InstructionUtility.Load(variables[argumentVariableStartIndex + i]));
             }
 
             processor.Append(Instruction.Create(OpCodes.Newobj, provider.Importer.Import(infoSerializationConstructor)));
@@ -370,16 +370,16 @@ namespace MSPack.Processor.Core.Formatter
 
             for (var i = 0; i < infoSerializationConstructor.Parameters.Count; i++)
             {
-                processor.Append(InstructionUtility.LoadVariable(variables[argumentVariableStartIndex + i]));
+                processor.Append(InstructionUtility.Load(variables[argumentVariableStartIndex + i]));
             }
 
             processor.Append(Instruction.Create(OpCodes.Call, provider.Importer.Import(infoSerializationConstructor)));
-            processor.Append(InstructionUtility.StoreVariable(targetVariable));
+            processor.Append(InstructionUtility.Store(targetVariable));
 
             CallbackAfterDeserialization(info, processor, targetVariable);
             DecrementDepth(processor);
 
-            processor.Append(InstructionUtility.LoadVariable(targetVariable));
+            processor.Append(InstructionUtility.Load(targetVariable));
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
@@ -424,7 +424,7 @@ namespace MSPack.Processor.Core.Formatter
 
             DecrementDepth(processor);
 
-            processor.Append(InstructionUtility.LoadVariable(targetVariable));
+            processor.Append(InstructionUtility.Load(targetVariable));
             processor.Append(Instruction.Create(OpCodes.Ret));
         }
 
@@ -521,7 +521,7 @@ namespace MSPack.Processor.Core.Formatter
                 {
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.ReadMessagePackPrimitive(variable.VariableType)),
-                    InstructionUtility.StoreVariable(variable),
+                    InstructionUtility.Store(variable),
                 };
             }
             else
@@ -536,7 +536,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Ldarg_2),
                     Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                    InstructionUtility.StoreVariable(variable),
+                    InstructionUtility.Store(variable),
                 };
             }
         }

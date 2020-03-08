@@ -134,7 +134,7 @@ namespace MSPack.Processor.Core.Formatter
 
             DecrementDepth(processor, nextInstruction);
 
-            processor.Append(InstructionUtility.LoadVariable(targetVariable));
+            processor.Append(InstructionUtility.Load(targetVariable));
             processor.Append(Instruction.Create(OpCodes.Ret));
 
             return deserialize;
@@ -180,7 +180,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Ldarg_2),
                     Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
                     Instruction.Create(OpCodes.Box, importer.Import(unionSerializationInfo.Type).Reference),
-                    InstructionUtility.StoreVariable(targetVariable),
+                    InstructionUtility.Store(targetVariable),
                 };
             }
             else
@@ -193,7 +193,7 @@ namespace MSPack.Processor.Core.Formatter
                     Instruction.Create(OpCodes.Ldarg_1),
                     Instruction.Create(OpCodes.Ldarg_2),
                     Instruction.Create(OpCodes.Callvirt, deserializeGeneric),
-                    InstructionUtility.StoreVariable(targetVariable),
+                    InstructionUtility.Store(targetVariable),
                 };
             }
         }
@@ -264,7 +264,7 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Callvirt, objectHelper.GetType));
             processor.Append(Instruction.Create(OpCodes.Call, get));
             processor.Append(Instruction.Create(OpCodes.Dup));
-            processor.Append(InstructionUtility.StoreVariable(keyVariable));
+            processor.Append(InstructionUtility.Store(keyVariable));
             processor.Append(InstructionUtility.LdcI4(-1));
             processor.Append(Instruction.Create(OpCodes.Conv_I8));
             var success1 = Instruction.Create(OpCodes.Ldarg_1);
@@ -279,13 +279,13 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Call, writerHelper.WriteArrayHeaderInt));
 
             processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-            processor.Append(InstructionUtility.LoadVariable(keyVariable));
+            processor.Append(InstructionUtility.Load(keyVariable));
             processor.Append(InstructionUtility.LdcI4(32));
             processor.Append(Instruction.Create(OpCodes.Shr_Un));
             processor.Append(Instruction.Create(OpCodes.Conv_U4));
             processor.Append(Instruction.Create(OpCodes.Call, writerHelper.WriteInt));
 
-            processor.Append(InstructionUtility.LoadVariable(keyVariable));
+            processor.Append(InstructionUtility.Load(keyVariable));
             processor.Append(Instruction.Create(OpCodes.Conv_U4));
 
             var (switchInstructions, switchTable) = GenerateSerializeSwitchTable(in info);

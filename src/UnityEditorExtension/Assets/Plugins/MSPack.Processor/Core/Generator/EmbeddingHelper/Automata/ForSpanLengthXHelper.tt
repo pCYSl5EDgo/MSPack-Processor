@@ -9,7 +9,7 @@
     @"Instruction.Create(OpCodes.Ldind_U4),
                     Instruction.Create(OpCodes.Conv_U8),
 
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     InstructionUtility.LdcI4(4),
                     Instruction.Create(OpCodes.Add),
@@ -20,7 +20,7 @@
                     Instruction.Create(OpCodes.Shl),
                     Instruction.Create(OpCodes.Add),
 
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     InstructionUtility.LdcI4(6),
                     Instruction.Create(OpCodes.Add),
@@ -33,7 +33,7 @@
     @"Instruction.Create(OpCodes.Ldind_U4),
                     Instruction.Create(OpCodes.Conv_U8),
 
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     InstructionUtility.LdcI4(4),
                     Instruction.Create(OpCodes.Add),
@@ -46,7 +46,7 @@
     @"Instruction.Create(OpCodes.Ldind_U4),
                     Instruction.Create(OpCodes.Conv_U8),
 
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     InstructionUtility.LdcI4(4),
                     Instruction.Create(OpCodes.Add),
@@ -58,7 +58,7 @@
                     Instruction.Create(OpCodes.Add),",
     @"Instruction.Create(OpCodes.Ldind_U4),",
     @"Instruction.Create(OpCodes.Ldind_U2),
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     InstructionUtility.LdcI4(2),
                     Instruction.Create(OpCodes.Add),
@@ -79,8 +79,8 @@ namespace MSPack.Processor.Core.Embed
 <#for(var length = 8; length > 1; length--){#>
     public static class ForSpanLength<#=length#>Helper
     {
-        public static (Instruction[], Instruction[]) Embed<TSorter>(BinaryFieldDestinationTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<BinaryFieldDestinationTuple>
+        public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
+            where TSorter : ILengthSorter, IComparer<AutomataTuple>
         {
             switch (tuplesCount)
             {
@@ -98,63 +98,83 @@ namespace MSPack.Processor.Core.Embed
             return (
                 new[]
                 {
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     <#=instructions[8 - length]#>
-                    InstructionUtility.StoreVariable(number),
+                    InstructionUtility.Store(number),
                 },
                 探索結果
             );
         }
 
-        private static Instruction[] Embed1<TSorter>(in BinaryFieldDestinationTuple tuple0, in AutomataOption options, TSorter sorter)
+        private static Instruction[] Embed1<TSorter>(in AutomataTuple tuple0, in AutomataOption options, TSorter sorter)
             where TSorter : ILengthSorter
         {
 <#if(length > 4){#>
             var (value0Item1, value0Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple0));
+            var whenEquals = InstructionUtility.LdcI4(tuple0.Index);
             if (value0Item2 is null)
             {
                 return new[]
                 {
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     <#=instructions[8 - length]#>
                     value0Item1,
-                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                    Instruction.Create(OpCodes.Beq_S, whenEquals),
+                    
+                    InstructionUtility.LdcI4(-1),
+                    Instruction.Create(OpCodes.Ret),
+
+                    whenEquals,
+                    Instruction.Create(OpCodes.Ret),
                 };
             }
 
             return new[]
             {
-                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                InstructionUtility.LoadAddress(options.Span),
                 Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                 <#=instructions[8 - length]#>
                 value0Item1,
                 value0Item2,
-                Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                Instruction.Create(OpCodes.Beq_S, whenEquals),
+                    
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+
+                whenEquals,
+                Instruction.Create(OpCodes.Ret),
             };
 <#}else{#>
+            var whenEquals = InstructionUtility.LdcI4(tuple0.Index);
+
             return new[]
             {
-                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                InstructionUtility.LoadAddress(options.Span),
                 Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                 <#=instructions[8 - length]#>
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
-                Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                Instruction.Create(OpCodes.Beq_S, whenEquals),
+                    
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+
+                whenEquals,
+                Instruction.Create(OpCodes.Ret),
             };
 <#}#>
         }
 
-        private static Instruction[] Embed2<TSorter>(in BinaryFieldDestinationTuple tuple0, in BinaryFieldDestinationTuple tuple1, in AutomataOption options, TSorter sorter)
+        private static Instruction[] Embed2<TSorter>(in AutomataTuple tuple0, in AutomataTuple tuple1, in AutomataOption options, TSorter sorter)
             where TSorter : ILengthSorter
         {
 <#if(length > 4){#>
             var (value0Item1, value0Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple0));
             var (value1Item1, value1Item2) = InstructionUtility.LdcU8(sorter.GetValue(tuple1));
             var number = options.UInt64VariableDefinition();
+            var whenNotEqualsToTuple0 = InstructionUtility.Load(number);
+            var whenEqualsToTuple1 = InstructionUtility.LdcI4(tuple1.Index);
 
             if (value0Item2 is null)
             {
@@ -162,34 +182,52 @@ namespace MSPack.Processor.Core.Embed
                 {
                     return new[]
                     {
-                        InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                        InstructionUtility.LoadAddress(options.Span),
                         Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                         <#=instructions[8 - length]#>
                         Instruction.Create(OpCodes.Dup),
-                        InstructionUtility.StoreVariable(number),
+                        InstructionUtility.Store(number),
                         value0Item1,
-                        Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                        InstructionUtility.LoadVariable(number),
+                        Instruction.Create(OpCodes.Bne_Un_S, whenNotEqualsToTuple0),
+
+                        InstructionUtility.LdcI4(tuple0.Index),
+                        Instruction.Create(OpCodes.Ret),
+
+                        whenNotEqualsToTuple0,
                         value1Item1,
-                        Instruction.Create(OpCodes.Beq, tuple1.Destination),
-                        Instruction.Create(OpCodes.Br, options.FailInstruction),
+                        Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
+                        
+                        InstructionUtility.LdcI4(-1),
+                        Instruction.Create(OpCodes.Ret),
+
+                        whenEqualsToTuple1,
+                        Instruction.Create(OpCodes.Ret),
                     };
                 }
 
                 return new[]
                 {
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     <#=instructions[8 - length]#>
                     Instruction.Create(OpCodes.Dup),
-                    InstructionUtility.StoreVariable(number),
+                    InstructionUtility.Store(number),
                     value0Item1,
-                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                    InstructionUtility.LoadVariable(number),
+                    Instruction.Create(OpCodes.Bne_Un_S, whenNotEqualsToTuple0),
+
+                    InstructionUtility.LdcI4(tuple0.Index),
+                    Instruction.Create(OpCodes.Ret),
+
+                    whenNotEqualsToTuple0,
                     value1Item1,
                     value1Item2,
-                    Instruction.Create(OpCodes.Beq, tuple1.Destination),
-                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                    Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
+                        
+                    InstructionUtility.LdcI4(-1),
+                    Instruction.Create(OpCodes.Ret),
+
+                    whenEqualsToTuple1,
+                    Instruction.Create(OpCodes.Ret),
                 };
             }
 
@@ -197,52 +235,82 @@ namespace MSPack.Processor.Core.Embed
             {
                 return new[]
                 {
-                    InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                    InstructionUtility.LoadAddress(options.Span),
                     Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                     <#=instructions[8 - length]#>
                     Instruction.Create(OpCodes.Dup),
-                    InstructionUtility.StoreVariable(number),
+                    InstructionUtility.Store(number),
                     value0Item1,
                     value0Item2,
-                    Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                    InstructionUtility.LoadVariable(number),
+                    Instruction.Create(OpCodes.Bne_Un_S, whenNotEqualsToTuple0),
+
+                    InstructionUtility.LdcI4(tuple0.Index),
+                    Instruction.Create(OpCodes.Ret),
+
+                    whenNotEqualsToTuple0,
                     value1Item1,
-                    Instruction.Create(OpCodes.Beq, tuple1.Destination),
-                    Instruction.Create(OpCodes.Br, options.FailInstruction),
+                    Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
+                        
+                    InstructionUtility.LdcI4(-1),
+                    Instruction.Create(OpCodes.Ret),
+
+                    whenEqualsToTuple1,
+                    Instruction.Create(OpCodes.Ret),
                 };
             }
 
             return new[]
             {
-                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                InstructionUtility.LoadAddress(options.Span),
                 Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                 <#=instructions[8 - length]#>
                 Instruction.Create(OpCodes.Dup),
-                InstructionUtility.StoreVariable(number),
+                InstructionUtility.Store(number),
                 value0Item1,
                 value0Item2,
-                Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                InstructionUtility.LoadVariable(number),
+                Instruction.Create(OpCodes.Bne_Un_S, whenNotEqualsToTuple0),
+
+                InstructionUtility.LdcI4(tuple0.Index),
+                Instruction.Create(OpCodes.Ret),
+
+                whenNotEqualsToTuple0,
                 value1Item1,
                 value1Item2,
-                Instruction.Create(OpCodes.Beq, tuple1.Destination),
-                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
+                        
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+
+                whenEqualsToTuple1,
+                Instruction.Create(OpCodes.Ret),
             };
 <#}else{#>
             var number = options.UInt32VariableDefinition();
+            var whenNotEquals = InstructionUtility.Load(number);
+            var whenEquals = InstructionUtility.LdcI4(tuple1.Index);
+
             return new[]
             {
-                InstructionUtility.LoadVariableAddress(options.SpanVariableDefinition),
+                InstructionUtility.LoadAddress(options.Span),
                 Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.GetPinnableReferenceByte()),
                 <#=instructions[8 - length]#>
                 Instruction.Create(OpCodes.Dup),
-                InstructionUtility.StoreVariable(number),
+                InstructionUtility.Store(number),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
-                Instruction.Create(OpCodes.Beq, tuple0.Destination),
-                InstructionUtility.LoadVariable(number),
+                Instruction.Create(OpCodes.Bne_Un_S, whenNotEquals),
+
+                InstructionUtility.LdcI4(tuple0.Index),
+                Instruction.Create(OpCodes.Ret),
+
+                whenNotEquals,
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple1)),
-                Instruction.Create(OpCodes.Beq, tuple1.Destination),
-                Instruction.Create(OpCodes.Br, options.FailInstruction),
+                Instruction.Create(OpCodes.Beq_S, whenEquals),
+                
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+
+                whenEquals,
+                Instruction.Create(OpCodes.Ret),
             };
 <#}#>
         }

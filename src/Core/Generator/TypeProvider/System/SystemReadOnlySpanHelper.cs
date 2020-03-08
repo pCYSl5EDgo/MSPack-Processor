@@ -16,7 +16,6 @@ namespace MSPack.Processor.Core.Provider
 
 #if CSHARP_8_0_OR_NEWER
         private TypeReference? readOnlySpan;
-        private MethodReference? opEqualityByte;
         private GenericInstanceType? readOnlySpanByte;
         private MethodReference? ctorPointerByte;
         private MethodReference? sliceStartByte;
@@ -27,7 +26,6 @@ namespace MSPack.Processor.Core.Provider
         private GenericInstanceType? readOnlySpanGenericBase;
 #else
         private TypeReference readOnlySpan;
-        private MethodReference op_Equality_Byte;
         private GenericInstanceType readOnlySpanByte;
         private MethodReference ctorPointerByte;
         private MethodReference sliceStartByte;
@@ -131,24 +129,6 @@ namespace MSPack.Processor.Core.Provider
             }
 
             return ctorPointerByte;
-        }
-
-        public MethodReference OpEqualityByte()
-        {
-            if (opEqualityByte is null)
-            {
-                opEqualityByte = new MethodReference("op_Equality", module.TypeSystem.Boolean, ReadOnlySpanGeneric(module.TypeSystem.Byte))
-                {
-                    HasThis = false,
-                    Parameters =
-                    {
-                        new ParameterDefinition("left", ParameterAttributes.None, ReadOnlySpanGenericBase()),
-                        new ParameterDefinition("right", ParameterAttributes.None, ReadOnlySpanGenericBase()),
-                    },
-                };
-            }
-
-            return opEqualityByte;
         }
 
         public MethodReference GetItemByte()

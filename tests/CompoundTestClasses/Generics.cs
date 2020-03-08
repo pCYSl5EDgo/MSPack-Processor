@@ -10,31 +10,48 @@ namespace CompoundTestClasses
     [MessagePackObject(true)]
     [MessagePackObjectGenericVariation(typeof(Generics0<int, int>))]
     [MessagePackObjectGenericVariation(typeof(Generics0<long, long>))]
-    public class Generics0<T0, T1> : IEquatable<Generics0<T0, T1>>
+    public class Generics0<T0, T1> : IEquatable<Generics0<T0, T1>>//, IMessagePackSerializationCallbackReceiver
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
         public Generics0() { }
-        public Generics0(T0 a, T1 b)
+        public Generics0(T0 今度の戦いの結果で世界の命運が決まるa, T1 今度の戦いの結果で世界の命運が決まるb)
         {
-            A = a;
-            B = b;
+            今度の戦いの結果で世界の命運が決まるA = 今度の戦いの結果で世界の命運が決まるa;
+            今度の戦いの結果で世界の命運が決まるB = 今度の戦いの結果で世界の命運が決まるb;
         }
 
         //[Key(0)] 
-        public T0 A { get; }
+        public T0 今度の戦いの結果で世界の命運が決まるA { get; }
+        public T0 今度の戦いの結果で世界の命運が決まるAC { get; }
+        public T0 今度の戦いの結果で世界の命運が決まるDC { get; }
+        public T0 今度の戦いの結果で世界の命運が決まるAV { get; }
+
         //[Key(1)] 
-        public T1 B { get; }
+        public T1 今度の戦いの結果で世界の命運が決まるB { get; }
 
         public bool Equals(Generics0<T0, T1> other)
         {
             if (ReferenceEquals(this, other)) return true;
-            return A.Equals(other.A) && B.Equals(other.B);
+            return 今度の戦いの結果で世界の命運が決まるA.Equals(other.今度の戦いの結果で世界の命運が決まるA) && 今度の戦いの結果で世界の命運が決まるB.Equals(other.今度の戦いの結果で世界の命運が決まるB);
         }
 
         public override bool Equals(object obj) => obj is Generics0<T0, T1> other && Equals(other);
 
-        public override int GetHashCode() => A.GetHashCode() ^ B.GetHashCode();
+        public override int GetHashCode() => 今度の戦いの結果で世界の命運が決まるA.GetHashCode() ^ 今度の戦いの結果で世界の命運が決まるB.GetHashCode();
+        public void OnBeforeSerialize()
+        {
+            Console.WriteLine("Serialize");
+            Console.WriteLine("A:" + 今度の戦いの結果で世界の命運が決まるA.ToString());
+            Console.WriteLine("B:" + 今度の戦いの結果で世界の命運が決まるB.ToString());
+        }
+
+        public void OnAfterDeserialize()
+        {
+            Console.WriteLine("Deserialize");
+            Console.WriteLine("A:" + 今度の戦いの結果で世界の命運が決まるA.ToString());
+            Console.WriteLine("B:" + 今度の戦いの結果で世界の命運が決まるB.ToString());
+        }
     }
 
     public interface IDouble<T>

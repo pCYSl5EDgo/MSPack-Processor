@@ -7,18 +7,17 @@
 // Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
     public interface ILengthSorter
     {
-        ulong GetValue(in IndexBinaryFieldTuple tuple);
+        ulong GetValue(in AutomataTuple tuple);
     }
 
 <#for(var length = 1; length < 9; length++){#>
-    public sealed class Length<#=length#>Sorter : IComparer<IndexBinaryFieldTuple>, ILengthSorter
+    public sealed class Length<#=length#>Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -27,22 +26,48 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in IndexBinaryFieldTuple tuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = tuple.Binary;
-            ulong answer = binary[start];
+            ulong answer = tuple[start];
 <#for(var i = 1; i < length; i++){#>
-            answer |= (ulong)binary[start + <#=i#>] << <#=(i << 3)#>;
+            answer |= (ulong)tuple[start + <#=i#>] << <#=(i << 3)#>;
 <#}#>
             return answer;
         }
 
-        public int Compare(IndexBinaryFieldTuple x, IndexBinaryFieldTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
 <#for(var i = length - 1; i >= 1; --i){#>
-            xVal = x.Binary[start + <#=i#>];
-            yVal = y.Binary[start + <#=i#>];
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + <#=i#>];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + <#=i#>];
             if(xVal > yVal)
             {
                 return 1;
@@ -54,8 +79,10 @@ namespace MSPack.Processor.Core.Embed
             }
 
 <#}#>
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
             if(xVal > yVal)
             {
                 return 1;
@@ -67,35 +94,6 @@ namespace MSPack.Processor.Core.Embed
             }
 
             return 0;
-        }
-
-        public ArraySegment<IndexBinaryFieldTuple> Where(ArraySegment<IndexBinaryFieldTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if(array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for(; startIndex < array.Length; startIndex++)
-            {
-                if(GetValue(array[startIndex]) == value) 
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for(; endExclude < array.Length; endExclude++)
-            {
-                if(GetValue(array[endExclude]) != value) 
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<IndexBinaryFieldTuple>(array, startIndex, endExclude - start);
         }
     }
 

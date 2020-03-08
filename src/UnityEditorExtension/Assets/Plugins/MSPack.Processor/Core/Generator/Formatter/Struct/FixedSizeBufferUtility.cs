@@ -167,20 +167,20 @@ namespace MSPack.Processor.Core.Formatter
                 }
 
                 processor.Append(Instruction.Create(OpCodes.Dup)); // { writer, native uint, native uint }
-                processor.Append(InstructionUtility.StoreVariable(notPinnedVariable)); // { writer, native uint }
+                processor.Append(InstructionUtility.Store(notPinnedVariable)); // { writer, native uint }
                 processor.Append(Instruction.Create(ldInd)); // { writer, binary }
                 processor.Append(Instruction.Create(OpCodes.Call, writingElement)); // { }
 
                 for (var i = 1; i < count; i++)
                 {
                     processor.Append(Instruction.Create(OpCodes.Ldarg_1)); // { writer }
-                    processor.Append(InstructionUtility.LoadVariable(notPinnedVariable)); // { writer, native uint }
+                    processor.Append(InstructionUtility.Load(notPinnedVariable)); // { writer, native uint }
                     processor.Append(InstructionUtility.LdcI4(stride)); // { writer, native uint, int32 }
                     processor.Append(Instruction.Create(OpCodes.Add)); // { writer, native uint }
                     if (i != count - 1)
                     {
                         processor.Append(Instruction.Create(OpCodes.Dup)); // { writer, native int, native int }
-                        processor.Append(InstructionUtility.StoreVariable(notPinnedVariable)); // { writer, native int }
+                        processor.Append(InstructionUtility.Store(notPinnedVariable)); // { writer, native int }
                     }
 
                     processor.Append(Instruction.Create(ldInd)); // { writer, binary }

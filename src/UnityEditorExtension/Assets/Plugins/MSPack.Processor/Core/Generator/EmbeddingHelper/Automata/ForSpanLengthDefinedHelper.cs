@@ -9,10 +9,9 @@ namespace MSPack.Processor.Core.Embed
 {
     public static class ForSpanLengthDefinedHelper
     {
-        public static (Instruction[], Instruction[]) EmbedForSpanLengthDefined(BinaryFieldDestinationTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, int start)
+        public static (Instruction[], Instruction[]) EmbedForSpanLengthDefined(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, int start)
         {
-            var length = tuples[tuplesOffset].Length;
-            switch (length)
+            switch (tuples[tuplesOffset].Length - start)
             {
                 case 1:
                     return ForSpanLength1Helper.Embed(tuples, tuplesOffset, tuplesCount, in options, new Length1Sorter(start));
@@ -32,7 +31,7 @@ namespace MSPack.Processor.Core.Embed
                     return ForSpanLength8Helper.Embed(tuples, tuplesOffset, tuplesCount, in options, new Length8Sorter(start));
                 default:
                     var list = new List<Instruction>();
-                    ForSpanLengthMoreThan8Helper.Embed(tuples, tuplesOffset, tuplesCount, in options, start, length, list);
+                    ForSpanLengthMoreThan8Helper.Embed(tuples, tuplesOffset, tuplesCount, in options, start, list);
                     return (list.ToArray(), Array.Empty<Instruction>());
             }
         }

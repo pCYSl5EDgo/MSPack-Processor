@@ -9,7 +9,7 @@ namespace MSPack.Processor.Core.Embed
 {
     public static class EmbeddedAutomata
     {
-        public static Instruction[] Embed(BinaryFieldDestinationTuple[] tuples, in AutomataOption options)
+        public static Instruction[] Embed(AutomataTuple[] tuples, in AutomataOption options)
         {
             Array.Sort(tuples, new DefaultSorter());
             switch (tuples.Length)
@@ -54,7 +54,7 @@ namespace MSPack.Processor.Core.Embed
             }
         }
 
-        private static (Instruction[], Instruction[], Instruction[], Instruction[], Instruction[], Instruction[]) EmbedMulti2Lengths(BinaryFieldDestinationTuple[] tuples, in AutomataOption options)
+        private static (Instruction[], Instruction[], Instruction[], Instruction[], Instruction[], Instruction[]) EmbedMulti2Lengths(AutomataTuple[] tuples, in AutomataOption options)
         {
             var lesserLength = tuples[0].Length;
             var greaterLength = tuples[tuples.Length - 1].Length;
@@ -83,7 +83,7 @@ namespace MSPack.Processor.Core.Embed
             return (spanの長さを格納する, 初期探索結果, 短い方の探索結果.Item1, 短い方の探索結果.Item2, 長い方の探索結果.Item1, 長い方の探索結果.Item2);
         }
 
-        private static Instruction[] EmbedMultiSwitch(BinaryFieldDestinationTuple[] tuples, in AutomataOption options)
+        private static Instruction[] EmbedMultiSwitch(AutomataTuple[] tuples, in AutomataOption options)
         {
             var shortestLength = tuples[0].Length;
             var switchTable = new Instruction[tuples[tuples.Length - 1].Length - shortestLength + 1];
@@ -105,7 +105,7 @@ namespace MSPack.Processor.Core.Embed
             return list.ToArray();
         }
 
-        private static void List追加(BinaryFieldDestinationTuple[] tuples, in AutomataOption options, int shortestLength, Instruction[] switchTable, List<Instruction> list)
+        private static void List追加(AutomataTuple[] tuples, in AutomataOption options, int shortestLength, Instruction[] switchTable, List<Instruction> list)
         {
             var tuplesOffset = 0;
             var tuplesCount = 1;
@@ -126,7 +126,7 @@ namespace MSPack.Processor.Core.Embed
             List追加(options, switchTable, tuples, list, shortestLength, tuplesOffset, tuplesCount, oldLength);
         }
 
-        private static void List追加(in AutomataOption options, Instruction[] switchTable, BinaryFieldDestinationTuple[] tuples, List<Instruction> list, in BinaryFieldDestinationTuple nextTuple, int shortestLength, ref int tuplesOffset, ref int tuplesCount, ref int oldLength)
+        private static void List追加(in AutomataOption options, Instruction[] switchTable, AutomataTuple[] tuples, List<Instruction> list, in AutomataTuple nextTuple, int shortestLength, ref int tuplesOffset, ref int tuplesCount, ref int oldLength)
         {
             List追加(options, switchTable, tuples, list, shortestLength, tuplesOffset, tuplesCount, oldLength);
             oldLength = nextTuple.Length;
@@ -134,7 +134,7 @@ namespace MSPack.Processor.Core.Embed
             tuplesCount = 1;
         }
 
-        private static void List追加(in AutomataOption options, Instruction[] switchTable, in BinaryFieldDestinationTuple[] tuples, List<Instruction> list, int shortestLength, int tuplesOffset, int tuplesCount, int oldLength)
+        private static void List追加(in AutomataOption options, Instruction[] switchTable, in AutomataTuple[] tuples, List<Instruction> list, int shortestLength, int tuplesOffset, int tuplesCount, int oldLength)
         {
             var (item1, item2) = ForSpanLengthDefinedHelper.EmbedForSpanLengthDefined(tuples, tuplesOffset, tuplesCount, options, 0);
             switchTable[oldLength - shortestLength] = item1[0];
@@ -166,7 +166,7 @@ namespace MSPack.Processor.Core.Embed
             };
         }
 
-        private static Instruction[] Embed2Different(in BinaryFieldDestinationTuple first, in BinaryFieldDestinationTuple second, in AutomataOption options)
+        private static Instruction[] Embed2Different(in AutomataTuple first, in AutomataTuple second, in AutomataOption options)
         {
             var ctor = options.ReadOnlySpanHelper.CtorPointerByte();
             var op = options.ReadOnlySpanHelper.OpEqualityByte();
@@ -175,8 +175,6 @@ namespace MSPack.Processor.Core.Embed
             {
                 InstructionUtility.LoadVariable(options.SpanVariableDefinition),
                 Instruction.Create(OpCodes.Ldsflda, first.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(first.HeaderOffset),
-                Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4(first.Length),
                 Instruction.Create(OpCodes.Newobj, ctor),
                 Instruction.Create(OpCodes.Call, op),
@@ -184,8 +182,6 @@ namespace MSPack.Processor.Core.Embed
 
                 InstructionUtility.LoadVariable(options.SpanVariableDefinition),
                 Instruction.Create(OpCodes.Ldsflda, second.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(second.HeaderOffset),
-                Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4(second.Length),
                 Instruction.Create(OpCodes.Newobj, ctor),
                 Instruction.Create(OpCodes.Call, op),
@@ -195,7 +191,7 @@ namespace MSPack.Processor.Core.Embed
             };
         }
 
-        private static Instruction[] Embed2SameLength(in BinaryFieldDestinationTuple first, in BinaryFieldDestinationTuple second, in AutomataOption options)
+        private static Instruction[] Embed2SameLength(in AutomataTuple first, in AutomataTuple second, in AutomataOption options)
         {
             var sameLength = SameLength(first.Binary, second.Binary);
             if (sameLength == 0)
@@ -215,8 +211,6 @@ namespace MSPack.Processor.Core.Embed
                 InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Call, sliceStartLength),
                 Instruction.Create(OpCodes.Ldsflda, first.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(first.HeaderOffset),
-                Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Newobj, ctor),
                 Instruction.Create(OpCodes.Call, op),
@@ -226,7 +220,7 @@ namespace MSPack.Processor.Core.Embed
                 InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Call, sliceStart),
                 Instruction.Create(OpCodes.Ldsflda, first.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(first.HeaderOffset + sameLength),
+                InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4(first.Length - sameLength),
                 Instruction.Create(OpCodes.Newobj, ctor),
@@ -237,7 +231,7 @@ namespace MSPack.Processor.Core.Embed
                 InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Call, sliceStart),
                 Instruction.Create(OpCodes.Ldsflda, second.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(second.HeaderOffset + sameLength),
+                InstructionUtility.LdcI4(sameLength),
                 Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4(second.Length - sameLength),
                 Instruction.Create(OpCodes.Newobj, ctor),
@@ -248,18 +242,16 @@ namespace MSPack.Processor.Core.Embed
             };
         }
 
-        private static Instruction[] EmbedOne(in BinaryFieldDestinationTuple destinationTuple, in AutomataOption options)
+        private static Instruction[] EmbedOne(in AutomataTuple tuple, in AutomataOption options)
         {
             return new[]
             {
                 InstructionUtility.LoadVariable(options.SpanVariableDefinition),
-                Instruction.Create(OpCodes.Ldsflda, destinationTuple.DataStaticFieldDefinition),
-                InstructionUtility.LdcI4(destinationTuple.HeaderOffset),
-                Instruction.Create(OpCodes.Add),
-                InstructionUtility.LdcI4(destinationTuple.Length),
+                Instruction.Create(OpCodes.Ldsflda, tuple.DataStaticFieldDefinition),
+                InstructionUtility.LdcI4(tuple.Length),
                 Instruction.Create(OpCodes.Newobj, options.ReadOnlySpanHelper.CtorPointerByte()),
                 Instruction.Create(OpCodes.Call, options.ReadOnlySpanHelper.OpEqualityByte()),
-                Instruction.Create(OpCodes.Brtrue, destinationTuple.Destination),
+                Instruction.Create(OpCodes.Brtrue, tuple.Destination),
 
                 Instruction.Create(OpCodes.Br, options.FailInstruction),
             };

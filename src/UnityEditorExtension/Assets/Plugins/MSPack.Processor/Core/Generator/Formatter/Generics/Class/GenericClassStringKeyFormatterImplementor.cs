@@ -68,6 +68,7 @@ namespace MSPack.Processor.Core.Formatter
                 );
 
             var spanVariable = new VariableDefinition(provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
+            var spanParam = new ParameterDefinition("span", ParameterAttributes.None, provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
             var answerMethod = new MethodDefinition(
                 "GetIndex",
                 MethodAttributes.Static | MethodAttributes.Public | MethodAttributes.HideBySig,
@@ -76,7 +77,7 @@ namespace MSPack.Processor.Core.Formatter
                 HasThis = false,
                 Parameters =
                 {
-                    new ParameterDefinition("span", ParameterAttributes.None, provider.SystemReadOnlySpanHelper.ReadOnlySpanByte()),
+                    spanParam,
                 },
                 Body =
                 {
@@ -91,13 +92,9 @@ namespace MSPack.Processor.Core.Formatter
 
             var processor = answerMethod.Body.GetILProcessor();
             processor.Append(Instruction.Create(OpCodes.Ldarg_0));
-            processor.Append(InstructionUtility.StoreVariable(spanVariable));
+            processor.Append(InstructionUtility.Store(spanVariable));
 
-            var failInstruction = InstructionUtility.LdcI4(-1);
             var uint32 = default(VariableDefinition);
-            var uint64 = default(VariableDefinition);
-            var int32 = default(VariableDefinition);
-
             VariableDefinition UInt32VariableDefinitionGenerator()
             {
                 if (uint32 is null)
@@ -109,6 +106,7 @@ namespace MSPack.Processor.Core.Formatter
                 return uint32;
             }
 
+            var uint64 = default(VariableDefinition);
             VariableDefinition UInt64VariableDefinitionGenerator()
             {
                 if (uint64 is null)
@@ -120,6 +118,7 @@ namespace MSPack.Processor.Core.Formatter
                 return uint64;
             }
 
+            var int32 = default(VariableDefinition);
             VariableDefinition Int32VariableDefinitionGenerator()
             {
                 if (int32 is null)
@@ -131,8 +130,8 @@ namespace MSPack.Processor.Core.Formatter
                 return int32;
             }
 
-            var option = new AutomataOption(spanVariable, failInstruction, provider.SystemReadOnlySpanHelper, UInt32VariableDefinitionGenerator, UInt64VariableDefinitionGenerator, Int32VariableDefinitionGenerator);
-            var tuples = new BinaryFieldDestinationTuple[info.Count];
+            var option = new AutomataOption(spanVariable, provider.SystemReadOnlySpanHelper, UInt32VariableDefinitionGenerator, UInt64VariableDefinitionGenerator, Int32VariableDefinitionGenerator, spanParam);
+            var tuples = new AutomataTuple[info.Count];
             var index = 0;
             for (var i = 0; i < info.FieldInfos.Length; i++, index++)
             {
@@ -143,7 +142,7 @@ namespace MSPack.Processor.Core.Formatter
                     throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
                 }
 
-                tuples[index] = new BinaryFieldDestinationTuple(embedBytes, field, InstructionUtility.LdcI4(index));
+                tuples[index] = new AutomataTuple(index, embedBytes, field);
             }
 
             for (var i = 0; i < info.PropertyInfos.Length; i++, index++)
@@ -155,22 +154,13 @@ namespace MSPack.Processor.Core.Formatter
                     throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + info.Definition.FullName);
                 }
 
-                tuples[index] = new BinaryFieldDestinationTuple(embedBytes, field, InstructionUtility.LdcI4(index));
+                tuples[index] = new AutomataTuple(index, embedBytes, field);
             }
 
-            var embeddedInstructions = EmbeddedAutomata.Embed(tuples, option);
+            var embeddedInstructions = AutomataEmbeddingHelper.Embed(tuples, option);
             foreach (var embeddedInstruction in embeddedInstructions)
             {
                 processor.Append(embeddedInstruction);
-            }
-
-            processor.Append(failInstruction);
-            processor.Append(Instruction.Create(OpCodes.Ret));
-
-            for (var i = 0; i < tuples.Length; i++)
-            {
-                processor.Append(tuples[i].Destination);
-                processor.Append(Instruction.Create(OpCodes.Ret));
             }
 
             answerMethod.Body.Optimize();
@@ -185,7 +175,10 @@ namespace MSPack.Processor.Core.Formatter
                 HasThis = true,
             };
 
-            var deserialize = new MethodDefinition("Deserialize", MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual, targetGenericInstanceType)
+            var deserialize = new MethodDefinition(
+                "Deserialize",
+                MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual,
+                targetGenericInstanceType)
             {
                 HasThis = true,
                 Parameters =
@@ -236,9 +229,64 @@ namespace MSPack.Processor.Core.Formatter
             var loopStart = Instruction.Create(OpCodes.Ldarg_1);
             processor.Append(loopStart);
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
+
+            //
+            var span = new VariableDefinition(provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
+            processor.Body.Variables.Add(span);
+            processor.Append(InstructionUtility.Store(span));
+            var writeString = new MethodReference("Write", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
+            {
+                HasThis = false,
+                Parameters =
+                {
+                    new ParameterDefinition(module.TypeSystem.String),
+                },
+            };
+
+            processor.Append(InstructionUtility.LdStr("Length : "));
+            processor.Append(Instruction.Create(OpCodes.Call, writeString));
+            processor.Append(InstructionUtility.LoadAddress(span));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemReadOnlySpanHelper.GetLengthByte()));
+
+            var writeLineInt = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
+            {
+                HasThis = false,
+                Parameters =
+                {
+                    new ParameterDefinition(module.TypeSystem.Int32),
+                },
+            };
+            processor.Append(Instruction.Create(OpCodes.Call, writeLineInt));
+
+            processor.Append(InstructionUtility.LoadAddress(span));
+            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemReadOnlySpanHelper.GetPinnableReferenceByte()));
+            processor.Append(Instruction.Create(OpCodes.Ldind_U1));
+            processor.Append(Instruction.Create(OpCodes.Call, writeLineInt));
+            var writeLine = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
+            {
+                HasThis = false,
+            };
+            processor.Append(Instruction.Create(OpCodes.Call, writeLine));
+
+            processor.Append(InstructionUtility.Load(span));
+            //
+
             processor.Append(Instruction.Create(OpCodes.Call, getIndexStaticMethod));
 
             processor.Append(Instruction.Create(OpCodes.Switch, switchTable));
+
+            //
+            var writeLineString = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
+            {
+                HasThis = false,
+                Parameters =
+                {
+                    new ParameterDefinition(module.TypeSystem.String),
+                },
+            };
+            processor.Append(InstructionUtility.LdStr("HHHHHHHHHHHHH"));
+            processor.Append(Instruction.Create(OpCodes.Call, writeLineString));
+            //
 
             foreach (var instruction in defaultInstructions)
             {
@@ -515,7 +563,6 @@ namespace MSPack.Processor.Core.Formatter
             if (shouldCallback)
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                processor.Append(Instruction.Create(OpCodes.Constrained, targetGenericInstanceType));
                 var onBeforeSerialize = new MethodReference("OnBeforeSerialize", module.TypeSystem.Void, targetGenericInstanceType)
                 {
                     HasThis = true,

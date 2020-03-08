@@ -1,17 +1,16 @@
 ﻿// Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
     public interface ILengthSorter
     {
-        ulong GetValue(in BinaryFieldDestinationTuple destinationTuple);
+        ulong GetValue(in AutomataTuple tuple);
     }
 
-    public sealed class Length1Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length1Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -20,62 +19,59 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
+            ulong answer = tuple[start];
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length2Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length2Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -84,75 +80,74 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length3Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length3Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -161,88 +156,89 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length4Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length4Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -251,101 +247,104 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
-            answer |= (ulong)binary[start + 3] << 24;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
+            answer |= (ulong)tuple[start + 3] << 24;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 3];
-            yVal = y.Binary[start + 3];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 3];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 3];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length5Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length5Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -354,114 +353,119 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
-            answer |= (ulong)binary[start + 3] << 24;
-            answer |= (ulong)binary[start + 4] << 32;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
+            answer |= (ulong)tuple[start + 3] << 24;
+            answer |= (ulong)tuple[start + 4] << 32;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 4];
-            yVal = y.Binary[start + 4];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 4];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 4];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 3];
-            yVal = y.Binary[start + 3];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 3];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 3];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length6Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length6Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -470,127 +474,134 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
-            answer |= (ulong)binary[start + 3] << 24;
-            answer |= (ulong)binary[start + 4] << 32;
-            answer |= (ulong)binary[start + 5] << 40;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
+            answer |= (ulong)tuple[start + 3] << 24;
+            answer |= (ulong)tuple[start + 4] << 32;
+            answer |= (ulong)tuple[start + 5] << 40;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 5];
-            yVal = y.Binary[start + 5];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 5];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 5];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 4];
-            yVal = y.Binary[start + 4];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 4];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 4];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 3];
-            yVal = y.Binary[start + 3];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 3];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 3];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length7Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length7Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -599,140 +610,149 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
-            answer |= (ulong)binary[start + 3] << 24;
-            answer |= (ulong)binary[start + 4] << 32;
-            answer |= (ulong)binary[start + 5] << 40;
-            answer |= (ulong)binary[start + 6] << 48;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
+            answer |= (ulong)tuple[start + 3] << 24;
+            answer |= (ulong)tuple[start + 4] << 32;
+            answer |= (ulong)tuple[start + 5] << 40;
+            answer |= (ulong)tuple[start + 6] << 48;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 6];
-            yVal = y.Binary[start + 6];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 6];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 6];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 5];
-            yVal = y.Binary[start + 5];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 5];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 5];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 4];
-            yVal = y.Binary[start + 4];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 4];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 4];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 3];
-            yVal = y.Binary[start + 3];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 3];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 3];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
         }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
-        }
     }
 
-    public sealed class Length8Sorter : IComparer<BinaryFieldDestinationTuple>, ILengthSorter
+    public sealed class Length8Sorter : IComparer<AutomataTuple>, ILengthSorter
     {
         private readonly int start;
 
@@ -741,149 +761,160 @@ namespace MSPack.Processor.Core.Embed
             this.start = start;
         }
 
-        public ulong GetValue(in BinaryFieldDestinationTuple destinationTuple)
+        public ulong GetValue(in AutomataTuple tuple)
         {
-            var binary = destinationTuple.Binary;
-            ulong answer = binary[start];
-            answer |= (ulong)binary[start + 1] << 8;
-            answer |= (ulong)binary[start + 2] << 16;
-            answer |= (ulong)binary[start + 3] << 24;
-            answer |= (ulong)binary[start + 4] << 32;
-            answer |= (ulong)binary[start + 5] << 40;
-            answer |= (ulong)binary[start + 6] << 48;
-            answer |= (ulong)binary[start + 7] << 56;
+            ulong answer = tuple[start];
+            answer |= (ulong)tuple[start + 1] << 8;
+            answer |= (ulong)tuple[start + 2] << 16;
+            answer |= (ulong)tuple[start + 3] << 24;
+            answer |= (ulong)tuple[start + 4] << 32;
+            answer |= (ulong)tuple[start + 5] << 40;
+            answer |= (ulong)tuple[start + 6] << 48;
+            answer |= (ulong)tuple[start + 7] << 56;
             return answer;
         }
 
-        public int Compare(BinaryFieldDestinationTuple x, BinaryFieldDestinationTuple y)
+        public int Compare(AutomataTuple x, AutomataTuple y)
         {
-            byte xVal, yVal;
-            xVal = x.Binary[start + 7];
-            yVal = y.Binary[start + 7];
-            if (xVal > yVal)
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 7];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 7];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 6];
-            yVal = y.Binary[start + 6];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 6];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 6];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 5];
-            yVal = y.Binary[start + 5];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 5];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 5];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 4];
-            yVal = y.Binary[start + 4];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 4];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 4];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 3];
-            yVal = y.Binary[start + 3];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 3];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 3];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 2];
-            yVal = y.Binary[start + 2];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 2];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 2];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start + 1];
-            yVal = y.Binary[start + 1];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + 1];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + 1];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
-            xVal = x.Binary[start];
-            yVal = y.Binary[start];
-            if (xVal > yVal)
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
 
             return 0;
-        }
-
-        public ArraySegment<BinaryFieldDestinationTuple> Where(ArraySegment<BinaryFieldDestinationTuple> sortedArray, ulong value)
-        {
-            var startIndex = sortedArray.Offset;
-            var array = sortedArray.Array;
-            if (array is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            for (; startIndex < array.Length; startIndex++)
-            {
-                if (GetValue(array[startIndex]) == value)
-                {
-                    break;
-                }
-            }
-
-            var endExclude = startIndex + 1;
-            for (; endExclude < array.Length; endExclude++)
-            {
-                if (GetValue(array[endExclude]) != value)
-                {
-                    break;
-                }
-            }
-
-            return new ArraySegment<BinaryFieldDestinationTuple>(array, startIndex, endExclude - start);
         }
     }
 

@@ -80,7 +80,6 @@ namespace MSPack.Processor.Core.Formatter
             if (shouldCallback)
             {
                 processor.Append(Instruction.Create(OpCodes.Ldarg_2));
-                processor.Append(Instruction.Create(OpCodes.Constrained, targetGenericInstanceType));
                 var onBeforeSerialize = new MethodReference("OnBeforeSerialize", module.TypeSystem.Void, targetGenericInstanceType)
                 {
                     HasThis = true,
