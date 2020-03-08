@@ -7,6 +7,7 @@ using MSPack.Processor.Core.Formatter;
 using MSPack.Processor.Core.Provider;
 using System;
 using System.Globalization;
+using MSPack.Processor.Core.Embed;
 
 namespace MSPack.Processor.Core
 {
@@ -16,6 +17,7 @@ namespace MSPack.Processor.Core
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
         private readonly double loadFactor;
 
 #if CSHARP_8_0_OR_NEWER
@@ -28,13 +30,14 @@ namespace MSPack.Processor.Core
         private IUnionFormatterImplementor unionFormatterImplementor;
 #endif
 
-        public FormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider, DataHelper dataHelper, double loadFactor)
+        public FormatterBaseTypeDefinitionGenerator(TypeDefinition resolver, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper, double loadFactor)
         {
             this.resolver = resolver;
             module = resolver.Module;
             this.provider = provider;
             this.loadFactor = loadFactor;
             this.dataHelper = dataHelper;
+            this.automataHelper = automataHelper;
         }
 
         private IClassFormatterImplementor ClassImplementor
@@ -43,7 +46,7 @@ namespace MSPack.Processor.Core
             {
                 if (classFormatterImplementor is null)
                 {
-                    classFormatterImplementor = new ClassImplementorFacade(module, provider, dataHelper);
+                    classFormatterImplementor = new ClassImplementorFacade(module, provider, dataHelper, automataHelper);
                 }
 
                 return classFormatterImplementor;
@@ -56,7 +59,7 @@ namespace MSPack.Processor.Core
             {
                 if (structFormatterImplementor is null)
                 {
-                    structFormatterImplementor = new StructImplementorFacade(module, provider, dataHelper);
+                    structFormatterImplementor = new StructImplementorFacade(module, provider, dataHelper, automataHelper);
                 }
 
                 return structFormatterImplementor;

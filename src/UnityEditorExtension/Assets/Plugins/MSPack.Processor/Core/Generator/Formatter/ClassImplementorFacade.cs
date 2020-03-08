@@ -3,6 +3,7 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Provider;
 
 namespace MSPack.Processor.Core.Formatter
@@ -12,12 +13,14 @@ namespace MSPack.Processor.Core.Formatter
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public ClassImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public ClassImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper)
         {
             this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
+            this.automataHelper = automataHelper;
         }
 
 #if CSHARP_8_0_OR_NEWER
@@ -56,7 +59,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (stringKeyFormatterImplementor is null)
             {
-                stringKeyFormatterImplementor = new ClassStringKeyFormatterImplementor(module, provider, dataHelper);
+                stringKeyFormatterImplementor = new ClassStringKeyFormatterImplementor(module, provider, dataHelper, automataHelper);
             }
 
             return stringKeyFormatterImplementor;
@@ -66,7 +69,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (stringKeyAllMessagePackPrimitiveImplementor is null)
             {
-                stringKeyAllMessagePackPrimitiveImplementor = new ClassStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper);
+                stringKeyAllMessagePackPrimitiveImplementor = new ClassStringKeyAllMessagePackPrimitiveImplementor(module, provider, dataHelper, automataHelper);
             }
 
             return stringKeyAllMessagePackPrimitiveImplementor;

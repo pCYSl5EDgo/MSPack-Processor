@@ -119,63 +119,9 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(loopStart);
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
 
-            //
-            var span = new VariableDefinition(provider.SystemReadOnlySpanHelper.ReadOnlySpanByte());
-            processor.Body.Variables.Add(span);
-            processor.Append(InstructionUtility.Store(span));
-            var writeString = new MethodReference("Write", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
-            {
-                HasThis = false,
-                Parameters =
-                {
-                    new ParameterDefinition(module.TypeSystem.String),
-                },
-            };
-
-            processor.Append(InstructionUtility.LdStr("Length : "));
-            processor.Append(Instruction.Create(OpCodes.Call, writeString));
-            processor.Append(InstructionUtility.LoadAddress(span));
-            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemReadOnlySpanHelper.GetLengthByte()));
-
-            var writeLineInt = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
-            {
-                HasThis = false,
-                Parameters =
-                {
-                    new ParameterDefinition(module.TypeSystem.Int32),
-                },
-            };
-            processor.Append(Instruction.Create(OpCodes.Call, writeLineInt));
-
-            processor.Append(InstructionUtility.LoadAddress(span));
-            processor.Append(Instruction.Create(OpCodes.Call, provider.SystemReadOnlySpanHelper.GetPinnableReferenceByte()));
-            processor.Append(Instruction.Create(OpCodes.Ldind_U1));
-            processor.Append(Instruction.Create(OpCodes.Call, writeLineInt));
-            var writeLine = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
-            {
-                HasThis = false,
-            };
-            processor.Append(Instruction.Create(OpCodes.Call, writeLine));
-
-            processor.Append(InstructionUtility.Load(span));
-            //
-
             processor.Append(Instruction.Create(OpCodes.Call, getIndexStaticMethod));
 
             processor.Append(Instruction.Create(OpCodes.Switch, switchTable));
-
-            //
-            var writeLineString = new MethodReference("WriteLine", module.TypeSystem.Void, module.ImportReference(typeof(Console)))
-            {
-                HasThis = false,
-                Parameters =
-                {
-                    new ParameterDefinition(module.TypeSystem.String),
-                },
-            };
-            processor.Append(InstructionUtility.LdStr("HHHHHHHHHHHHH"));
-            processor.Append(Instruction.Create(OpCodes.Call, writeLineString));
-            //
 
             foreach (var instruction in defaultInstructions)
             {
@@ -186,8 +132,9 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
 
             var @default = defaultInstructions[0];
-            foreach (var instructions in switchInstructions)
+            for (var index = 0; index < switchInstructions.Length; index++)
             {
+                var instructions = switchInstructions[index];
                 if (ReferenceEquals(@default, instructions[0]))
                 {
                     continue;
@@ -198,7 +145,10 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(instruction);
                 }
 
-                processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                if (index != switchInstructions.Length - 1)
+                {
+                    processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                }
             }
 
             processor.Append(nextInstruction);

@@ -17,12 +17,14 @@ namespace MSPack.Processor.Core.Formatter
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public ClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public ClassStringKeyFormatterImplementor(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper)
         {
             this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
+            this.automataHelper = automataHelper;
         }
 
         /// <summary>
@@ -36,48 +38,20 @@ namespace MSPack.Processor.Core.Formatter
             formatter.Interfaces.Add(new InterfaceImplementation(iMessagePackFormatterGeneric.Reference));
             formatter.Interfaces.Add(new InterfaceImplementation(provider.InterfaceMessagePackFormatterHelper.InterfaceMessagePackFormatterNoGeneric));
 
-            FieldDefinition keyMapping = new FieldDefinition(nameof(keyMapping), FieldAttributes.Private | FieldAttributes.InitOnly, provider.AutomataDictionaryHelper.AutomataDictionary);
-            formatter.Fields.Add(keyMapping);
-
-            var constructor = GenerateConstructor(in info, keyMapping);
-            formatter.Methods.Add(constructor);
-
             var shouldCallback = CallbackTestUtility.ShouldCallback(info.Definition);
 
             var serialize = GenerateSerialize(in info, shouldCallback);
             serialize.Body.Optimize();
             formatter.Methods.Add(serialize);
 
-            var deserialize = GenerateDeserialize(in info, shouldCallback, keyMapping);
+            var getIndex = automataHelper.GetIndex(info.FieldInfos, info.PropertyInfos);
+            var deserialize = GenerateDeserialize(in info, shouldCallback, getIndex);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
         }
 
-        private MethodDefinition GenerateConstructor(in ClassSerializationInfo info, FieldDefinition keyMapping)
-        {
-            var constructor = ConstructorUtility.GenerateDefaultConstructor(module, provider.SystemObjectHelper);
-            var last = constructor.Body.Instructions[constructor.Body.Instructions.Count - 1];
-            var processor = constructor.Body.GetILProcessor();
-
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Ldarg_0));
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Newobj, provider.AutomataDictionaryHelper.Ctor));
-
-            var index = 0;
-            foreach (var (key, _) in info.EnumerateStringKeyValuePairs())
-            {
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Dup));
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Ldstr, string.Intern(key)));
-                processor.InsertBefore(last, InstructionUtility.LdcI4(index++));
-                processor.InsertBefore(last, Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.Add));
-            }
-
-            processor.InsertBefore(last, Instruction.Create(OpCodes.Stfld, keyMapping));
-
-            return constructor;
-        }
-
         #region Deserialize
-        private MethodDefinition GenerateDeserialize(in ClassSerializationInfo info, in bool shouldCallback, FieldDefinition keyMapping)
+        private MethodDefinition GenerateDeserialize(in ClassSerializationInfo info, in bool shouldCallback, MethodDefinition getIndex)
         {
             var target = provider.Importer.Import(info.Definition);
             var targetCtor = provider.Importer.Import(info.Definition.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 0 && x.HasThis));
@@ -103,7 +77,6 @@ namespace MSPack.Processor.Core.Formatter
                         new VariableDefinition(module.TypeSystem.Int32), // map index
                         new VariableDefinition(target.Reference), // target
                         new VariableDefinition(provider.InterfaceFormatterResolverHelper.IFormatterResolver), // resolver
-                        new VariableDefinition(module.TypeSystem.Int32), // TryGetValue destination value
                     },
                 },
             };
@@ -123,35 +96,23 @@ namespace MSPack.Processor.Core.Formatter
             LoadResolver(processor);
             InitializeObject(processor, targetCtor);
 
-            Assignment(processor, in info, keyMapping);
+            Assignment(processor, in info, getIndex);
 
             PostProcess(processor, info, shouldCallback);
 
             return deserialize;
         }
 
-        private void Assignment(ILProcessor processor, in ClassSerializationInfo info, FieldDefinition keyMapping)
+        private void Assignment(ILProcessor processor, in ClassSerializationInfo info, MethodDefinition getIndex)
         {
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
-            var loopStart = Instruction.Create(OpCodes.Ldarg_0);
+            var loopStart = Instruction.Create(OpCodes.Ldarg_1);
             processor.Append(loopStart);
-            processor.Append(Instruction.Create(OpCodes.Ldfld, keyMapping));
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
-            processor.Append(Instruction.Create(OpCodes.Ldloca_S, processor.Body.Variables[4]));
-            processor.Append(Instruction.Create(OpCodes.Callvirt, provider.AutomataDictionaryHelper.TryGetValue));
-            var foundInstruction = Instruction.Create(OpCodes.Ldloc_S, processor.Body.Variables[4]);
-            processor.Append(Instruction.Create(OpCodes.Brtrue_S, foundInstruction));
-
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
-            processor.Append(Instruction.Create(OpCodes.Call, provider.MessagePackReaderHelper.Skip));
-            var nextInstruction = Instruction.Create(OpCodes.Ldloc_1);
-            processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+            processor.Append(Instruction.Create(OpCodes.Call, getIndex));
 
             var (switchInstructions, defaultInstructions, switchTable) = GenerateSwitchStatements(info);
-
-            processor.Append(foundInstruction);
             processor.Append(Instruction.Create(OpCodes.Switch, switchTable));
 
             foreach (var instruction in defaultInstructions)
@@ -159,11 +120,13 @@ namespace MSPack.Processor.Core.Formatter
                 processor.Append(instruction);
             }
 
+            var nextInstruction = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
 
             var @default = defaultInstructions[0];
-            foreach (var instructions in switchInstructions)
+            for (var index = 0; index < switchInstructions.Length; index++)
             {
+                var instructions = switchInstructions[index];
                 if (ReferenceEquals(@default, instructions[0]))
                 {
                     continue;
@@ -174,7 +137,10 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(instruction);
                 }
 
-                processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                if (index != switchInstructions.Length - 1)
+                {
+                    processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                }
             }
 
             processor.Append(nextInstruction);

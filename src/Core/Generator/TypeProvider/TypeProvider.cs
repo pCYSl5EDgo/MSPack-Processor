@@ -14,7 +14,6 @@ namespace MSPack.Processor.Core.Provider
 #if CSHARP_8_0_OR_NEWER
         private IMetadataScope? spanScope;
         private IMetadataScope? systemRuntimeExtensionsScope;
-        private AutomataDictionaryHelper? automataDictionaryHelper;
         private MessagePackWriterHelper? messagePackWriterHelper;
         private MessagePackReaderHelper? messagePackReaderHelper;
         private MessagePackSerializerOptionsHelper? messagePackSerializerOptionsHelper;
@@ -35,7 +34,6 @@ namespace MSPack.Processor.Core.Provider
 #else
         private IMetadataScope spanScope;
         private IMetadataScope systemRuntimeExtensionsScope;
-        private AutomataDictionaryHelper automataDictionaryHelper;
         private MessagePackWriterHelper messagePackWriterHelper;
         private MessagePackReaderHelper messagePackReaderHelper;
         private MessagePackSerializerOptionsHelper messagePackSerializerOptionsHelper;
@@ -258,19 +256,6 @@ namespace MSPack.Processor.Core.Provider
                 }
 
                 return formatterResolverExtensionHelper;
-            }
-        }
-
-        public AutomataDictionaryHelper AutomataDictionaryHelper
-        {
-            get
-            {
-                if (automataDictionaryHelper == null)
-                {
-                    automataDictionaryHelper = new AutomataDictionaryHelper(Module, messagePackScope, SystemReadOnlySpanHelper);
-                }
-
-                return automataDictionaryHelper;
             }
         }
 

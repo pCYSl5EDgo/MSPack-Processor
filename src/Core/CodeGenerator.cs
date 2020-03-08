@@ -113,7 +113,7 @@ namespace MSPack.Processor.Core
             {
                 var dataHelper = new DataHelper(resolverTypeDefinition.Module, provider.SystemValueTypeHelper.ValueType);
                 var automataHelper = new AutomataEmbeddingHelper(resolverTypeDefinition, provider.SystemReadOnlySpanHelper, dataHelper);
-                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, moduleDefinitions, automataHelper, dataHelper);
+                formatterInfos = CalculateFormatterInfos(loadFactor, resolverTypeDefinition, provider, collectedInfos, enumSerializationInfos, automataHelper, dataHelper);
             }
 
             using (new Watcher(sw, logger, "Formatter Table Generation"))
@@ -140,11 +140,11 @@ namespace MSPack.Processor.Core
             }
         }
 
-        private static FormatterTableItemInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, ModuleDefinition[] modules, AutomataEmbeddingHelper automataHelper, DataHelper dataHelper)
+        private static FormatterTableItemInfo[] CalculateFormatterInfos(double loadFactor, TypeDefinition resolverTypeDefinition, TypeProvider provider, CollectedInfo[] collectedInfos, EnumSerializationInfo[] enumSerializationInfos, AutomataEmbeddingHelper automataHelper, DataHelper dataHelper)
         {
             var answer = new List<FormatterTableItemInfo>();
 
-            var generator = new FormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, dataHelper, loadFactor);
+            var generator = new FormatterBaseTypeDefinitionGenerator(resolverTypeDefinition, provider, dataHelper, automataHelper, loadFactor);
             var baseFormatterInfos = generator.Generate(collectedInfos);
             answer.AddRange(baseFormatterInfos);
 

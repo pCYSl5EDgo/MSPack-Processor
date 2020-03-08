@@ -123,8 +123,9 @@ namespace MSPack.Processor.Core.Formatter
             processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
 
             var @default = defaultInstructions[0];
-            foreach (var instructions in switchInstructions)
+            for (var index = 0; index < switchInstructions.Length; index++)
             {
+                var instructions = switchInstructions[index];
                 if (ReferenceEquals(@default, instructions[0]))
                 {
                     continue;
@@ -135,7 +136,10 @@ namespace MSPack.Processor.Core.Formatter
                     processor.Append(instruction);
                 }
 
-                processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                if (index != switchInstructions.Length - 1)
+                {
+                    processor.Append(Instruction.Create(OpCodes.Br, nextInstruction));
+                }
             }
 
             processor.Append(nextInstruction);

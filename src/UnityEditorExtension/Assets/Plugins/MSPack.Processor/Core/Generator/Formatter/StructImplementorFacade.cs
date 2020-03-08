@@ -5,6 +5,7 @@ using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
 using MSPack.Processor.Core.Provider;
 using System.Linq;
+using MSPack.Processor.Core.Embed;
 
 namespace MSPack.Processor.Core.Formatter
 {
@@ -13,12 +14,14 @@ namespace MSPack.Processor.Core.Formatter
         private readonly ModuleDefinition module;
         private readonly TypeProvider provider;
         private readonly DataHelper dataHelper;
+        private readonly AutomataEmbeddingHelper automataHelper;
 
-        public StructImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper)
+        public StructImplementorFacade(ModuleDefinition module, TypeProvider provider, DataHelper dataHelper, AutomataEmbeddingHelper automataHelper)
         {
             this.module = module;
             this.provider = provider;
             this.dataHelper = dataHelper;
+            this.automataHelper = automataHelper;
         }
 
 #if CSHARP_8_0_OR_NEWER
@@ -81,7 +84,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (structStringKeyFormatterImplementor is null)
             {
-                structStringKeyFormatterImplementor = new StructStringKeyFormatterImplementor(module, provider, dataHelper);
+                structStringKeyFormatterImplementor = new StructStringKeyFormatterImplementor(module, provider, dataHelper, automataHelper);
             }
 
             return structStringKeyFormatterImplementor;
@@ -91,7 +94,7 @@ namespace MSPack.Processor.Core.Formatter
         {
             if (structStringKeyAllMessagePackPrimitiveFormatterImplementor is null)
             {
-                structStringKeyAllMessagePackPrimitiveFormatterImplementor = new StructStringKeyAllMessagePackPrimitiveFormatterImplementor(module, provider, dataHelper);
+                structStringKeyAllMessagePackPrimitiveFormatterImplementor = new StructStringKeyAllMessagePackPrimitiveFormatterImplementor(module, provider, dataHelper, automataHelper);
             }
 
             return structStringKeyAllMessagePackPrimitiveFormatterImplementor;
