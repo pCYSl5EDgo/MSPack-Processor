@@ -15,10 +15,7 @@ namespace MSPack.Processor.Core.Provider
             var version = name.Version;
             foreach (var nameReference in module.AssemblyReferences)
             {
-                if (string.Equals(nameReference.Name, name.Name, StringComparison.Ordinal)
-                    && string.Equals(nameReference.Culture, name.Culture, StringComparison.Ordinal)
-                    && nameReference.Version.Equals(version)
-                    && nameReference.PublicKeyToken.SequenceEqual(name.PublicKeyToken))
+                if (Predicate(name, nameReference, version))
                 {
                     return nameReference;
                 }
@@ -27,6 +24,14 @@ namespace MSPack.Processor.Core.Provider
             reportHook.ImportNotPreviouslyReferencedAssemblyNameReference(name.Name, version.Major, version.Minor, version.Build, version.Revision, name.Culture, name.PublicKeyToken);
             module.AssemblyReferences.Add(name);
             return name;
+        }
+
+        private static bool Predicate(AssemblyNameReference name, AssemblyNameReference nameReference, Version version)
+        {
+            return string.Equals(nameReference.Name, name.Name, StringComparison.Ordinal)
+                   && string.Equals(nameReference.Culture, name.Culture, StringComparison.Ordinal)
+                   && nameReference.Version.Equals(version)
+                   && nameReference.PublicKeyToken.SequenceEqual(name.PublicKeyToken);
         }
     }
 }
