@@ -3,12 +3,12 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Formatter;
 using MSPack.Processor.Core.Provider;
 using System;
 using System.Globalization;
 using System.Text;
-using MSPack.Processor.Core.Embed;
 
 namespace MSPack.Processor.Core
 {
