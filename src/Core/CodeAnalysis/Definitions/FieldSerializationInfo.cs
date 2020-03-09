@@ -110,7 +110,7 @@ namespace MSPack.Processor.Core.Definitions
             IsIntKey = false;
             IntKey = -1;
             Definition = definition;
-            StringKey = key;
+            StringKey = string.Intern(key);
             Index = index;
             IsWritable = !Definition.IsInitOnly;
             IsMessagePackPrimitive = definition.FieldType.IsMessagePackPrimitive();

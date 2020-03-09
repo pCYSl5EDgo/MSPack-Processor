@@ -150,7 +150,7 @@ namespace MSPack.Processor.Core.Definitions
             IsIntKey = false;
             IntKey = -1;
             Index = index;
-            StringKey = key;
+            StringKey = string.Intern(key);
             Definition = definition;
             IsReadable = isReadable;
             IsWritable = isWritable;
