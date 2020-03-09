@@ -3,9 +3,9 @@
 
 using Mono.Cecil;
 using MSPack.Processor.Core.Definitions;
+using MSPack.Processor.Core.Embed;
 using MSPack.Processor.Core.Provider;
 using System.Linq;
-using MSPack.Processor.Core.Embed;
 
 namespace MSPack.Processor.Core.Formatter
 {
