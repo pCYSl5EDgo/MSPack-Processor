@@ -90,14 +90,14 @@ namespace CompoundTestClasses
         private T1 halfB;
 
         //[Key(0)]
-        public T0 A
+        public T0 この手の名前は本当適当に決めることであらを探すのが大事だと思うの
         {
             get => halfA.Double();
             set => halfA = value.Half();
         }
 
         //[Key(1)]
-        public T1 B
+        public T1 この手の名前は微妙に異なるものにするべき
         {
             get => halfB.Double();
             set => halfB = value.Half();
@@ -106,7 +106,7 @@ namespace CompoundTestClasses
         public bool Equals(Generics1<T0, T1> other)
         {
             if (ReferenceEquals(this, other)) return true;
-            return A.Equals(other.A) && B.Equals(other.B);
+            return この手の名前は本当適当に決めることであらを探すのが大事だと思うの.Equals(other.この手の名前は本当適当に決めることであらを探すのが大事だと思うの) && この手の名前は微妙に異なるものにするべき.Equals(other.この手の名前は微妙に異なるものにするべき);
         }
 
         public override bool Equals(object obj) => obj is Generics0<T0, T1> other && Equals(other);
@@ -121,25 +121,25 @@ namespace CompoundTestClasses
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
-        public Generics2(T0 a, T1 b)
+        public Generics2(T0 沢山適当に名前つけるのも楽ではない, T1 ちょっとだけ異なる名前つけるのも楽ではない)
         {
-            A = a;
-            B = b;
+            this.沢山適当に名前つけるのも楽ではない = 沢山適当に名前つけるのも楽ではない;
+            this.ちょっとだけ異なる名前つけるのも楽ではない = ちょっとだけ異なる名前つけるのも楽ではない;
         }
 
         //[Key(0)] 
-        public T0 A { get; }
+        public T0 沢山適当に名前つけるのも楽ではない { get; }
         //[Key(1)] 
-        public T1 B { get; }
+        public T1 ちょっとだけ異なる名前つけるのも楽ではない { get; }
 
         public bool Equals(Generics2<T0, T1> other)
         {
-            return A.Equals(other.A) && B.Equals(other.B);
+            return 沢山適当に名前つけるのも楽ではない.Equals(other.沢山適当に名前つけるのも楽ではない) && ちょっとだけ異なる名前つけるのも楽ではない.Equals(other.ちょっとだけ異なる名前つけるのも楽ではない);
         }
 
         public override bool Equals(object obj) => obj is Generics2<T0, T1> other && Equals(other);
 
-        public override int GetHashCode() => A.GetHashCode() ^ B.GetHashCode();
+        public override int GetHashCode() => 沢山適当に名前つけるのも楽ではない.GetHashCode() ^ ちょっとだけ異なる名前つけるのも楽ではない.GetHashCode();
     }
 
     [MessagePackObject(true)]
@@ -158,14 +158,14 @@ namespace CompoundTestClasses
         }
 
         //[Key(0)]
-        public T0 A
+        public T0 AAA
         {
             get => halfA.Double();
             set => halfA = value.Half();
         }
 
         //[Key(1)]
-        public T1 B
+        public T1 ABA
         {
             get => halfB.Double();
             set => halfB = value.Half();
@@ -173,7 +173,7 @@ namespace CompoundTestClasses
 
         public bool Equals(Generics3<T0, T1> other)
         {
-            return A.Equals(other.A) && B.Equals(other.B);
+            return AAA.Equals(other.AAA) && ABA.Equals(other.ABA);
         }
 
         public override bool Equals(object obj) => obj is Generics3<T0, T1> other && Equals(other);

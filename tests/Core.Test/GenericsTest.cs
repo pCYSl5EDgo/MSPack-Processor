@@ -46,13 +46,13 @@ namespace Core.Test
         public void Generic2IntIntTest(int a, int b)
         {
             var value = new Generics2<int, int>(a, b);
-            Assert.AreEqual(value.A, a);
-            Assert.AreEqual(value.B, b);
+            Assert.AreEqual(value.沢山適当に名前つけるのも楽ではない, a);
+            Assert.AreEqual(value.ちょっとだけ異なる名前つけるのも楽ではない, b);
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<Generics2<int, int>>(bytes);
             Assert.True(value.Equals(other));
-            Assert.AreEqual(other.A, a);
-            Assert.AreEqual(other.B, b);
+            Assert.AreEqual(other.沢山適当に名前つけるのも楽ではない, a);
+            Assert.AreEqual(other.ちょっとだけ異なる名前つけるのも楽ではない, b);
         }
 
         [TestCase(114, 514)]
@@ -70,13 +70,13 @@ namespace Core.Test
             {
                 Value = b,
             });
-            Assert.AreEqual(value.A.Value, a * 2);
-            Assert.AreEqual(value.B.Value, b * 2);
+            Assert.AreEqual(value.AAA.Value, a * 2);
+            Assert.AreEqual(value.ABA.Value, b * 2);
             var bytes = MessagePackSerializer.Serialize(value);
             var other = MessagePackSerializer.Deserialize<Generics3<IntValue, IntValue>>(bytes);
             Assert.True(value.Equals(other));
-            Assert.AreEqual(other.A.Value, a * 2);
-            Assert.AreEqual(other.B.Value, b * 2);
+            Assert.AreEqual(other.AAA.Value, a * 2);
+            Assert.AreEqual(other.ABA.Value, b * 2);
         }
     }
 }
