@@ -6,6 +6,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="SimpleTypeTest.cs">
       <DesignTime>True</DesignTime>

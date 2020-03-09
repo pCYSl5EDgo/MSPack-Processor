@@ -6,6 +6,7 @@
 <#@ output extension=".cs" #>
 // Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#if SIMPLE_STRING
 
 using MessagePack;
 using NUnit.Framework;
@@ -17,18 +18,20 @@ namespace Core.Test
     public class StringKeyAutomataTestJust1
     {
 <#const int count = 9;
+for(int a = 0; a < 2; a++){
+var kind = a == 0 ? "class" : "struct";
 for(int i = 1; i < count + 1; i++){
     string nameI = i.ToString("D2");#>
         [TestCase(default(string))]
         [TestCase("")]
         [TestCase("こんにちは")]
-        [TestCase("そうとも言えるし、そうでもないとも言える。")]
-        [TestCase("サバになれ！！！！！")]
-        public void Just1Length<#=nameI#>(string text)
+        //[TestCase("そうとも言えるし、そうでもないとも言える。")]
+        //[TestCase("サバになれ！！！！！")]
+        public void <#=kind#>Just1Length<#=nameI#>(string text)
         {
-            var value = new StringKeyAutomataTestTypeJust1Length<#=nameI#>(text);
+            var value = new <#=kind#>StringKeyAutomataTestTypeJust1Length<#=nameI#>(text);
             var bytes = MessagePackSerializer.Serialize(value);
-            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestTypeJust1Length<#=nameI#>>(bytes);
+            var other = MessagePackSerializer.Deserialize<<#=kind#>StringKeyAutomataTestTypeJust1Length<#=nameI#>>(bytes);
             Assert.AreEqual(value.A, other.A);
         }
 <#  for(int j = 1; j < count + 1; j++){
@@ -37,14 +40,14 @@ for(int i = 1; i < count + 1; i++){
 
         [TestCase(default(string), default(string))]
         [TestCase("", "")]
-        [TestCase("さようなら", "マタアイマショウ")]
-        [TestCase("その理由を説明するためにはまず銀河の状況を理解する必要がある。", "長くなるぞ。")]
+        //[TestCase("さようなら", "マタアイマショウ")]
+        //[TestCase("その理由を説明するためにはまず銀河の状況を理解する必要がある。", "長くなるぞ。")]
         [TestCase("お前は.NETが好きで俺はJVMが好き！なんの違いもありはしないだろうが！", "違うのだ！！")]
-        public void <#=concatNameIJ#>(string text0, string text1)
+        public void <#=kind#><#=concatNameIJ#>(string text0, string text1)
         {
-            var value = new StringKeyAutomataTestType<#=concatNameIJ#>(text0, text1);
+            var value = new <#=kind#>StringKeyAutomataTestType<#=concatNameIJ#>(text0, text1);
             var bytes = MessagePackSerializer.Serialize(value);
-            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestType<#=concatNameIJ#>>(bytes);
+            var other = MessagePackSerializer.Deserialize<<#=kind#>StringKeyAutomataTestType<#=concatNameIJ#>>(bytes);
             Assert.AreEqual(value.A, other.A);
             Assert.AreEqual(value.B, other.B);
         }
@@ -54,18 +57,38 @@ for(int i = 1; i < count + 1; i++){
 
         [TestCase(default(string), default(string), 0)]
         [TestCase("", "", -1)]
-        [TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue)]
-        [TestCase("goodbye", "hello", int.MaxValue)]
+        //[TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue)]
+        //[TestCase("goodbye", "hello", int.MaxValue)]
         [TestCase("twinkle twinkle", "little star", 114)]
-        public void <#=concatNameIJK#>(string text0, string text1, int number0)
+        public void <#=kind#><#=concatNameIJK#>(string text0, string text1, int number0)
         {
-            var value = new StringKeyAutomataTestType<#=concatNameIJK#>(text0, text1, number0);
+            var value = new <#=kind#>StringKeyAutomataTestType<#=concatNameIJK#>(text0, text1, number0);
             var bytes = MessagePackSerializer.Serialize(value);
-            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestType<#=concatNameIJK#>>(bytes);
+            var other = MessagePackSerializer.Deserialize<<#=kind#>StringKeyAutomataTestType<#=concatNameIJK#>>(bytes);
             Assert.AreEqual(value.A, other.A);
             Assert.AreEqual(value.B, other.B);
             Assert.AreEqual(value.C, other.C);
         }
-<#}}}#>
+<#for(int l = 1; l < count + 1; l++){
+string nameL = l.ToString("D2");
+string concatNameIJKL = "Just4Length" + nameI + "_" + nameJ + "_" + nameK + "_" + nameL;#>
+[TestCase(default(string), default(string), 0)]
+        
+        [TestCase("", "", -1, 0)]
+        //[TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue, 256)]
+        //[TestCase("goodbye", "hello", int.MaxValue, int.MinValue)]
+        [TestCase("twinkle twinkle", "little star", 114, 514)]
+        public void <#=kind#><#=concatNameIJKL#>(string text0, string text1, int number0, int number1)
+        {
+            var value = new <#=kind#>StringKeyAutomataTestType<#=concatNameIJKL#>(text0, text1, number0, number1);
+            var bytes = MessagePackSerializer.Serialize(value);
+            var other = MessagePackSerializer.Deserialize<<#=kind#>StringKeyAutomataTestType<#=concatNameIJKL#>>(bytes);
+            Assert.AreEqual(value.A, other.A);
+            Assert.AreEqual(value.B, other.B);
+            Assert.AreEqual(value.C, other.C);
+            Assert.AreEqual(value.D, other.D);
+        }
+<#}}}}}#>
     }
 }
+#endif

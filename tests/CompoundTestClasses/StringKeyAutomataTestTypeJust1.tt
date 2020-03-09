@@ -6,22 +6,25 @@
 <#@ output extension=".cs" #>
 // Copyright (c) pCYSl5EDgo. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#if SIMPLE_STRING
 
 using MessagePack;
 
 namespace CompoundTestClasses
 {
 <#const int count = 9;
+for(int a = 0; a < 2; a++){
+    var kind = a == 0 ? "class" : "struct";
 for(int i = 1; i < count + 1; i++)
 {
     string keyI = new string('A', i);
     string nameI = "Length" + i.ToString("D2");#>
     [MessagePackObject]
-    public class StringKeyAutomataTestTypeJust1<#=nameI#>
+    public <#=kind#> <#=kind#>StringKeyAutomataTestTypeJust1<#=nameI#>
     {
-        public StringKeyAutomataTestTypeJust1<#=nameI#>(){}
+        <#if(a==0){#>public <#=kind#>StringKeyAutomataTestTypeJust1<#=nameI#>(){}<#}#>
         
-        public StringKeyAutomataTestTypeJust1<#=nameI#>(string a)
+        public <#=kind#>StringKeyAutomataTestTypeJust1<#=nameI#>(string a)
         {
             A = a;
         }
@@ -34,11 +37,11 @@ for(int i = 1; i < count + 1; i++)
         string nameJ = nameI + "_" + j.ToString("D2");
         string keyJ = new string('B', j);#>
     [MessagePackObject]
-    public class StringKeyAutomataTestTypeJust2<#=nameJ#>
+    public <#=kind#> <#=kind#>StringKeyAutomataTestTypeJust2<#=nameJ#>
     {
-        public StringKeyAutomataTestTypeJust2<#=nameJ#>(){}
+        <#if(a==0){#>public <#=kind#>StringKeyAutomataTestTypeJust2<#=nameJ#>(){}<#}#>
         
-        public StringKeyAutomataTestTypeJust2<#=nameJ#>(string a, string b)
+        public <#=kind#>StringKeyAutomataTestTypeJust2<#=nameJ#>(string a, string b)
         {
             A = a;
             B = b;
@@ -55,11 +58,11 @@ for(int i = 1; i < count + 1; i++)
             string nameK = nameJ + "_" + k.ToString("D2");
             string keyK = new string('C', k);#>
     [MessagePackObject]
-    public class StringKeyAutomataTestTypeJust3<#=nameK#>
+    public <#=kind#> <#=kind#>StringKeyAutomataTestTypeJust3<#=nameK#>
     {
-        public StringKeyAutomataTestTypeJust3<#=nameK#>(){}
+        <#if(a==0){#>public <#=kind#>StringKeyAutomataTestTypeJust3<#=nameK#>(){}<#}#>
         
-        public StringKeyAutomataTestTypeJust3<#=nameK#>(string a, string b, int c)
+        public <#=kind#>StringKeyAutomataTestTypeJust3<#=nameK#>(string a, string b, int c)
         {
             A = a;
             B = b;
@@ -75,5 +78,34 @@ for(int i = 1; i < count + 1; i++)
         [Key("<#=keyK#>")]
         public int C;
     }
-<#}}}#>
+<#        for(int l = 1; l < count + 1; l++){
+            string nameL = nameK + "_" + l.ToString("D2");
+            string keyL = new string('D', l);#>
+    [MessagePackObject]
+    public <#=kind#> <#=kind#>StringKeyAutomataTestTypeJust4<#=nameL#>
+    {
+        <#if(a==0){#>public <#=kind#>StringKeyAutomataTestTypeJust4<#=nameL#>(){}<#}#>
+        
+        public <#=kind#>StringKeyAutomataTestTypeJust4<#=nameL#>(string a, string b, int c, int d)
+        {
+            A = a;
+            B = b;
+            C = c;
+            D = d;
+        }
+
+        [Key("<#=keyI#>")]
+        public string A { get; set; }
+
+        [Key("<#=keyJ#>")]
+        public string B { get; set; }
+
+        [Key("<#=keyK#>")]
+        public int C;
+
+        [Key("<#=keyL#>")]
+        public int D;
+    }
+<#}}}}}#>
 }
+#endif
