@@ -7,6 +7,6 @@ namespace MSPack.Processor.Core.Definitions
 {
     public interface ITypeSerializationInfoStringKey : ITypeSerializationInfo
     {
-        IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs();
+        IEnumerable<StringKeySerializationInfoTuple> StringKeyValuePairs { get; }
     }
 }
