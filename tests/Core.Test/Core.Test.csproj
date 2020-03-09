@@ -6,8 +6,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;</DefineConstants>
+  <PropertyGroup Condition="Exists('/bin')">
+    <DefineConstants>TRACE;SIMPLE_STRING;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

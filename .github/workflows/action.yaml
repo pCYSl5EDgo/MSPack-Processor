@@ -32,14 +32,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-        cd src/CommandLineInterface
         dotnet restore
         dotnet build -c Release
+        dotnet test
+        cd src/CommandLineInterface
         dotnet pack -c Release
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
         cd ../Core
-        dotnet restore
-        dotnet build -c Release
         dotnet pack -c Release
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
       env:
