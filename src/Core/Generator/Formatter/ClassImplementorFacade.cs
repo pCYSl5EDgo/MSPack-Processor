@@ -29,10 +29,10 @@ namespace MSPack.Processor.Core.Formatter
         private ClassStringKeyFormatterImplementor? stringKeyFormatterImplementor;
         private ClassStringKeyAllMessagePackPrimitiveImplementor? stringKeyAllMessagePackPrimitiveImplementor;
 #else
-        private ClassIntKeyFormatterImplementor classIntKeyFormatterImplementor;
-        private ClassIntKeyAllMessagePackPrimitiveFormatterImplementor classIntKeyAllMessagePackPrimitiveFormatterImplementor;
-        private ClassStringKeyFormatterImplementor classStringKeyFormatterImplementor;
-        private ClassStringKeyAllMessagePackPrimitiveImplementor classStringKeyAllMessagePackPrimitiveImplementor;
+        private ClassIntKeyFormatterImplementor intKeyFormatterImplementor;
+        private ClassIntKeyAllMessagePackPrimitiveFormatterImplementor intKeyAllMessagePackPrimitiveFormatterImplementor;
+        private ClassStringKeyFormatterImplementor stringKeyFormatterImplementor;
+        private ClassStringKeyAllMessagePackPrimitiveImplementor stringKeyAllMessagePackPrimitiveImplementor;
 #endif
 
         private ClassIntKeyFormatterImplementor GetIntKey()
