@@ -35,23 +35,17 @@ namespace MSPack.Processor.Core.Embed
             module = resolver.Module;
         }
 
-        public MethodDefinition GetIndex(FieldSerializationInfo[] fields, PropertySerializationInfo[] properties)
+        public MethodDefinition GetIndex(StringKeySerializationInfoTuple[] stringKeySerializationInfoTuples)
         {
-            var array = new string[fields.Length + properties.Length];
-            for (var i = 0; i < fields.Length; i++)
+            var array = new string[stringKeySerializationInfoTuples.Length];
+            for (var i = 0; i < stringKeySerializationInfoTuples.Length; i++)
             {
-                array[i] = fields[i].StringKey;
+                array[i] = stringKeySerializationInfoTuples[i].key;
             }
 
-            for (var i = 0; i < properties.Length; i++)
-            {
-                array[i + fields.Length] = properties[i].StringKey;
-            }
-
-            Array.Sort(array, StringComparer.InvariantCulture);
             var foundPair = stringKeys.FirstOrDefault(x => x.Item1.SequenceEqual(array));
 
-            return foundPair.Item2 ?? CreateMethod(array, fields, properties);
+            return foundPair.Item2 ?? CreateMethod(array);
         }
 
         private string DefineGetIndexName(string[] array)
@@ -64,7 +58,7 @@ namespace MSPack.Processor.Core.Embed
             return buffer.ToString();
         }
 
-        private MethodDefinition CreateMethod(string[] array, FieldSerializationInfo[] fields, PropertySerializationInfo[] properties)
+        private MethodDefinition CreateMethod(string[] array)
         {
             var spanVariable = new VariableDefinition(spanHelper.ReadOnlySpanByte());
             var spanParam = new ParameterDefinition("span", ParameterAttributes.None, spanHelper.ReadOnlySpanByte());
@@ -90,11 +84,11 @@ namespace MSPack.Processor.Core.Embed
             GetDeserializeHelperType().Methods.Add(answer);
             stringKeys.Add((array, answer));
 
-            ImplementMethod(array, fields, properties, answer, spanVariable, spanParam);
+            ImplementMethod(array, answer, spanVariable, spanParam);
             return answer;
         }
 
-        private void ImplementMethod(string[] array, FieldSerializationInfo[] fields, PropertySerializationInfo[] properties, MethodDefinition answer, VariableDefinition spanVariable, ParameterDefinition spanParam)
+        private void ImplementMethod(string[] array, MethodDefinition answer, VariableDefinition spanVariable, ParameterDefinition spanParam)
         {
             var processor = answer.Body.GetILProcessor();
             processor.Append(Instruction.Create(OpCodes.Ldarg_0));
@@ -141,29 +135,15 @@ namespace MSPack.Processor.Core.Embed
 
             var option = new AutomataOption(spanVariable, UInt32VariableDefinitionGenerator, UInt64VariableDefinitionGenerator, Int32VariableDefinitionGenerator, spanParam, spanHelper);
             var tuples = new AutomataTuple[array.Length];
-            var index = 0;
-            for (var i = 0; i < fields.Length; i++, index++)
+            for (var i = 0; i < array.Length; i++)
             {
-                ref readonly var serializationInfo = ref fields[i];
-                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
+                var embedBytes = EmbeddedStringHelper.Encode(array[i]);
                 if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
                 {
-                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + serializationInfo.Definition.DeclaringType.FullName);
+                    throw new MessagePackGeneratorResolveFailedException("invalid string key.");
                 }
 
-                tuples[index] = new AutomataTuple(index, embedBytes, field);
-            }
-
-            for (var i = 0; i < properties.Length; i++, index++)
-            {
-                ref readonly var serializationInfo = ref properties[i];
-                var embedBytes = EmbeddedStringHelper.Encode(serializationInfo.StringKey);
-                if (!dataHelper.TryGetOrAdd(embedBytes, out var field))
-                {
-                    throw new MessagePackGeneratorResolveFailedException("invalid string key. type : " + serializationInfo.Definition.DeclaringType.FullName);
-                }
-
-                tuples[index] = new AutomataTuple(index, embedBytes, field);
+                tuples[i] = new AutomataTuple(i, embedBytes, field);
             }
 
             var embeddedInstructions = Embed(tuples, option);
