@@ -3,14 +3,13 @@
 
 using Mono.Cecil.Cil;
 using System;
-using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
     public static class ForSpanLength8Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -199,7 +198,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength7Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -549,7 +548,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength6Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -822,7 +821,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength5Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -1095,7 +1094,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength4Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -1178,7 +1177,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength3Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
@@ -1285,7 +1284,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength2Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {
