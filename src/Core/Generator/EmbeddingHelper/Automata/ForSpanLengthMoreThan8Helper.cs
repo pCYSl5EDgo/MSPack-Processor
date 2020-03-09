@@ -215,7 +215,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Ret),
                 };
             }
-            
+
             return new[]
             {
                 InstructionUtility.Load(number),
