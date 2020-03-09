@@ -47,174 +47,199 @@ namespace MSPack.Processor.Core.Embed
                             EmbedDefault2(list, option, ref pairs[0], ref pairs[1], option.UInt64VariableDefinition());
                             return;
                         default:
-                            EmbedDefaultDefault(option, list, pairs);
+                            var number = option.UInt64VariableDefinition();
+                            list.Add(InstructionUtility.LoadAddress(option.Span));
+                            list.Add(Instruction.Create(OpCodes.Dup));
+                            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.GetPinnableReferenceByte()));
+                            list.Add(Instruction.Create(OpCodes.Ldind_I8));
+                            list.Add(InstructionUtility.Store(number));
+
+                            list.Add(InstructionUtility.LdcI4(8));
+                            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.SliceStartByte()));
+                            list.Add(InstructionUtility.Store(option.Span));
+                            var embedded = EmbedDefault(number, pairs, 0, pairs.Length);
+                            list.AddRange(embedded);
+                            for (var index = 0; index < pairs.Length; index++)
+                            {
+                                ref var pair = ref pairs[index];
+                                list.AddRange(pair.Item1);
+                                list.AddRange(pair.Item2);
+                            }
                             return;
                     }
             }
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private static void EmbedDefaultDefault(in AutomataOption option, List<Instruction> list, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs)
+        private static Instruction[] EmbedDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count)
 #else
-        private static void EmbedDefaultDefault(in AutomataOption option, List<Instruction> list, (Instruction[], Instruction[], Instruction, Instruction)[] pairs)
+        private static Instruction[] EmbedDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count)
 #endif
         {
-            var number = option.UInt64VariableDefinition();
-            list.Add(InstructionUtility.LoadAddress(option.Span));
-            list.Add(Instruction.Create(OpCodes.Dup));
-            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.GetPinnableReferenceByte()));
-            list.Add(Instruction.Create(OpCodes.Ldind_I8));
-            list.Add(InstructionUtility.Store(number));
+            var (middleProcess, _, middleLoad, middleConv) = pairs[offset + (count >> 1)];
+            var middleProcessStart = middleProcess[0];
 
-            list.Add(InstructionUtility.LdcI4(8));
-            list.Add(Instruction.Create(OpCodes.Call, option.ReadOnlySpanHelper.SliceStartByte()));
-            list.Add(InstructionUtility.Store(option.Span));
-            var embedded = EmbedDefaultDefaultDefault(number, pairs, 0, pairs.Length);
-            list.AddRange(embedded);
-            for (var index = 0; index < pairs.Length; index++)
+            if (middleConv is null)
             {
-                ref var pair = ref pairs[index];
-                list.AddRange(pair.Item1);
-                list.AddRange(pair.Item2);
+                return EmbedDefaultDefaultMiddleConvNull(number, pairs, offset, count, middleLoad, middleProcessStart);
+            }
+
+            return EmbedDefaultDefault(number, pairs, offset, count, middleLoad, middleConv, middleProcessStart);
+        }
+
+#if CSHARP_8_0_OR_NEWER
+        private static Instruction[] EmbedDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count, Instruction middleLoad, Instruction middleConv, Instruction middleProcessStart)
+#else
+        private static Instruction[] EmbedDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count, Instruction middleLoad, Instruction middleConv, Instruction middleProcessStart)
+#endif
+        {
+            switch (count)
+            {
+                case 1:
+                    return new[]
+                    {
+                    InstructionUtility.Load(number),
+                    middleLoad,
+                    middleConv,
+                    Instruction.Create(OpCodes.Beq, middleProcessStart),
+                    InstructionUtility.LdcI4(-1),
+                    Instruction.Create(OpCodes.Ret),
+                };
+                case 2:
+                    ref var other = ref pairs[offset];
+                    if (other.Item4 is null)
+                    {
+                        return new[]
+                        {
+                        InstructionUtility.Load(number),
+                        middleLoad,
+                        middleConv,
+                        Instruction.Create(OpCodes.Beq, middleProcessStart),
+                        InstructionUtility.Load(number),
+                        other.Item3,
+                        Instruction.Create(OpCodes.Beq, other.Item1[0]),
+                        InstructionUtility.LdcI4(-1),
+                        Instruction.Create(OpCodes.Ret),
+                    };
+                    }
+                    else
+                    {
+                        return new[]
+                        {
+                        InstructionUtility.Load(number),
+                        middleLoad,
+                        middleConv,
+                        Instruction.Create(OpCodes.Beq, middleProcessStart),
+                        InstructionUtility.Load(number),
+                        other.Item3,
+                        other.Item4,
+                        Instruction.Create(OpCodes.Beq, other.Item1[0]),
+                        InstructionUtility.LdcI4(-1),
+                        Instruction.Create(OpCodes.Ret),
+                    };
+                    }
+                default:
+                    var lesserResult = EmbedDefault(number, pairs, offset, count >> 1);
+                    var greaterResult = EmbedDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
+
+                    return InstructionConcatHelper.Concat(
+                        new[]
+                        {
+                        InstructionUtility.Load(number),
+                        middleLoad,
+                        middleConv,
+                        Instruction.Create(OpCodes.Beq, middleProcessStart),
+                        InstructionUtility.Load(number),
+                        middleLoad.Clone(),
+                        middleConv.Clone(),
+                        Instruction.Create(OpCodes.Bgt, greaterResult[0]),
+                        },
+                        lesserResult,
+                        greaterResult
+                    );
             }
         }
 
 #if CSHARP_8_0_OR_NEWER
-        private static Instruction[] EmbedDefaultDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count)
+        private static Instruction[] EmbedDefaultDefaultMiddleConvNull(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction?)[] pairs, int offset, int count, Instruction middleLoad, Instruction middleProcessStart)
 #else
-        private static Instruction[] EmbedDefaultDefaultDefault(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count)
+        private static Instruction[] EmbedDefaultDefaultMiddleConvNull(VariableDefinition number, (Instruction[], Instruction[], Instruction, Instruction)[] pairs, int offset, int count, Instruction middleLoad, Instruction middleProcessStart)
 #endif
         {
-            ref var middle = ref pairs[offset + (count >> 1)];
-            if (middle.Item4 is null)
+            switch (count)
             {
-                switch (count)
-                {
-                    case 1:
-                        return new[]
+                case 1:
+                    return EmbedDefaultDefault1(number, middleLoad, middleProcessStart);
+                case 2:
+                    ref var other = ref pairs[offset];
+                    var otherLoad = other.Item3;
+                    var otherProcessStart = other.Item1[0];
+                    var otherConv = other.Item4;
+                    return EmbedDefaultDefault2(number, otherConv, middleLoad, middleProcessStart, otherLoad, otherProcessStart);
+                default:
+                    var lesserResult = EmbedDefault(number, pairs, offset, count >> 1);
+                    var greaterResult = EmbedDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
+                    return InstructionConcatHelper.Concat(
+                        new[]
                         {
-                            InstructionUtility.Load(number),
-                            middle.Item3,
-                            Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                            InstructionUtility.LdcI4(-1),
-                            Instruction.Create(OpCodes.Ret),
-                        };
-                    case 2:
-                        ref var other = ref pairs[offset];
-                        if (other.Item4 is null)
-                        {
-                            return new[]
-                            {
-                                InstructionUtility.Load(number),
-                                middle.Item3,
-                                Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.Load(number),
-                                other.Item3,
-                                Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                InstructionUtility.LdcI4(-1),
-                                Instruction.Create(OpCodes.Ret),
-                            };
-                        }
-                        else
-                        {
-                            return new[]
-                            {
-                                InstructionUtility.Load(number),
-                                middle.Item3,
-                                Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.Load(number),
-                                other.Item3,
-                                other.Item4,
-                                Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                InstructionUtility.LdcI4(-1),
-                                Instruction.Create(OpCodes.Ret),
-                            };
-                        }
-                }
-
-                var lesserResult = EmbedDefaultDefaultDefault(number, pairs, offset, count >> 1);
-                var greaterResult = EmbedDefaultDefaultDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
-                return InstructionConcatHelper.Concat(
-                    new[]
-                    {
                         InstructionUtility.Load(number),
-                        middle.Item3,
-                        Instruction.Create(OpCodes.Beq, middle.Item1[0]),
+                        middleLoad,
+                        Instruction.Create(OpCodes.Beq, middleProcessStart),
                         InstructionUtility.Load(number),
-                        middle.Item3.Clone(),
+                        middleLoad.Clone(),
                         Instruction.Create(OpCodes.Bgt, greaterResult[0]),
-                    },
-                    lesserResult,
-                    greaterResult
-                );
+                        },
+                        lesserResult,
+                        greaterResult
+                    );
             }
-            else
+        }
+
+#if CSHARP_8_0_OR_NEWER
+        private static Instruction[] EmbedDefaultDefault2(VariableDefinition number, Instruction? otherConv, Instruction middleLoad, Instruction middleProcessStart, Instruction otherLoad, Instruction otherProcessStart)
+#else
+        private static Instruction[] EmbedDefaultDefault2(VariableDefinition number, Instruction otherConv, Instruction middleLoad, Instruction middleProcessStart, Instruction otherLoad, Instruction otherProcessStart)
+#endif
+        {
+            if (otherConv is null)
             {
-                switch (count)
+                return new[]
                 {
-                    case 1:
-                        return new[]
-                        {
-                            InstructionUtility.Load(number),
-                            middle.Item3,
-                            middle.Item4,
-                            Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                            InstructionUtility.LdcI4(-1),
-                            Instruction.Create(OpCodes.Ret),
-                        };
-                    case 2:
-                        ref var other = ref pairs[offset];
-                        if (other.Item4 is null)
-                        {
-                            return new[]
-                            {
-                                InstructionUtility.Load(number),
-                                middle.Item3,
-                                middle.Item4,
-                                Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.Load(number),
-                                other.Item3,
-                                Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                InstructionUtility.LdcI4(-1),
-                                Instruction.Create(OpCodes.Ret),
-                            };
-                        }
-                        else
-                        {
-                            return new[]
-                            {
-                                InstructionUtility.Load(number),
-                                middle.Item3,
-                                middle.Item4,
-                                Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                                InstructionUtility.Load(number),
-                                other.Item3,
-                                other.Item4,
-                                Instruction.Create(OpCodes.Beq, other.Item1[0]),
-                                InstructionUtility.LdcI4(-1),
-                                Instruction.Create(OpCodes.Ret),
-                            };
-                        }
-                }
-                var lesserResult = EmbedDefaultDefaultDefault(number, pairs, offset, count >> 1);
-                var greaterResult = EmbedDefaultDefaultDefault(number, pairs, offset + (count >> 1) + 1, count - 1 - (count >> 1));
-
-                return InstructionConcatHelper.Concat(
-                    new[]
-                    {
-                        InstructionUtility.Load(number),
-                        middle.Item3,
-                        middle.Item4,
-                        Instruction.Create(OpCodes.Beq, middle.Item1[0]),
-                        InstructionUtility.Load(number),
-                        middle.Item3.Clone(),
-                        middle.Item4.Clone(),
-                        Instruction.Create(OpCodes.Bgt, greaterResult[0]),
-                    },
-                    lesserResult,
-                    greaterResult
-                );
+                    InstructionUtility.Load(number),
+                    middleLoad,
+                    Instruction.Create(OpCodes.Beq, middleProcessStart),
+                    InstructionUtility.Load(number),
+                    otherLoad,
+                    Instruction.Create(OpCodes.Beq, otherProcessStart),
+                    InstructionUtility.LdcI4(-1),
+                    Instruction.Create(OpCodes.Ret),
+                };
             }
+            
+            return new[]
+            {
+                InstructionUtility.Load(number),
+                middleLoad,
+                Instruction.Create(OpCodes.Beq, middleProcessStart),
+                InstructionUtility.Load(number),
+                otherLoad,
+                otherConv,
+                Instruction.Create(OpCodes.Beq, otherProcessStart),
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+            };
+        }
+
+        private static Instruction[] EmbedDefaultDefault1(VariableDefinition number, Instruction middleLoad, Instruction middleProcessStart)
+        {
+            return new[]
+            {
+                InstructionUtility.Load(number),
+                middleLoad,
+                Instruction.Create(OpCodes.Beq, middleProcessStart),
+                InstructionUtility.LdcI4(-1),
+                Instruction.Create(OpCodes.Ret),
+            };
         }
 
 #if CSHARP_8_0_OR_NEWER
