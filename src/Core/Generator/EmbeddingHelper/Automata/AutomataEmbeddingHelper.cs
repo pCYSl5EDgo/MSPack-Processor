@@ -90,6 +90,12 @@ namespace MSPack.Processor.Core.Embed
             GetDeserializeHelperType().Methods.Add(answer);
             stringKeys.Add((array, answer));
 
+            ImplementMethod(array, fields, properties, answer, spanVariable, spanParam);
+            return answer;
+        }
+
+        private void ImplementMethod(string[] array, FieldSerializationInfo[] fields, PropertySerializationInfo[] properties, MethodDefinition answer, VariableDefinition spanVariable, ParameterDefinition spanParam)
+        {
             var processor = answer.Body.GetILProcessor();
             processor.Append(Instruction.Create(OpCodes.Ldarg_0));
             processor.Append(InstructionUtility.Store(spanVariable));
@@ -167,7 +173,6 @@ namespace MSPack.Processor.Core.Embed
             }
 
             answer.Body.Optimize();
-            return answer;
         }
 
         public TypeDefinition GetDeserializeHelperType()
