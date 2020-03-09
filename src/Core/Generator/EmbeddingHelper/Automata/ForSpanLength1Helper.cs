@@ -80,7 +80,7 @@ namespace MSPack.Processor.Core.Embed
 
                 whenNotEqualsToTuple0,
                 InstructionUtility.LdcI4(value1),
-                Instruction.Create(OpCodes.Beq_S, whenNotEqualsToTuple0),
+                Instruction.Create(OpCodes.Beq_S, whenEqualsToTuple1),
 
                 InstructionUtility.LdcI4(-1),
                 Instruction.Create(OpCodes.Ret),
