@@ -1,0 +1,71 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using MessagePack;
+using NUnit.Framework;
+using CompoundTestClasses;
+
+namespace Core.Test
+{
+    [TestFixture]
+    public class StringKeyAutomataTestJust1
+    {
+<#const int count = 9;
+for(int i = 1; i < count + 1; i++){
+    string nameI = i.ToString("D2");#>
+        [TestCase(default(string))]
+        [TestCase("")]
+        [TestCase("こんにちは")]
+        [TestCase("そうとも言えるし、そうでもないとも言える。")]
+        [TestCase("サバになれ！！！！！")]
+        public void Just1Length<#=nameI#>(string text)
+        {
+            var value = new StringKeyAutomataTestTypeJust1Length<#=nameI#>(text);
+            var bytes = MessagePackSerializer.Serialize(value);
+            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestTypeJust1Length<#=nameI#>>(bytes);
+            Assert.AreEqual(value.A, other.A);
+        }
+<#  for(int j = 1; j < count + 1; j++){
+        string nameJ = j.ToString("D2");
+        string concatNameIJ = "Just2Length" + nameI + "_" + nameJ;#>
+
+        [TestCase(default(string), default(string))]
+        [TestCase("", "")]
+        [TestCase("さようなら", "マタアイマショウ")]
+        [TestCase("その理由を説明するためにはまず銀河の状況を理解する必要がある。", "長くなるぞ。")]
+        [TestCase("お前は.NETが好きで俺はJVMが好き！なんの違いもありはしないだろうが！", "違うのだ！！")]
+        public void <#=concatNameIJ#>(string text0, string text1)
+        {
+            var value = new StringKeyAutomataTestType<#=concatNameIJ#>(text0, text1);
+            var bytes = MessagePackSerializer.Serialize(value);
+            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestType<#=concatNameIJ#>>(bytes);
+            Assert.AreEqual(value.A, other.A);
+            Assert.AreEqual(value.B, other.B);
+        }
+<#      for(int k = 1; k < count + 1; k++){
+        string nameK = k.ToString("D2");
+        string concatNameIJK = "Just3Length" + nameI + "_" + nameJ + "_" + nameK;#>
+
+        [TestCase(default(string), default(string), 0)]
+        [TestCase("", "", -1)]
+        [TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue)]
+        [TestCase("goodbye", "hello", int.MaxValue)]
+        [TestCase("twinkle twinkle", "little star", 114)]
+        public void <#=concatNameIJK#>(string text0, string text1, int number0)
+        {
+            var value = new StringKeyAutomataTestType<#=concatNameIJK#>(text0, text1, number0);
+            var bytes = MessagePackSerializer.Serialize(value);
+            var other = MessagePackSerializer.Deserialize<StringKeyAutomataTestType<#=concatNameIJK#>>(bytes);
+            Assert.AreEqual(value.A, other.A);
+            Assert.AreEqual(value.B, other.B);
+            Assert.AreEqual(value.C, other.C);
+        }
+<#}}}#>
+    }
+}

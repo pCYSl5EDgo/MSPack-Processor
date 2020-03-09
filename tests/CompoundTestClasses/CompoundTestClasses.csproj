@@ -13,4 +13,23 @@
     <ProjectReference Include="..\..\src\Annotation\Annotation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="StringKeyAutomataTestTypeJust1.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StringKeyAutomataTestTypeJust1.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="StringKeyAutomataTestTypeJust1.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>StringKeyAutomataTestTypeJust1.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
 </Project>

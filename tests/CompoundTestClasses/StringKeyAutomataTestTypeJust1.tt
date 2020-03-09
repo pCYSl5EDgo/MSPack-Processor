@@ -1,0 +1,79 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using MessagePack;
+
+namespace CompoundTestClasses
+{
+<#const int count = 9;
+for(int i = 1; i < count + 1; i++)
+{
+    string keyI = new string('A', i);
+    string nameI = "Length" + i.ToString("D2");#>
+    [MessagePackObject]
+    public class StringKeyAutomataTestTypeJust1<#=nameI#>
+    {
+        public StringKeyAutomataTestTypeJust1<#=nameI#>(){}
+        
+        public StringKeyAutomataTestTypeJust1<#=nameI#>(string a)
+        {
+            A = a;
+        }
+
+        [Key("<#=keyI#>")]
+        public string A { get; set; }
+    }
+
+<#  for(int j = 1; j < count + 1; j++){
+        string nameJ = nameI + "_" + j.ToString("D2");
+        string keyJ = new string('B', j);#>
+    [MessagePackObject]
+    public class StringKeyAutomataTestTypeJust2<#=nameJ#>
+    {
+        public StringKeyAutomataTestTypeJust2<#=nameJ#>(){}
+        
+        public StringKeyAutomataTestTypeJust2<#=nameJ#>(string a, string b)
+        {
+            A = a;
+            B = b;
+        }
+
+        [Key("<#=keyI#>")]
+        public string A { get; set; }
+
+        [Key("<#=keyJ#>")]
+        public string B { get; set; }
+    }
+
+<#      for(int k = 1; k < count + 1; k++){
+            string nameK = nameJ + "_" + k.ToString("D2");
+            string keyK = new string('C', k);#>
+    [MessagePackObject]
+    public class StringKeyAutomataTestTypeJust3<#=nameK#>
+    {
+        public StringKeyAutomataTestTypeJust3<#=nameK#>(){}
+        
+        public StringKeyAutomataTestTypeJust3<#=nameK#>(string a, string b, int c)
+        {
+            A = a;
+            B = b;
+            C = c;
+        }
+
+        [Key("<#=keyI#>")]
+        public string A { get; set; }
+
+        [Key("<#=keyJ#>")]
+        public string B { get; set; }
+
+        [Key("<#=keyK#>")]
+        public int C;
+    }
+<#}}}#>
+}
