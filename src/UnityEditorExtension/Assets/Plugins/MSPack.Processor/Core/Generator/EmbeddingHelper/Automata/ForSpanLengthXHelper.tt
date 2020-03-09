@@ -81,7 +81,7 @@ namespace MSPack.Processor.Core.Embed
     public static class ForSpanLength<#=length#>Helper
     {
         public static (Instruction[], Instruction[]) Embed<TSorter>(AutomataTuple[] tuples, int tuplesOffset, int tuplesCount, in AutomataOption options, TSorter sorter)
-            where TSorter : ILengthSorter, IComparer<AutomataTuple>
+            where TSorter : ILengthSorter
         {
             switch (tuplesCount)
             {

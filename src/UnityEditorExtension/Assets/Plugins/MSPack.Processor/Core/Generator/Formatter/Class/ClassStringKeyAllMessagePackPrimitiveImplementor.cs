@@ -47,7 +47,7 @@ namespace MSPack.Processor.Core.Formatter
             serialize.Body.Optimize();
             formatter.Methods.Add(serialize);
 
-            var getIndex = automataHelper.GetIndex(info.FieldInfos, info.PropertyInfos);
+            var getIndex = automataHelper.GetIndex(info.StringKeyValuePairs);
             var deserialize = GenerateDeserialize(in info, shouldCallback, getIndex);
             deserialize.Body.Optimize();
             formatter.Methods.Add(deserialize);
@@ -275,7 +275,7 @@ namespace MSPack.Processor.Core.Formatter
             };
 
             var index = 0;
-            foreach (var (_, (result, field, property)) in info.EnumerateStringKeyValuePairs())
+            foreach (var (_, (result, field, property)) in info.StringKeyValuePairs)
             {
                 answers[index++] = FillAnswer(result, field, property, @default);
             }

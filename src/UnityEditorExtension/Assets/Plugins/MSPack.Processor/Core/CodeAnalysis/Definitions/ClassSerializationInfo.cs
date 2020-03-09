@@ -3,7 +3,6 @@
 
 using Mono.Cecil;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -20,6 +19,7 @@ namespace MSPack.Processor.Core.Definitions
             Definition = definition;
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
+            StringKeyValuePairs = StringKeyEnumerateHelper.Enumerate(fieldInfos, propertyInfos);
             MinIntKey = minIntKey;
             MaxIntKey = maxIntKey;
             SerializationConstructor = serializationConstructorDefinition;
@@ -38,6 +38,7 @@ namespace MSPack.Processor.Core.Definitions
             Definition = definition;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
+            StringKeyValuePairs = Array.Empty<StringKeySerializationInfoTuple>();
             CustomFormatter = customFormatterTypeInfo;
             MinIntKey = 0;
             MaxIntKey = 0;
@@ -106,9 +107,7 @@ namespace MSPack.Processor.Core.Definitions
             }
         }
 
-        public IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs()
-            => FieldInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x)))
-                .Concat(PropertyInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x))));
+        public StringKeySerializationInfoTuple[] StringKeyValuePairs { get; }
 
         public static bool TryParse(TypeDefinition type, bool useMapMode, out ClassSerializationInfo info)
         {

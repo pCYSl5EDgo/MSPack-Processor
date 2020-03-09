@@ -23,6 +23,7 @@ namespace MSPack.Processor.Core.Embed
                     return (embed2, Array.Empty<Instruction>());
             }
 
+            Array.Sort(tuples, tuplesOffset, tuplesCount, sorter);
             var failInstruction = InstructionUtility.LdcI4(-1);
             var smallestByte = (byte)sorter.GetValue(tuples[tuplesOffset]);
             var biggestByte = (byte)sorter.GetValue(tuples[tuplesOffset + tuplesCount - 1]);
@@ -34,12 +35,21 @@ namespace MSPack.Processor.Core.Embed
 
             var loadingInstructions = new Instruction[tuplesCount * 2];
 
+            try
+            {
             for (int index = tuplesOffset, end = tuplesOffset + tuplesCount; index < end; index++)
             {
                 ref readonly var tuple = ref tuples[index];
                 var i = (byte)sorter.GetValue(tuple) - smallestByte;
-                loadingInstructions[i * 2] = switchTable[i] = InstructionUtility.LdcI4(tuple.Index);
-                loadingInstructions[i * 2 + 1] = Instruction.Create(OpCodes.Ret);
+                loadingInstructions[(index - tuplesOffset) * 2] = switchTable[i] = InstructionUtility.LdcI4(tuple.Index);
+                loadingInstructions[(index - tuplesOffset) * 2 + 1] = Instruction.Create(OpCodes.Ret);
+            }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
 
             return (new[]

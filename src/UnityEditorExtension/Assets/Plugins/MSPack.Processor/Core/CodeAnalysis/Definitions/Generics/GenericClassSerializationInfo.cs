@@ -3,7 +3,6 @@
 
 using Mono.Cecil;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -17,6 +16,7 @@ namespace MSPack.Processor.Core.Definitions
             CustomFormatter = CustomFormatterTypeInfo.Default;
             FieldInfos = fieldInfos;
             PropertyInfos = propertyInfos;
+            StringKeyValuePairs = StringKeyEnumerateHelper.Enumerate(fieldInfos, propertyInfos);
             MinIntKey = minIntKey;
             MaxIntKey = maxIntKey;
             SerializationConstructor = default;
@@ -32,6 +32,7 @@ namespace MSPack.Processor.Core.Definitions
             CustomFormatter = customFormatter;
             FieldInfos = Array.Empty<FieldSerializationInfo>();
             PropertyInfos = Array.Empty<PropertySerializationInfo>();
+            StringKeyValuePairs = Array.Empty<StringKeySerializationInfoTuple>();
             MinIntKey = 0;
             MaxIntKey = 0;
             SerializationConstructor = default;
@@ -102,9 +103,7 @@ namespace MSPack.Processor.Core.Definitions
             }
         }
 
-        public IEnumerable<(string key, FieldOrPropertyInfo value)> EnumerateStringKeyValuePairs()
-            => FieldInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x)))
-                .Concat(PropertyInfos.Select(x => (x.StringKey, new FieldOrPropertyInfo(x))));
+        public StringKeySerializationInfoTuple[] StringKeyValuePairs { get; }
 
         public override string ToString()
         {
