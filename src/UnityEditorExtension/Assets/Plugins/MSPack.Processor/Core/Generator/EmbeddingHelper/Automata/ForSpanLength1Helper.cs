@@ -35,21 +35,12 @@ namespace MSPack.Processor.Core.Embed
 
             var loadingInstructions = new Instruction[tuplesCount * 2];
 
-            try
-            {
             for (int index = tuplesOffset, end = tuplesOffset + tuplesCount; index < end; index++)
             {
                 ref readonly var tuple = ref tuples[index];
                 var i = (byte)sorter.GetValue(tuple) - smallestByte;
                 loadingInstructions[(index - tuplesOffset) * 2] = switchTable[i] = InstructionUtility.LdcI4(tuple.Index);
                 loadingInstructions[(index - tuplesOffset) * 2 + 1] = Instruction.Create(OpCodes.Ret);
-            }
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
             }
 
             return (new[]
