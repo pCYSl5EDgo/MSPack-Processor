@@ -131,7 +131,10 @@ namespace MSPack.Processor.Core
 
             try
             {
-                inputModule.Write();
+                using (new Watcher(sw, logger, "Input DLL Writing"))
+                {
+                    inputModule.Write();
+                }
             }
             catch (Exception e)
             {
