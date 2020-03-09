@@ -27,7 +27,7 @@ namespace Core.Test
 };
 
 foreach(var item in array){#>
-        <# if(item != "Boolean"){#>
+        <# switch(item){default:#>
         [TestCase(unchecked((<#=item#>)(0)))]
         [TestCase(unchecked((<#=item#>)(1)))]
         [TestCase(unchecked((<#=item#>)(-1)))]
@@ -47,10 +47,14 @@ foreach(var item in array){#>
         [TestCase(unchecked((<#=item#>)long.MaxValue))]
         [TestCase(unchecked((<#=item#>)ulong.MinValue))]
         [TestCase(unchecked((<#=item#>)ulong.MaxValue))]
-        <#}else{#>
+        <#break;case "Boolean":#>
         [TestCase(true)]
         [TestCase(false)]
-        <#}#>
+        <#break;case "Char":#>
+        [TestCase((char)0)]
+        [TestCase((char)byte.MaxValue)]
+        [TestCase((char)short.MaxValue)]
+        <#break;}#>
         public void Test<#=item#>(<#=item#> a)
         {
             var value = new SimpleType<#=item#>(a);

@@ -1,14 +1,14 @@
-﻿using MessagePack;
+﻿using System;
 using NUnit.Framework;
 using SimpleTestClasses;
-using System;
+using MessagePack;
 
 namespace Core.Test
 {
     [TestFixture]
     public class SimpleTypeTests
     {
-        [TestCase(unchecked((Byte)(0)))]
+                [TestCase(unchecked((Byte)(0)))]
         [TestCase(unchecked((Byte)(1)))]
         [TestCase(unchecked((Byte)(-1)))]
         [TestCase(unchecked((Byte)sbyte.MinValue))]
@@ -27,7 +27,7 @@ namespace Core.Test
         [TestCase(unchecked((Byte)long.MaxValue))]
         [TestCase(unchecked((Byte)ulong.MinValue))]
         [TestCase(unchecked((Byte)ulong.MaxValue))]
-        public void TestByte(Byte a)
+                public void TestByte(Byte a)
         {
             var value = new SimpleTypeByte(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -35,7 +35,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((SByte)(0)))]
+                [TestCase(unchecked((SByte)(0)))]
         [TestCase(unchecked((SByte)(1)))]
         [TestCase(unchecked((SByte)(-1)))]
         [TestCase(unchecked((SByte)sbyte.MinValue))]
@@ -54,7 +54,7 @@ namespace Core.Test
         [TestCase(unchecked((SByte)long.MaxValue))]
         [TestCase(unchecked((SByte)ulong.MinValue))]
         [TestCase(unchecked((SByte)ulong.MaxValue))]
-        public void TestSByte(SByte a)
+                public void TestSByte(SByte a)
         {
             var value = new SimpleTypeSByte(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -62,7 +62,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Int16)(0)))]
+                [TestCase(unchecked((Int16)(0)))]
         [TestCase(unchecked((Int16)(1)))]
         [TestCase(unchecked((Int16)(-1)))]
         [TestCase(unchecked((Int16)sbyte.MinValue))]
@@ -81,7 +81,7 @@ namespace Core.Test
         [TestCase(unchecked((Int16)long.MaxValue))]
         [TestCase(unchecked((Int16)ulong.MinValue))]
         [TestCase(unchecked((Int16)ulong.MaxValue))]
-        public void TestInt16(Int16 a)
+                public void TestInt16(Int16 a)
         {
             var value = new SimpleTypeInt16(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -89,7 +89,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Int32)(0)))]
+                [TestCase(unchecked((Int32)(0)))]
         [TestCase(unchecked((Int32)(1)))]
         [TestCase(unchecked((Int32)(-1)))]
         [TestCase(unchecked((Int32)sbyte.MinValue))]
@@ -108,7 +108,7 @@ namespace Core.Test
         [TestCase(unchecked((Int32)long.MaxValue))]
         [TestCase(unchecked((Int32)ulong.MinValue))]
         [TestCase(unchecked((Int32)ulong.MaxValue))]
-        public void TestInt32(Int32 a)
+                public void TestInt32(Int32 a)
         {
             var value = new SimpleTypeInt32(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -116,7 +116,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Int64)(0)))]
+                [TestCase(unchecked((Int64)(0)))]
         [TestCase(unchecked((Int64)(1)))]
         [TestCase(unchecked((Int64)(-1)))]
         [TestCase(unchecked((Int64)sbyte.MinValue))]
@@ -135,7 +135,7 @@ namespace Core.Test
         [TestCase(unchecked((Int64)long.MaxValue))]
         [TestCase(unchecked((Int64)ulong.MinValue))]
         [TestCase(unchecked((Int64)ulong.MaxValue))]
-        public void TestInt64(Int64 a)
+                public void TestInt64(Int64 a)
         {
             var value = new SimpleTypeInt64(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -143,7 +143,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((UInt16)(0)))]
+                [TestCase(unchecked((UInt16)(0)))]
         [TestCase(unchecked((UInt16)(1)))]
         [TestCase(unchecked((UInt16)(-1)))]
         [TestCase(unchecked((UInt16)sbyte.MinValue))]
@@ -162,7 +162,7 @@ namespace Core.Test
         [TestCase(unchecked((UInt16)long.MaxValue))]
         [TestCase(unchecked((UInt16)ulong.MinValue))]
         [TestCase(unchecked((UInt16)ulong.MaxValue))]
-        public void TestUInt16(UInt16 a)
+                public void TestUInt16(UInt16 a)
         {
             var value = new SimpleTypeUInt16(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -170,7 +170,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((UInt32)(0)))]
+                [TestCase(unchecked((UInt32)(0)))]
         [TestCase(unchecked((UInt32)(1)))]
         [TestCase(unchecked((UInt32)(-1)))]
         [TestCase(unchecked((UInt32)sbyte.MinValue))]
@@ -189,7 +189,7 @@ namespace Core.Test
         [TestCase(unchecked((UInt32)long.MaxValue))]
         [TestCase(unchecked((UInt32)ulong.MinValue))]
         [TestCase(unchecked((UInt32)ulong.MaxValue))]
-        public void TestUInt32(UInt32 a)
+                public void TestUInt32(UInt32 a)
         {
             var value = new SimpleTypeUInt32(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -197,7 +197,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((UInt64)(0)))]
+                [TestCase(unchecked((UInt64)(0)))]
         [TestCase(unchecked((UInt64)(1)))]
         [TestCase(unchecked((UInt64)(-1)))]
         [TestCase(unchecked((UInt64)sbyte.MinValue))]
@@ -216,7 +216,7 @@ namespace Core.Test
         [TestCase(unchecked((UInt64)long.MaxValue))]
         [TestCase(unchecked((UInt64)ulong.MinValue))]
         [TestCase(unchecked((UInt64)ulong.MaxValue))]
-        public void TestUInt64(UInt64 a)
+                public void TestUInt64(UInt64 a)
         {
             var value = new SimpleTypeUInt64(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -224,7 +224,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Single)(0)))]
+                [TestCase(unchecked((Single)(0)))]
         [TestCase(unchecked((Single)(1)))]
         [TestCase(unchecked((Single)(-1)))]
         [TestCase(unchecked((Single)sbyte.MinValue))]
@@ -243,7 +243,7 @@ namespace Core.Test
         [TestCase(unchecked((Single)long.MaxValue))]
         [TestCase(unchecked((Single)ulong.MinValue))]
         [TestCase(unchecked((Single)ulong.MaxValue))]
-        public void TestSingle(Single a)
+                public void TestSingle(Single a)
         {
             var value = new SimpleTypeSingle(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -251,7 +251,7 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Double)(0)))]
+                [TestCase(unchecked((Double)(0)))]
         [TestCase(unchecked((Double)(1)))]
         [TestCase(unchecked((Double)(-1)))]
         [TestCase(unchecked((Double)sbyte.MinValue))]
@@ -270,7 +270,7 @@ namespace Core.Test
         [TestCase(unchecked((Double)long.MaxValue))]
         [TestCase(unchecked((Double)ulong.MinValue))]
         [TestCase(unchecked((Double)ulong.MaxValue))]
-        public void TestDouble(Double a)
+                public void TestDouble(Double a)
         {
             var value = new SimpleTypeDouble(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -278,26 +278,10 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(unchecked((Char)(0)))]
-        [TestCase(unchecked((Char)(1)))]
-        [TestCase(unchecked((Char)(-1)))]
-        [TestCase(unchecked((Char)sbyte.MinValue))]
-        [TestCase(unchecked((Char)sbyte.MaxValue))]
-        [TestCase(unchecked((Char)byte.MinValue))]
-        [TestCase(unchecked((Char)byte.MaxValue))]
-        [TestCase(unchecked((Char)short.MinValue))]
-        [TestCase(unchecked((Char)short.MaxValue))]
-        [TestCase(unchecked((Char)ushort.MinValue))]
-        [TestCase(unchecked((Char)ushort.MaxValue))]
-        [TestCase(unchecked((Char)int.MinValue))]
-        [TestCase(unchecked((Char)int.MaxValue))]
-        [TestCase(unchecked((Char)uint.MinValue))]
-        [TestCase(unchecked((Char)uint.MaxValue))]
-        [TestCase(unchecked((Char)long.MinValue))]
-        [TestCase(unchecked((Char)long.MaxValue))]
-        [TestCase(unchecked((Char)ulong.MinValue))]
-        [TestCase(unchecked((Char)ulong.MaxValue))]
-        public void TestChar(Char a)
+                [TestCase((char)0)]
+        [TestCase((char)byte.MaxValue)]
+        [TestCase((char)short.MaxValue)]
+                public void TestChar(Char a)
         {
             var value = new SimpleTypeChar(a);
             var bytes = MessagePackSerializer.Serialize(value);
@@ -305,9 +289,9 @@ namespace Core.Test
             Assert.True(value.Equals(other));
             Assert.AreEqual(other.Value, a);
         }
-        [TestCase(true)]
+                [TestCase(true)]
         [TestCase(false)]
-        public void TestBoolean(Boolean a)
+                public void TestBoolean(Boolean a)
         {
             var value = new SimpleTypeBoolean(a);
             var bytes = MessagePackSerializer.Serialize(value);
