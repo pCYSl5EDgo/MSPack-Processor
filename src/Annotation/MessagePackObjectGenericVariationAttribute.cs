@@ -8,6 +8,9 @@ namespace MSPack.Processor.Annotation
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false, AllowMultiple = true)]
     public sealed class MessagePackObjectGenericVariationAttribute : Attribute
     {
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
+        public uint[] NotPrimitiveValueTypeIndices { get; set; }
+
         public MessagePackObjectGenericVariationAttribute(Type serializeTargetType)
         {
         }
