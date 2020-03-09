@@ -11,13 +11,13 @@ using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
-    public interface ILengthSorter
+    public interface ILengthSorter : IComparer<AutomataTuple>
     {
         ulong GetValue(in AutomataTuple tuple);
     }
 
 <#for(var length = 1; length < 9; length++){#>
-    public sealed class Length<#=length#>Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length<#=length#>Sorter : ILengthSorter
     {
         private readonly int start;
 

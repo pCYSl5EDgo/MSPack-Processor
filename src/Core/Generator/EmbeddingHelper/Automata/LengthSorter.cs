@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace MSPack.Processor.Core.Embed
 {
-    public interface ILengthSorter
+    public interface ILengthSorter : IComparer<AutomataTuple>
     {
         ulong GetValue(in AutomataTuple tuple);
     }
 
-    public sealed class Length1Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length1Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -57,12 +57,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -71,7 +71,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length2Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length2Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -119,12 +119,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -133,12 +133,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -147,7 +147,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length3Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length3Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -196,12 +196,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -210,12 +210,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -224,12 +224,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -238,7 +238,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length4Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length4Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -288,12 +288,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 3];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 3];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -302,12 +302,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -316,12 +316,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -330,12 +330,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -344,7 +344,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length5Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length5Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -395,12 +395,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 4];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 4];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -409,12 +409,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 3];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 3];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -423,12 +423,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -437,12 +437,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -451,12 +451,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -465,7 +465,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length6Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length6Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -517,12 +517,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 5];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 5];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -531,12 +531,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 4];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 4];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -545,12 +545,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 3];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 3];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -559,12 +559,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -573,12 +573,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -587,12 +587,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -601,7 +601,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length7Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length7Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -654,12 +654,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 6];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 6];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -668,12 +668,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 5];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 5];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -682,12 +682,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 4];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 4];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -696,12 +696,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 3];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 3];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -710,12 +710,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -724,12 +724,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -738,12 +738,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -752,7 +752,7 @@ namespace MSPack.Processor.Core.Embed
         }
     }
 
-    public sealed class Length8Sorter : IComparer<AutomataTuple>, ILengthSorter
+    public sealed class Length8Sorter : ILengthSorter
     {
         private readonly int start;
 
@@ -806,12 +806,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 7];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 7];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -820,12 +820,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 6];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 6];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -834,12 +834,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 5];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 5];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -848,12 +848,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 4];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 4];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -862,12 +862,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 3];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 3];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -876,12 +876,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 2];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 2];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -890,12 +890,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start + 1];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start + 1];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
@@ -904,12 +904,12 @@ namespace MSPack.Processor.Core.Embed
             xVal = x[start];
             // ReSharper disable once PossibleNullReferenceException
             yVal = y[start];
-            if (xVal > yVal)
+            if(xVal > yVal)
             {
                 return 1;
             }
 
-            if (xVal < yVal)
+            if(xVal < yVal)
             {
                 return -1;
             }
