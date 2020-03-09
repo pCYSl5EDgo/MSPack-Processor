@@ -64,7 +64,8 @@
                     Instruction.Create(OpCodes.Add),
                     Instruction.Create(OpCodes.Ldind_U1),
                     InstructionUtility.LdcI4(16),
-                    Instruction.Create(OpCodes.Shl),",
+                    Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),",
     @"Instruction.Create(OpCodes.Ldind_U2),",
 };#>
 // Copyright (c) pCYSl5EDgo. All rights reserved.

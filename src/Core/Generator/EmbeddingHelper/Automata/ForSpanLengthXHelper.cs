@@ -1206,6 +1206,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Ldind_U1),
                     InstructionUtility.LdcI4(16),
                     Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),
                     InstructionUtility.Store(number),
                 },
                 探索結果
@@ -1229,6 +1230,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Ldind_U1),
                     InstructionUtility.LdcI4(16),
                     Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
                 Instruction.Create(OpCodes.Beq_S, whenEquals),
 
@@ -1259,6 +1261,7 @@ namespace MSPack.Processor.Core.Embed
                     Instruction.Create(OpCodes.Ldind_U1),
                     InstructionUtility.LdcI4(16),
                     Instruction.Create(OpCodes.Shl),
+                    Instruction.Create(OpCodes.Add),
                 Instruction.Create(OpCodes.Dup),
                 InstructionUtility.Store(number),
                 InstructionUtility.LdcI4((int)(uint)sorter.GetValue(tuple0)),
