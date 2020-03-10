@@ -31,19 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Restore
-      run: dotnet restore
     - name: Build
       run: dotnet build -c Release
     - name: Test
       run: dotnet test
-    - name: Pack and push
+    - name: Push nupkg files
       run: |
         cd src/CommandLineInterface
-        dotnet pack -c Release
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
         cd ../Core
-        dotnet pack -c Release
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
       env:
         NUGET_API_KEY: ${{ secrets.nuget_api_key }}
