@@ -107,7 +107,7 @@ namespace MSPack.Processor.Core.Formatter
             var continuousCondition = Instruction.Create(OpCodes.Ldloc_1);
             processor.Append(Instruction.Create(OpCodes.Br, continuousCondition));
             var loopStart = Instruction.Create(OpCodes.Ldarg_1);
-            processor.Append(Instruction.Create(OpCodes.Ldarg_1));
+            processor.Append(loopStart);
             processor.Append(Instruction.Create(OpCodes.Call, provider.CodeGenHelpersHelper.ReadStringSpan));
             processor.Append(Instruction.Create(OpCodes.Call, getIndex));
 
