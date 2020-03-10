@@ -34,7 +34,7 @@ jobs:
     - name: Restore
       run: dotnet restore
     - name: Build
-      run: dotnet build - c Release
+      run: dotnet build -c Release
     - name: Test
       run: dotnet test
     - name: Pack and push
