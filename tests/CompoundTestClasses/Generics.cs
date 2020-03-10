@@ -4,21 +4,26 @@
 using MessagePack;
 using MSPack.Processor.Annotation;
 using System;
+// ReSharper disable InconsistentNaming
 
 namespace CompoundTestClasses
 {
     [MessagePackObject(true)]
     [MessagePackObjectGenericVariation(typeof(Generics0<int, int>))]
     [MessagePackObjectGenericVariation(typeof(Generics0<long, long>))]
-    public class Generics0<T0, T1> : IEquatable<Generics0<T0, T1>>//, IMessagePackSerializationCallbackReceiver
+    [MessagePackObjectGenericVariation(typeof(Generics0<DateTime, DateTime>))]
+    [MessagePackObjectGenericVariation(typeof(Generics0<Generics0<int, int>, Generics0<int, int>>))]
+    public struct Generics0<T0, T1> : IEquatable<Generics0<T0, T1>>, IComparable<Generics0<T0, T1>>, IMessagePackSerializationCallbackReceiver
         where T0 : unmanaged, IEquatable<T0>, IComparable<T1>
         where T1 : unmanaged, IEquatable<T1>, IComparable<T0>
     {
-        public Generics0() { }
         public Generics0(T0 今度の戦いの結果で世界の命運が決まるa, T1 今度の戦いの結果で世界の命運が決まるb)
         {
             今度の戦いの結果で世界の命運が決まるA = 今度の戦いの結果で世界の命運が決まるa;
             今度の戦いの結果で世界の命運が決まるB = 今度の戦いの結果で世界の命運が決まるb;
+            今度の戦いの結果で世界の命運が決まるAC = default;
+            今度の戦いの結果で世界の命運が決まるAV = default;
+            今度の戦いの結果で世界の命運が決まるDC = default;
         }
 
         //[Key(0)] 
@@ -32,7 +37,6 @@ namespace CompoundTestClasses
 
         public bool Equals(Generics0<T0, T1> other)
         {
-            if (ReferenceEquals(this, other)) return true;
             return 今度の戦いの結果で世界の命運が決まるA.Equals(other.今度の戦いの結果で世界の命運が決まるA) && 今度の戦いの結果で世界の命運が決まるB.Equals(other.今度の戦いの結果で世界の命運が決まるB);
         }
 
@@ -51,6 +55,11 @@ namespace CompoundTestClasses
             Console.WriteLine("Deserialize");
             Console.WriteLine("A:" + 今度の戦いの結果で世界の命運が決まるA.ToString());
             Console.WriteLine("B:" + 今度の戦いの結果で世界の命運が決まるB.ToString());
+        }
+
+        public int CompareTo(Generics0<T0, T1> other)
+        {
+            return 今度の戦いの結果で世界の命運が決まるA.CompareTo(other.今度の戦いの結果で世界の命運が決まるB);
         }
     }
 
