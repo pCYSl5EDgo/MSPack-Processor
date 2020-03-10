@@ -39,7 +39,7 @@ jobs:
       run: |
         cd src/Annotation
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
-        cd src/CommandLineInterface
+        cd ../CommandLineInterface
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
         cd ../Core
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
