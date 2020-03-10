@@ -17,8 +17,10 @@
     <ToolCommandName>mspc</ToolCommandName>
     <GeneratePackageOnBuild Condition="'$(Configuration)' == 'Release' and Exists('/bin')">true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/pCYSl5EDgo/MSPack-Processor</RepositoryUrl>
-    <Version>0.4.3</Version>
-    <PackageReleaseNotes>0.4.3 : Minor update =&gt; Do not need to involve ReadOnlySpan&lt;T&gt; type in your source code when you include MessagePack dlls into definition dlls.
+    <Version>0.5.0</Version>
+    <PackageReleaseNotes>0.5.0 : When deserialize string-key type, it uses embedded specialized automaton now.
+0.4.4 : Fix =&gt; When struct type was assigned as generic type argument, it threw errors. Now fixed.
+0.4.3 : Minor update =&gt; Do not need to involve ReadOnlySpan&lt;T&gt; type in your source code when you include MessagePack dlls into definition dlls.
 0.4.2 : Fix =&gt; Union now correctly deserialize struct type.
 0.4.1 : Fix =&gt; IntKey Generic Struct behaviour.
 0.4.0 : Supports Generic Class/Struct Formatter.
