@@ -31,10 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: |
-        dotnet restore
-        dotnet build -c Release
-        dotnet test
+    - name: Restore
+      run: dotnet restore
+    - name: Build
+      run: dotnet build - c Release
+    - name: Test
+      run: dotnet test
+    - name: Pack and push
+      run: |
         cd src/CommandLineInterface
         dotnet pack -c Release
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
