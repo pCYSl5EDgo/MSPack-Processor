@@ -2,70 +2,44 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #if UNITY_EDITOR
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using MSPack.Processor.Core;
 using MSPack.Processor.Core.Report;
-using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace MSPack.Processor.Unity.Editor
 {
+    // ReSharper disable once UnusedMember.Global
     public class PostBuildHook : IPostBuildPlayerScriptDLLs
     {
-        private static readonly MethodInfo BeginBuildStep;
-        private static readonly MethodInfo EndBuildStep;
-        private readonly object[] uniEnumExtension = { nameof(uniEnumExtension) };
+        private static readonly MethodInfo beginBuildStep;
+        private static readonly MethodInfo endBuildStep;
+        private readonly object[] msPackPostProcessor = { nameof(msPackPostProcessor) };
         private readonly object[] step = new object[1];
 
         static PostBuildHook()
         {
-            BeginBuildStep = typeof(BuildReport).GetMethod(nameof(BeginBuildStep), BindingFlags.Instance | BindingFlags.NonPublic);
-            EndBuildStep = typeof(BuildReport).GetMethod(nameof(EndBuildStep), BindingFlags.Instance | BindingFlags.NonPublic);
+            beginBuildStep = typeof(BuildReport).GetMethod(nameof(beginBuildStep), BindingFlags.Instance | BindingFlags.NonPublic);
+            endBuildStep = typeof(BuildReport).GetMethod(nameof(endBuildStep), BindingFlags.Instance | BindingFlags.NonPublic);
         }
 
         public int callbackOrder { get; } = -1;
 
         public void OnPostBuildPlayerScriptDLLs(BuildReport report)
         {
-            // var guidArray = AssetDatabase.FindAssets("t:" + nameof(MSPackProcessorUnityEditorSettingScriptableObject)) ?? Array.Empty<string>();
-            // if (!ShouldProcess(guidArray))
-            // {
-            //     return;
-            // }
-
-            step[0] = BeginBuildStep.Invoke(report, uniEnumExtension);
+            step[0] = beginBuildStep.Invoke(report, msPackPostProcessor);
             try
             {
                 Implement(report);
             }
             finally
             {
-                EndBuildStep.Invoke(report, step);
+                endBuildStep.Invoke(report, step);
             }
-        }
-
-        private static bool ShouldProcess(string[] guidArray)
-        {
-            if (guidArray.Length == 0)
-            {
-                return false;
-            }
-
-            foreach (var guid in guidArray)
-            {
-                var scriptableObject = AssetDatabase.LoadAssetAtPath<MSPackProcessorUnityEditorSettingScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
-                if (scriptableObject.Enabled)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static readonly StringBuilder stringBuilder = new StringBuilder();

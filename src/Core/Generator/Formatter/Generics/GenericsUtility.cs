@@ -52,7 +52,7 @@ namespace MSPack.Processor.Core.Formatter
                 }
                 else
                 {
-                    formatterGenericParameter.Constraints.Add(importer.Import(baseConstraintType));
+                    formatterGenericParameter.Constraints.Add(importer.Import(baseConstraintType).Reference);
                 }
 #else
                 var baseConstraint = baseGenericParameter.Constraints[index];
