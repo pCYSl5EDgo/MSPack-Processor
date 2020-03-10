@@ -24,7 +24,7 @@ name: CreateNupkgTool
 on:
   push:
     tags:
-    - 'tool*'
+    - 'v*'
 
 jobs:
   Create:
@@ -43,3 +43,37 @@ jobs:
         dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
       env:
         NUGET_API_KEY: ${{ secrets.nuget_api_key }}
+    - name: Collect unitypackage files
+      run: |
+        cd src/UnityEditorExtension
+        echo "Assets/Plugins/MSPack.Processor/Core.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/LICENSE.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/README-jp.meta" > metalist
+        find Assets/Plugins/MSPack.Processor/Core -name \*.meta >> metalist
+        find Assets/Plugins/MSPack.Processor/Editor -name \*.meta >> metalist
+    - name: Create unitypackage
+      uses: pCYSl5EDgo/create-unitypackage@master
+      with:
+        package-path: 'MSPack.UnityEditor.unitypackage'
+        include-files: 'src/UnityEditorExtension/metalist'
+    - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+    - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: 'MSPack.UnityEditor.unitypackage'
+          asset_name: 'MSPack.UnityEditor.unitypackage'
+          asset_content_type: 'application/zip'
