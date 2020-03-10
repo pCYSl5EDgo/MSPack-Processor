@@ -25,8 +25,6 @@ for(int i = 1; i < count + 1; i++){
         [TestCase(default(string))]
         [TestCase("")]
         [TestCase("こんにちは")]
-        //[TestCase("そうとも言えるし、そうでもないとも言える。")]
-        //[TestCase("サバになれ！！！！！")]
         public void <#=kind#>Just1Length<#=nameI#>(string text)
         {
             var value = new <#=kind#>StringKeyAutomataTestTypeJust1Length<#=nameI#>(text);
@@ -40,8 +38,6 @@ for(int i = 1; i < count + 1; i++){
 
         [TestCase(default(string), default(string))]
         [TestCase("", "")]
-        //[TestCase("さようなら", "マタアイマショウ")]
-        //[TestCase("その理由を説明するためにはまず銀河の状況を理解する必要がある。", "長くなるぞ。")]
         [TestCase("お前は.NETが好きで俺はJVMが好き！なんの違いもありはしないだろうが！", "違うのだ！！")]
         public void <#=kind#><#=concatNameIJ#>(string text0, string text1)
         {
@@ -57,8 +53,6 @@ for(int i = 1; i < count + 1; i++){
 
         [TestCase(default(string), default(string), 0)]
         [TestCase("", "", -1)]
-        //[TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue)]
-        //[TestCase("goodbye", "hello", int.MaxValue)]
         [TestCase("twinkle twinkle", "little star", 114)]
         public void <#=kind#><#=concatNameIJK#>(string text0, string text1, int number0)
         {
@@ -72,11 +66,9 @@ for(int i = 1; i < count + 1; i++){
 <#for(int l = 1; l < count + 1; l++){
 string nameL = l.ToString("D2");
 string concatNameIJKL = "Just4Length" + nameI + "_" + nameJ + "_" + nameK + "_" + nameL;#>
-[TestCase(default(string), default(string), 0)]
-        
+
+        [TestCase(default(string), default(string), 0, -1)]
         [TestCase("", "", -1, 0)]
-        //[TestCase("ほろびのびがく", "おどれおどれおどれ", int.MinValue, 256)]
-        //[TestCase("goodbye", "hello", int.MaxValue, int.MinValue)]
         [TestCase("twinkle twinkle", "little star", 114, 514)]
         public void <#=kind#><#=concatNameIJKL#>(string text0, string text1, int number0, int number1)
         {
