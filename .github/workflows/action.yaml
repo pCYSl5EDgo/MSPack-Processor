@@ -37,10 +37,12 @@ jobs:
       run: dotnet test
     - name: Push nupkg files
       run: |
+        cd src/Annotation
+        dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
         cd src/CommandLineInterface
-        dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
+        dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
         cd ../Core
-        dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
+        dotnet nuget push nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json --skip-duplicate
       env:
         NUGET_API_KEY: ${{ secrets.nuget_api_key }}
     - name: Collect unitypackage files
