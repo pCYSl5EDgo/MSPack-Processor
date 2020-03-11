@@ -51,7 +51,7 @@ jobs:
         echo "Assets/Plugins/MSPack.Processor/Core.meta" > metalist
         echo "Assets/Plugins/MSPack.Processor/Editor.meta" > metalist
         echo "Assets/Plugins/MSPack.Processor/LICENSE.meta" > metalist
-        echo "Assets/Plugins/MSPack.Processor/README-jp.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/README-jp.d.meta" > metalist
         find Assets/Plugins/MSPack.Processor/Core -name \*.meta >> metalist
         find Assets/Plugins/MSPack.Processor/Editor -name \*.meta >> metalist
     - name: Create unitypackage
