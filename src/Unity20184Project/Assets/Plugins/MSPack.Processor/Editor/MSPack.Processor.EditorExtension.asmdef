@@ -1,0 +1,16 @@
+{
+    "name": "MSPack.Processor.EditorExtension",
+    "references": [
+        "MSPack.Processor"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}

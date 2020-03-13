@@ -1,0 +1,101 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+// Copyright (c) pCYSl5EDgo. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Collections.Generic;
+
+namespace MSPack.Processor.Core.Embed
+{
+    public interface ILengthSorter : IComparer<AutomataTuple>
+    {
+        ulong GetValue(in AutomataTuple tuple);
+    }
+
+<#for(var length = 1; length < 9; length++){#>
+    public sealed class Length<#=length#>Sorter : ILengthSorter
+    {
+        private readonly int start;
+
+        public Length<#=length#>Sorter(int start)
+        {
+            this.start = start;
+        }
+
+        public ulong GetValue(in AutomataTuple tuple)
+        {
+            ulong answer = tuple[start];
+<#for(var i = 1; i < length; i++){#>
+            answer |= (ulong)tuple[start + <#=i#>] << <#=(i << 3)#>;
+<#}#>
+            return answer;
+        }
+
+        public int Compare(AutomataTuple x, AutomataTuple y)
+        {
+            var c0 = CompareImpl(x, y);
+            var c1 = CompareImpl(y, x);
+            if (c0 == 0)
+            {
+                if (c1 != 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+            else
+            {
+                if (c0 * c1 >= 0)
+                {
+                    throw new System.Exception(x.Index + " , " + y.Index);
+                }
+            }
+
+            return c0;
+        }
+
+        private int CompareImpl(in AutomataTuple x, in AutomataTuple y)
+        {
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte xVal;
+            // ReSharper disable once JoinDeclarationAndInitializer
+            byte yVal;
+<#for(var i = length - 1; i >= 1; --i){#>
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start + <#=i#>];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start + <#=i#>];
+            if(xVal > yVal)
+            {
+                return 1;
+            }
+
+            if(xVal < yVal)
+            {
+                return -1;
+            }
+
+<#}#>
+            // ReSharper disable once PossibleNullReferenceException
+            xVal = x[start];
+            // ReSharper disable once PossibleNullReferenceException
+            yVal = y[start];
+            if(xVal > yVal)
+            {
+                return 1;
+            }
+
+            if(xVal < yVal)
+            {
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+
+<#}#>
+}
