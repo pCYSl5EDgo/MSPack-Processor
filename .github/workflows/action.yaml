@@ -46,13 +46,11 @@ jobs:
       env:
         NUGET_API_KEY: ${{ secrets.nuget_api_key }}
     
-    - name: Collect unitypackage files 2019.3
+    - name: Collect unitypackage files 2019.3 asmdef
       run: |
         cd src/UnityEditorExtension
-        echo "Assets/Plugins/MSPack.Processor/Core.meta" > metalist
-        echo "Assets/Plugins/MSPack.Processor/Editor.meta" >> metalist
-        find Assets/Plugins/MSPack.Processor/Core -name \*.meta >> metalist
-        find Assets/Plugins/MSPack.Processor/Editor -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/MSPack.Processor.Core.asmdef.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor/MSPack.Processor.EditorExtension.asmdef.meta" >> metalist
     - name: Create unitypackage 2019.3
       uses: pCYSl5EDgo/create-unitypackage@master
       with:
@@ -60,18 +58,39 @@ jobs:
         package-path: 'src/Unity20184Project/Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.2019.3.unitypackage'
         include-files: 'src/UnityEditorExtension/metalist'
 
-    - name: Collect unitypackage files 2018.4
+    - name: Collect unitypackage files 2018.4 asmdef
       run: |
         cd src/Unity20184Project
-        echo "Assets/Plugins/MSPack.Processor/Core.meta" > metalist
-        echo "Assets/Plugins/MSPack.Processor/Editor.meta" >> metalist
-        find Assets/Plugins/MSPack.Processor/Core -name \*.meta >> metalist
-        find Assets/Plugins/MSPack.Processor/Editor -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/MSPack.Processor.Core.asmdef.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor/MSPack.Processor.EditorExtension.asmdef.meta" >> metalist
     - name: Create unitypackage 2018.4
       uses: pCYSl5EDgo/create-unitypackage@master
       with:
         project-folder: 'src/Unity20184Project'
         package-path: 'src/Unity20184Project/Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.2018.4.unitypackage'
+        include-files: 'src/Unity20184Project/metalist'
+
+    - name: Collect Common files
+      run: |
+        cd src/Unity20184Project
+        echo "Assets/Plugins/MSPack.Processor/Core.meta" > metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/CodeGenerator.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/InstructionUtility.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/NullableAttributes.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/CodeAnalysis.meta" >> metalist
+        find Assets/Plugins/MSPack.Processor/Core/CodeAnalysis -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/Generator.meta" >> metalist
+        find Assets/Plugins/MSPack.Processor/Core/Generator -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Core/Report.meta" >> metalist
+        find Assets/Plugins/MSPack.Processor/Core/Report -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor/PostBuildHook.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor/RelationshipScriptableObject.cs.meta" >> metalist
+    - name: Create unitypackage Common
+      uses: pCYSl5EDgo/create-unitypackage@master
+      with:
+        project-folder: 'src/Unity20184Project'
+        package-path: 'src/Unity20184Project/Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.Common.unitypackage'
         include-files: 'src/Unity20184Project/metalist'
 
     - name: Collect unitypackage files installer

@@ -22,6 +22,7 @@ namespace MSPack.Processor.Editor.Install
         private static ListRequest ListRequest;
         private static AddRequest AddRequest;
         private static string PackagePath;
+        private static string CommonPackagePath;
 
         static MSPackMonoCecilInstaller()
         {
@@ -54,12 +55,15 @@ namespace MSPack.Processor.Editor.Install
 #else
             throw new NotSupportedException("This is not supported unity version.");
 #endif
+            CommonPackagePath = Path.Combine(directory, prefix + "Common" + suffix);
         }
 
         private static void ImportPackage()
         {
             Debug.Log(PackagePath);
-            AssetDatabase.ImportPackage(PackagePath, true);
+            Debug.Log(CommonPackagePath);
+            AssetDatabase.ImportPackage(PackagePath, false);
+            AssetDatabase.ImportPackage(CommonPackagePath, false);
         }
 
         private static void ListCollectionDone()
