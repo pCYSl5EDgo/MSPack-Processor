@@ -13,7 +13,7 @@ using UnityEngine;
 
 // ReSharper disable DelegateSubtraction
 
-namespace MSPack.Processor.Editor.Install
+namespace MSPack.Processor.Unity.Editor.Install
 {
     // ReSharper disable once InconsistentNaming
     [InitializeOnLoad]

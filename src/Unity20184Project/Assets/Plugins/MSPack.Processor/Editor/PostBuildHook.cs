@@ -2,11 +2,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using MSPack.Processor.Core;
 using MSPack.Processor.Core.Report;
+using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -34,12 +38,39 @@ namespace MSPack.Processor.Unity.Editor
             step[0] = beginBuildStep.Invoke(report, msPackPostProcessor);
             try
             {
-                Implement(report);
+                var relationshipGuids = AssetDatabase.FindAssets("t:" + nameof(RelationshipScriptableObject));
+                if (relationshipGuids is null || relationshipGuids.Length == 0)
+                {
+                    ImplementDefault(report);
+                }
+                else
+                {
+                    var scriptableObjects = PrepareRelationShips(relationshipGuids);
+                    Implement(report, scriptableObjects);
+                }
             }
             finally
             {
                 endBuildStep.Invoke(report, step);
             }
+        }
+
+        private static RelationshipScriptableObject[] PrepareRelationShips(string[] relationshipGuids)
+        {
+            var list = new List<RelationshipScriptableObject>(relationshipGuids.Length);
+            foreach (var guid in relationshipGuids)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var obj = AssetDatabase.LoadAssetAtPath<RelationshipScriptableObject>(assetPath);
+                if (obj.IsEnabled)
+                {
+                    list.Add(obj);
+                }
+            }
+
+            var scriptableObjects = list.ToArray();
+            Array.Sort(scriptableObjects);
+            return scriptableObjects;
         }
 
         private static readonly StringBuilder stringBuilder = new StringBuilder();
@@ -48,19 +79,20 @@ namespace MSPack.Processor.Unity.Editor
         {
             return stringBuilder.Clear()
 #if UNITY_2019_3_OR_NEWER
-                .Append("id : ").AppendLine(file.id)
+                .Append("id : ").AppendLine(file.id.ToString())
 #endif
                 .Append("path : ").Append(file.path).Append("\nrole : ").Append(file.role).Append("\nsize : ").Append(file.size).ToString();
         }
 
-        private static void Implement(BuildReport report)
+        private static void ImplementDefault(BuildReport report)
         {
             var targetModule = default(string);
             var libraryList = new List<string>(128);
             var definitionList = new List<string>(64);
-            for (var index = 0; index < report.files.Length; index++)
+            var files = report.files;
+            for (var index = 0; index < files.Length; index++)
             {
-                ref var reportFile = ref report.files[index];
+                ref var reportFile = ref files[index];
                 var path = reportFile.path;
                 switch (reportFile.role)
                 {
@@ -88,21 +120,88 @@ namespace MSPack.Processor.Unity.Editor
 
             if (targetModule is null)
             {
-                Debug.Log("null!!!");
+                return;
             }
-            else
+
+            using (var generator = new CodeGenerator(Debug.Log, new NopReportHook()))
             {
-                Debug.Log("pre process : " + targetModule);
-                using (var generator = new CodeGenerator(Debug.Log, new NopReportHook()))
-                {
-                    Debug.Log("do?");
-                    foreach (var path in libraryList)
-                    {
-                        Debug.Log("Library : " + libraryList);
-                    }
-                    generator.Generate(targetModule, "", libraryList.ToArray(), definitionList.ToArray(), false, 0.75);
-                }
-                Debug.Log("done!");
+                generator.Generate(targetModule, "", libraryList.ToArray(), definitionList.ToArray(), false, 0.75);
+            }
+        }
+
+        private static void Implement(BuildReport report, RelationshipScriptableObject[] relationships)
+        {
+            var files = report.files;
+            Action<string> logger = Debug.Log;
+            IReportHook reportHook = new NopReportHook();
+
+            foreach (var relationship in relationships)
+            {
+                ProcessEach(relationship, files, logger, reportHook);
+            }
+        }
+
+        private static void ProcessEach(RelationshipScriptableObject relationship, BuildFile[] files, Action<string> logger, IReportHook reportHook)
+        {
+            var targetModule = FindTargetModule(relationship, files);
+            var libraries = FindLibraries(relationship, files);
+            var definitions = FindDefinitions(relationship, files);
+
+            using (var generator = new CodeGenerator(logger, reportHook))
+            {
+                generator.Generate(targetModule, relationship.ResolverName, libraries, definitions, relationship.UseMapMode, relationship.HashtableLoadFactor);
+            }
+        }
+
+        private static string[] FindDefinitions(RelationshipScriptableObject relationship, BuildFile[] files)
+        {
+            var definitions = new string[relationship.ReferenceDefinitionDllAbsoluteFilePaths.Length + relationship.ReferenceDefinitionNamesWithExtension.Length];
+            relationship.ReferenceDefinitionDllAbsoluteFilePaths.CopyTo(definitions, 0);
+            var enumerable = files.Select(x => x.path).Where(x => relationship.ReferenceDefinitionNamesWithExtension.Any(x.EndsWith));
+            var index = relationship.ReferenceDefinitionDllAbsoluteFilePaths.Length;
+            foreach (var buildFile in enumerable)
+            {
+                definitions[index++] = buildFile;
+            }
+
+            if (index != definitions.Length)
+            {
+                throw new FileNotFoundException(string.Join("\n", definitions) + "\n\nAbove were found.");
+            }
+
+            return definitions;
+        }
+
+        private static string[] FindLibraries(RelationshipScriptableObject relationship, BuildFile[] files)
+        {
+            var libraries = new string[relationship.ReferenceLibraryDllAbsoluteFilePaths.Length + relationship.ReferenceLibraryNamesWithExtension.Length];
+            relationship.ReferenceLibraryDllAbsoluteFilePaths.CopyTo(libraries, 0);
+            var enumerable = files.Select(x => x.path).Where(x => relationship.ReferenceLibraryNamesWithExtension.Any(x.EndsWith));
+            var index = relationship.ReferenceLibraryDllAbsoluteFilePaths.Length;
+            foreach (var buildFile in enumerable)
+            {
+                libraries[index++] = buildFile;
+            }
+
+            if (index != libraries.Length)
+            {
+                throw new FileNotFoundException(string.Join("\n", libraries) + "\n\nAbove were found.");
+            }
+
+            return libraries;
+        }
+
+        private static string FindTargetModule(RelationshipScriptableObject relationship, BuildFile[] files)
+        {
+            try
+            {
+                bool Predicate(BuildFile file) => file.path.EndsWith(relationship.InputNameWithExtension);
+
+                return files.First(Predicate).path;
+            }
+            catch
+            {
+                throw new FileNotFoundException(relationship.InputNameWithExtension + " not found.");
             }
         }
     }
