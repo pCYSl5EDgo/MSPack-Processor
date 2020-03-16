@@ -20,6 +20,7 @@ namespace MSPack.Processor.Unity.Editor
     // ReSharper disable once UnusedMember.Global
     public class PostBuildHook : IPostBuildPlayerScriptDLLs
     {
+        public static bool Enabled;
         private static readonly MethodInfo beginBuildStep;
         private static readonly MethodInfo endBuildStep;
         private readonly object[] msPackPostProcessor = { nameof(msPackPostProcessor) };
@@ -35,6 +36,11 @@ namespace MSPack.Processor.Unity.Editor
 
         public void OnPostBuildPlayerScriptDLLs(BuildReport report)
         {
+            if(!Enabled)
+            {
+                return;
+            }
+            
             step[0] = beginBuildStep.Invoke(report, msPackPostProcessor);
             try
             {
