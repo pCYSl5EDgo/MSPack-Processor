@@ -85,6 +85,7 @@ jobs:
         find Assets/Plugins/MSPack.Processor/Core/Report -name \*.meta >> metalist
         echo "Assets/Plugins/MSPack.Processor/Editor.meta" >> metalist
         echo "Assets/Plugins/MSPack.Processor/Editor/PostBuildHook.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Editor/Setting.cs.meta" >> metalist
         echo "Assets/Plugins/MSPack.Processor/Editor/RelationshipScriptableObject.cs.meta" >> metalist
     - name: Create unitypackage Common
       uses: pCYSl5EDgo/create-unitypackage@master
