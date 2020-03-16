@@ -100,7 +100,11 @@ jobs:
         echo "Assets/Plugins/MSPack.Processor/LICENSE.meta" >> metalist
         echo "Assets/Plugins/MSPack.Processor/README-jp.md.meta" >> metalist
         echo "Assets/Plugins/MSPack.Processor/Installer.meta" >> metalist
-        find Assets/Plugins/MSPack.Processor/Installer -name \*.meta >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Installer/MSPackMonoCecilInstaller.cs.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Installer/MSPack.Processor.Editor.Installer.asmdef.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.2018.4.unitypackage.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.2019.3.unitypackage.meta" >> metalist
+        echo "Assets/Plugins/MSPack.Processor/Installer/MSPack.UnityEditor.Common.unitypackage.meta" >> metalist
     - name: Create unitypackage installer
       uses: pCYSl5EDgo/create-unitypackage@master
       with:
