@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>6.0</LangVersion>
     <AssemblyName>MSPack.Processor.Annotation</AssemblyName>
-    <PackageId>MSPack.Processor.Anootation</PackageId>
+    <PackageId>MSPack.Processor.Annotation</PackageId>
     <Title>MSPack Processor Annotation</Title>
     <Authors>pCYSl5EDgo</Authors>
     <Company>pCYSl5EDgo</Company>
